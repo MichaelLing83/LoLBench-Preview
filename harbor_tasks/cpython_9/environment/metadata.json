@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_9",
+  "source_instance_id": "CPython_PEP-709_Inlined-comprehensions_PR-101441",
+  "source_slug": "CPython_PEP-709_Inlined-comprehensions_PR-101441",
+  "docker_slug": "CPython_PEP-709_Inlined-comprehensions_PR-101441",
+  "dockerhub_image": "smartdub26/lolbench:cpython_9-1.0.0",
+  "dockerhub_digest": "sha256:5c45261b498fb39a40fd838e08b0c62d16e8f7da1ff6675aed2d22a815f7759f",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0709/",
+  "pr_link": "https://github.com/python/cpython/pull/101441",
+  "base_commit": "0aeda297931820436a50b78f4f7f0597274b5df4",
+  "merge_commit": "c3b595e73efac59360d6dc869802abc752092460",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

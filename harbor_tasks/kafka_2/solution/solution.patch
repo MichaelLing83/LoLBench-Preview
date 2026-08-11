@@ -1,0 +1,765 @@
+diff --git a/connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java b/connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java
+index 2d2ef4a00c..51b23bef98 100644
+--- a/connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java
++++ b/connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java
+@@ -16,6 +16,7 @@
+  */
+ package org.apache.kafka.connect.storage;
+ 
++import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.kafka.common.header.Headers;
+ import org.apache.kafka.connect.data.Schema;
+ import org.apache.kafka.connect.data.SchemaAndValue;
+@@ -86,4 +87,12 @@ public interface Converter {
+     default SchemaAndValue toConnectData(String topic, Headers headers, byte[] value) {
+         return toConnectData(topic, value);
+     }
++
++    /**
++     * Configuration specification for this converter.
++     * @return the configuration specification; may not be null
++     */
++    default ConfigDef config() {
++        return new ConfigDef();
++    }
+ }
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java
+index 0fc8e2b131..2fe75a955b 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java
+@@ -29,6 +29,7 @@ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigOverridePo
+ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigRequest;
+ import org.apache.kafka.connect.errors.NotFoundException;
+ import org.apache.kafka.connect.runtime.distributed.ClusterConfigState;
++import org.apache.kafka.connect.runtime.isolation.PluginType;
+ import org.apache.kafka.connect.runtime.isolation.Plugins;
+ import org.apache.kafka.connect.runtime.rest.entities.ActiveTopicsInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfo;
+@@ -41,7 +42,11 @@ import org.apache.kafka.connect.runtime.rest.entities.ConnectorType;
+ import org.apache.kafka.connect.runtime.rest.errors.BadRequestException;
+ import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.storage.ConfigBackingStore;
++import org.apache.kafka.connect.storage.Converter;
++import org.apache.kafka.connect.storage.HeaderConverter;
+ import org.apache.kafka.connect.storage.StatusBackingStore;
++import org.apache.kafka.connect.transforms.Transformation;
++import org.apache.kafka.connect.transforms.predicates.Predicate;
+ import org.apache.kafka.connect.util.Callback;
+ import org.apache.kafka.connect.util.ConnectorTaskId;
+ 
+@@ -613,7 +618,7 @@ public abstract class AbstractHerder implements Herder, TaskStatus.Listener, Con
+         return new ConfigInfos(connType, errorCount, groups, configInfoList);
+     }
+ 
+-    private static ConfigKeyInfo convertConfigKey(ConfigKey configKey) {
++    public static ConfigKeyInfo convertConfigKey(ConfigKey configKey) {
+         return convertConfigKey(configKey, "");
+     }
+ 
+@@ -750,4 +755,41 @@ public abstract class AbstractHerder implements Herder, TaskStatus.Listener, Con
+         return keys;
+     }
+ 
++    @Override
++    public List<ConfigKeyInfo> connectorPluginConfig(String pluginName) {
++        List<ConfigKeyInfo> results = new ArrayList<>();
++        ConfigDef configDefs;
++        try {
++            Plugins p = plugins();
++            Object plugin = p.newPlugin(pluginName);
++            PluginType pluginType = PluginType.from(plugin.getClass());
++            switch (pluginType) {
++                case SINK:
++                case SOURCE:
++                    configDefs = ((Connector) plugin).config();
++                    break;
++                case CONVERTER:
++                    configDefs = ((Converter) plugin).config();
++                    break;
++                case HEADER_CONVERTER:
++                    configDefs = ((HeaderConverter) plugin).config();
++                    break;
++                case TRANSFORMATION:
++                    configDefs = ((Transformation<?>) plugin).config();
++                    break;
++                case PREDICATE:
++                    configDefs = ((Predicate<?>) plugin).config();
++                    break;
++                default:
++                    throw new BadRequestException("Invalid plugin type " + pluginType + ". Valid types are sink, source, converter, header_converter, transformation, predicate.");
++            }
++        } catch (ClassNotFoundException cnfe) {
++            throw new NotFoundException("Unknown plugin " + pluginName + ".");
++        }
++        for (ConfigDef.ConfigKey configKey : configDefs.configKeys().values()) {
++            results.add(AbstractHerder.convertConfigKey(configKey));
++        }
++        return results;
++    }
++
+ }
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/Herder.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/Herder.java
+index 945797f8ce..0f20c0bb35 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/Herder.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/Herder.java
+@@ -20,6 +20,7 @@ import org.apache.kafka.connect.runtime.isolation.Plugins;
+ import org.apache.kafka.connect.runtime.rest.InternalRequestSignature;
+ import org.apache.kafka.connect.runtime.rest.entities.ActiveTopicsInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfos;
++import org.apache.kafka.connect.runtime.rest.entities.ConfigKeyInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConnectorInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConnectorStateInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.TaskInfo;
+@@ -258,6 +259,14 @@ public interface Herder {
+      */
+     String kafkaClusterId();
+ 
++
++    /**
++     * Returns the configuration of a plugin
++     * @param pluginName the name of the plugin
++     * @return the list of ConfigKeyInfo of the plugin
++     */
++    List<ConfigKeyInfo> connectorPluginConfig(String pluginName);
++
+     enum ConfigReloadAction {
+         NONE,
+         RESTART
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/PredicatedTransformation.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/PredicatedTransformation.java
+index 0af0e7225f..8b7db30e45 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/PredicatedTransformation.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/PredicatedTransformation.java
+@@ -30,7 +30,7 @@ import org.apache.kafka.connect.transforms.predicates.Predicate;
+  * {@link Predicate} is true (or false, according to {@code negate}).
+  * @param <R>
+  */
+-class PredicatedTransformation<R extends ConnectRecord<R>> implements Transformation<R> {
++public class PredicatedTransformation<R extends ConnectRecord<R>> implements Transformation<R> {
+ 
+     static final String PREDICATE_CONFIG = "predicate";
+     static final String NEGATE_CONFIG = "negate";
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java
+index cf5a5481ee..b4f4b8840e 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java
+@@ -21,6 +21,8 @@ import org.apache.kafka.connect.components.Versioned;
+ import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.rest.ConnectRestExtension;
++import org.apache.kafka.connect.sink.SinkConnector;
++import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.storage.Converter;
+ import org.apache.kafka.connect.storage.HeaderConverter;
+ import org.apache.kafka.connect.transforms.Transformation;
+@@ -76,11 +78,12 @@ import java.util.stream.Collectors;
+ public class DelegatingClassLoader extends URLClassLoader {
+     private static final Logger log = LoggerFactory.getLogger(DelegatingClassLoader.class);
+     private static final String CLASSPATH_NAME = "classpath";
+-    private static final String UNDEFINED_VERSION = "undefined";
++    public static final String UNDEFINED_VERSION = "undefined";
+ 
+     private final ConcurrentMap<String, SortedMap<PluginDesc<?>, ClassLoader>> pluginLoaders;
+     private final ConcurrentMap<String, String> aliases;
+-    private final SortedSet<PluginDesc<Connector>> connectors;
++    private final SortedSet<PluginDesc<SinkConnector>> sinkConnectors;
++    private final SortedSet<PluginDesc<SourceConnector>> sourceConnectors;
+     private final SortedSet<PluginDesc<Converter>> converters;
+     private final SortedSet<PluginDesc<HeaderConverter>> headerConverters;
+     private final SortedSet<PluginDesc<Transformation<?>>> transformations;
+@@ -109,7 +112,8 @@ public class DelegatingClassLoader extends URLClassLoader {
+         this.pluginPaths = pluginPaths;
+         this.pluginLoaders = new ConcurrentHashMap<>();
+         this.aliases = new ConcurrentHashMap<>();
+-        this.connectors = new TreeSet<>();
++        this.sinkConnectors = new TreeSet<>();
++        this.sourceConnectors = new TreeSet<>();
+         this.converters = new TreeSet<>();
+         this.headerConverters = new TreeSet<>();
+         this.transformations = new TreeSet<>();
+@@ -127,10 +131,21 @@ public class DelegatingClassLoader extends URLClassLoader {
+         this(pluginPaths, DelegatingClassLoader.class.getClassLoader());
+     }
+ 
++    @SuppressWarnings({"unchecked", "rawtypes"})
+     public Set<PluginDesc<Connector>> connectors() {
++        Set<PluginDesc<Connector>> connectors = new TreeSet<>((Set) sinkConnectors);
++        connectors.addAll((Set) sourceConnectors);
+         return connectors;
+     }
+ 
++    public Set<PluginDesc<SinkConnector>> sinkConnectors() {
++        return sinkConnectors;
++    }
++
++    public Set<PluginDesc<SourceConnector>> sourceConnectors() {
++        return sourceConnectors;
++    }
++
+     public Set<PluginDesc<Converter>> converters() {
+         return converters;
+     }
+@@ -232,8 +247,7 @@ public class DelegatingClassLoader extends URLClassLoader {
+             if (CLASSPATH_NAME.equals(path)) {
+                 scanUrlsAndAddPlugins(
+                         getParent(),
+-                        ClasspathHelper.forJavaClassPath().toArray(new URL[0]),
+-                        null
++                        ClasspathHelper.forJavaClassPath().toArray(new URL[0])
+                 );
+             } else {
+                 Path pluginPath = Paths.get(path).toAbsolutePath();
+@@ -254,7 +268,7 @@ public class DelegatingClassLoader extends URLClassLoader {
+         } catch (IOException e) {
+             log.error("Could not get listing for plugin path: {}. Ignoring.", path, e);
+         } catch (ReflectiveOperationException e) {
+-            log.error("Could not instantiate plugins in: {}. Ignoring: {}", path, e);
++            log.error("Could not instantiate plugins in: {}. Ignoring.", path, e);
+         }
+     }
+ 
+@@ -274,19 +288,20 @@ public class DelegatingClassLoader extends URLClassLoader {
+                 urls,
+                 this
+         );
+-        scanUrlsAndAddPlugins(loader, urls, pluginLocation);
++        scanUrlsAndAddPlugins(loader, urls);
+     }
+ 
+     private void scanUrlsAndAddPlugins(
+             ClassLoader loader,
+-            URL[] urls,
+-            Path pluginLocation
++            URL[] urls
+     ) throws ReflectiveOperationException {
+         PluginScanResult plugins = scanPluginPath(loader, urls);
+         log.info("Registered loader: {}", loader);
+         if (!plugins.isEmpty()) {
+-            addPlugins(plugins.connectors(), loader);
+-            connectors.addAll(plugins.connectors());
++            addPlugins(plugins.sinkConnectors(), loader);
++            sinkConnectors.addAll(plugins.sinkConnectors());
++            addPlugins(plugins.sourceConnectors(), loader);
++            sourceConnectors.addAll(plugins.sourceConnectors());
+             addPlugins(plugins.converters(), loader);
+             converters.addAll(plugins.converters());
+             addPlugins(plugins.headerConverters(), loader);
+@@ -348,7 +363,8 @@ public class DelegatingClassLoader extends URLClassLoader {
+         Reflections reflections = new InternalReflections(builder);
+ 
+         return new PluginScanResult(
+-                getPluginDesc(reflections, Connector.class, loader),
++                getPluginDesc(reflections, SinkConnector.class, loader),
++                getPluginDesc(reflections, SourceConnector.class, loader),
+                 getPluginDesc(reflections, Converter.class, loader),
+                 getPluginDesc(reflections, HeaderConverter.class, loader),
+                 getTransformationPluginDesc(loader, reflections),
+@@ -419,7 +435,7 @@ public class DelegatingClassLoader extends URLClassLoader {
+         return pluginImpl instanceof Versioned ? ((Versioned) pluginImpl).version() : UNDEFINED_VERSION;
+     }
+ 
+-    private static <T> String versionFor(Class<? extends T> pluginKlass) throws ReflectiveOperationException {
++    public static <T> String versionFor(Class<? extends T> pluginKlass) throws ReflectiveOperationException {
+         // Temporary workaround until all the plugins are versioned.
+         return Connector.class.isAssignableFrom(pluginKlass) ?
+             versionFor(pluginKlass.getDeclaredConstructor().newInstance()) : UNDEFINED_VERSION;
+@@ -438,7 +454,7 @@ public class DelegatingClassLoader extends URLClassLoader {
+     }
+ 
+     private void addAllAliases() {
+-        addAliases(connectors);
++        addAliases(connectors());
+         addAliases(converters);
+         addAliases(headerConverters);
+         addAliases(transformations);
+@@ -503,7 +519,7 @@ public class DelegatingClassLoader extends URLClassLoader {
+     @Override
+     public Enumeration<URL> getResources(String name) throws IOException {
+         if (serviceLoaderManifestForPlugin(name)) {
+-            // Default implementation of getResources searches the parent class loader and and also its own URL paths. This will enable the
++            // Default implementation of getResources searches the parent class loader and also its own URL paths. This will enable the
+             // PluginClassLoader to limit its resource search to only its own URL paths.
+             return null;
+         } else {
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginScanResult.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginScanResult.java
+index e98945e370..565fe6dc67 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginScanResult.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginScanResult.java
+@@ -17,9 +17,10 @@
+ package org.apache.kafka.connect.runtime.isolation;
+ 
+ import org.apache.kafka.common.config.provider.ConfigProvider;
+-import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.rest.ConnectRestExtension;
++import org.apache.kafka.connect.sink.SinkConnector;
++import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.storage.Converter;
+ import org.apache.kafka.connect.storage.HeaderConverter;
+ import org.apache.kafka.connect.transforms.Transformation;
+@@ -30,7 +31,8 @@ import java.util.Collection;
+ import java.util.List;
+ 
+ public class PluginScanResult {
+-    private final Collection<PluginDesc<Connector>> connectors;
++    private final Collection<PluginDesc<SinkConnector>> sinkConnectors;
++    private final Collection<PluginDesc<SourceConnector>> sourceConnectors;
+     private final Collection<PluginDesc<Converter>> converters;
+     private final Collection<PluginDesc<HeaderConverter>> headerConverters;
+     private final Collection<PluginDesc<Transformation<?>>> transformations;
+@@ -42,7 +44,8 @@ public class PluginScanResult {
+     private final List<Collection<?>> allPlugins;
+ 
+     public PluginScanResult(
+-            Collection<PluginDesc<Connector>> connectors,
++            Collection<PluginDesc<SinkConnector>> sinkConnectors,
++            Collection<PluginDesc<SourceConnector>> sourceConnectors,
+             Collection<PluginDesc<Converter>> converters,
+             Collection<PluginDesc<HeaderConverter>> headerConverters,
+             Collection<PluginDesc<Transformation<?>>> transformations,
+@@ -51,7 +54,8 @@ public class PluginScanResult {
+             Collection<PluginDesc<ConnectRestExtension>> restExtensions,
+             Collection<PluginDesc<ConnectorClientConfigOverridePolicy>> connectorClientConfigPolicies
+     ) {
+-        this.connectors = connectors;
++        this.sinkConnectors = sinkConnectors;
++        this.sourceConnectors = sourceConnectors;
+         this.converters = converters;
+         this.headerConverters = headerConverters;
+         this.transformations = transformations;
+@@ -60,12 +64,16 @@ public class PluginScanResult {
+         this.restExtensions = restExtensions;
+         this.connectorClientConfigPolicies = connectorClientConfigPolicies;
+         this.allPlugins =
+-            Arrays.asList(connectors, converters, headerConverters, transformations, configProviders,
++            Arrays.asList(sinkConnectors, sourceConnectors, converters, headerConverters, transformations, configProviders,
+                           connectorClientConfigPolicies);
+     }
+ 
+-    public Collection<PluginDesc<Connector>> connectors() {
+-        return connectors;
++    public Collection<PluginDesc<SinkConnector>> sinkConnectors() {
++        return sinkConnectors;
++    }
++
++    public Collection<PluginDesc<SourceConnector>> sourceConnectors() {
++        return sourceConnectors;
+     }
+ 
+     public Collection<PluginDesc<Converter>> converters() {
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginType.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginType.java
+index c26b180117..696e14ba8c 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginType.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginType.java
+@@ -17,22 +17,24 @@
+ package org.apache.kafka.connect.runtime.isolation;
+ 
+ import org.apache.kafka.common.config.provider.ConfigProvider;
+-import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.rest.ConnectRestExtension;
+ import org.apache.kafka.connect.sink.SinkConnector;
+ import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.storage.Converter;
++import org.apache.kafka.connect.storage.HeaderConverter;
+ import org.apache.kafka.connect.transforms.Transformation;
++import org.apache.kafka.connect.transforms.predicates.Predicate;
+ 
+ import java.util.Locale;
+ 
+ public enum PluginType {
+     SOURCE(SourceConnector.class),
+     SINK(SinkConnector.class),
+-    CONNECTOR(Connector.class),
+     CONVERTER(Converter.class),
++    HEADER_CONVERTER(HeaderConverter.class),
+     TRANSFORMATION(Transformation.class),
++    PREDICATE(Predicate.class),
+     CONFIGPROVIDER(ConfigProvider.class),
+     REST_EXTENSION(ConnectRestExtension.class),
+     CONNECTOR_CLIENT_CONFIG_OVERRIDE_POLICY(ConnectorClientConfigOverridePolicy.class),
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginUtils.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginUtils.java
+index 12cb1867d8..46a4cfa752 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginUtils.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginUtils.java
+@@ -319,7 +319,6 @@ public class PluginUtils {
+         switch (plugin.type()) {
+             case SOURCE:
+             case SINK:
+-            case CONNECTOR:
+                 return prunePluginName(plugin, "Connector");
+             default:
+                 return prunePluginName(plugin, plugin.type().simpleName());
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/Plugins.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/Plugins.java
+index 26b5d50905..7ec73ba78b 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/Plugins.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/Plugins.java
+@@ -25,6 +25,8 @@ import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.Task;
+ import org.apache.kafka.connect.errors.ConnectException;
+ import org.apache.kafka.connect.runtime.WorkerConfig;
++import org.apache.kafka.connect.sink.SinkConnector;
++import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.storage.Converter;
+ import org.apache.kafka.connect.storage.ConverterConfig;
+ import org.apache.kafka.connect.storage.ConverterType;
+@@ -147,14 +149,22 @@ public class Plugins {
+         return delegatingLoader;
+     }
+ 
+-    public Set<PluginDesc<Connector>> connectors() {
+-        return delegatingLoader.connectors();
++    public Set<PluginDesc<SinkConnector>> sinkConnectors() {
++        return delegatingLoader.sinkConnectors();
++    }
++
++    public Set<PluginDesc<SourceConnector>> sourceConnectors() {
++        return delegatingLoader.sourceConnectors();
+     }
+ 
+     public Set<PluginDesc<Converter>> converters() {
+         return delegatingLoader.converters();
+     }
+ 
++    public Set<PluginDesc<HeaderConverter>> headerConverters() {
++        return delegatingLoader.headerConverters();
++    }
++
+     public Set<PluginDesc<Transformation<?>>> transformations() {
+         return delegatingLoader.transformations();
+     }
+@@ -163,6 +173,11 @@ public class Plugins {
+         return delegatingLoader.predicates();
+     }
+ 
++    public Object newPlugin(String classOrAlias) throws ClassNotFoundException {
++        Class<?> klass = pluginClass(delegatingLoader, classOrAlias, Object.class);
++        return newPlugin(klass);
++    }
++
+     public Connector newConnector(String connectorClassOrAlias) {
+         Class<? extends Connector> klass = connectorClass(connectorClassOrAlias);
+         return newPlugin(klass);
+@@ -177,8 +192,9 @@ public class Plugins {
+                     Connector.class
+             );
+         } catch (ClassNotFoundException e) {
+-            List<PluginDesc<Connector>> matches = new ArrayList<>();
+-            for (PluginDesc<Connector> plugin : delegatingLoader.connectors()) {
++            List<PluginDesc<? extends Connector>> matches = new ArrayList<>();
++            Set<PluginDesc<Connector>> connectors = delegatingLoader.connectors();
++            for (PluginDesc<? extends Connector> plugin : connectors) {
+                 Class<?> pluginClass = plugin.pluginClass();
+                 String simpleName = pluginClass.getSimpleName();
+                 if (simpleName.equals(connectorClassOrAlias)
+@@ -192,20 +208,19 @@ public class Plugins {
+                         "Failed to find any class that implements Connector and which name matches "
+                                 + connectorClassOrAlias
+                                 + ", available connectors are: "
+-                                + pluginNames(delegatingLoader.connectors())
++                                + Utils.join(connectors, ", ")
+                 );
+             }
+             if (matches.size() > 1) {
+                 throw new ConnectException(
+                         "More than one connector matches alias "
+                                 + connectorClassOrAlias
+-                                +
+-                                ". Please use full package and class name instead. Classes found: "
+-                                + pluginNames(matches)
++                                + ". Please use full package and class name instead. Classes found: "
++                                + Utils.join(connectors, ", ")
+                 );
+             }
+ 
+-            PluginDesc<Connector> entry = matches.get(0);
++            PluginDesc<? extends Connector> entry = matches.get(0);
+             klass = entry.pluginClass();
+         }
+         return klass;
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ConnectorPluginInfo.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/PluginInfo.java
+similarity index 60%
+rename from connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ConnectorPluginInfo.java
+rename to connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/PluginInfo.java
+index 98b30e166f..e703267867 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ConnectorPluginInfo.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/PluginInfo.java
+@@ -17,21 +17,23 @@
+ package org.apache.kafka.connect.runtime.rest.entities;
+ 
+ import com.fasterxml.jackson.annotation.JsonCreator;
++import com.fasterxml.jackson.annotation.JsonInclude;
+ import com.fasterxml.jackson.annotation.JsonProperty;
+-import org.apache.kafka.connect.connector.Connector;
++import org.apache.kafka.connect.runtime.isolation.DelegatingClassLoader;
+ import org.apache.kafka.connect.runtime.isolation.PluginDesc;
++import org.apache.kafka.connect.runtime.isolation.PluginType;
+ 
+ import java.util.Objects;
+ 
+-public class ConnectorPluginInfo {
++public class PluginInfo {
+     private final String className;
+-    private final ConnectorType type;
++    private final PluginType type;
+     private final String version;
+ 
+     @JsonCreator
+-    public ConnectorPluginInfo(
++    public PluginInfo(
+         @JsonProperty("class") String className,
+-        @JsonProperty("type") ConnectorType type,
++        @JsonProperty("type") PluginType type,
+         @JsonProperty("version") String version
+     ) {
+         this.className = className;
+@@ -39,8 +41,8 @@ public class ConnectorPluginInfo {
+         this.version = version;
+     }
+ 
+-    public ConnectorPluginInfo(PluginDesc<Connector> plugin) {
+-        this(plugin.className(), ConnectorType.from(plugin.pluginClass()), plugin.version());
++    public PluginInfo(PluginDesc<?> plugin) {
++        this(plugin.className(), plugin.type(), plugin.version());
+     }
+ 
+     @JsonProperty("class")
+@@ -49,11 +51,12 @@ public class ConnectorPluginInfo {
+     }
+ 
+     @JsonProperty("type")
+-    public ConnectorType type() {
+-        return type;
++    public String type() {
++        return type.toString();
+     }
+ 
+     @JsonProperty("version")
++    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = NoVersionFilter.class)
+     public String version() {
+         return version;
+     }
+@@ -66,9 +69,9 @@ public class ConnectorPluginInfo {
+         if (o == null || getClass() != o.getClass()) {
+             return false;
+         }
+-        ConnectorPluginInfo that = (ConnectorPluginInfo) o;
++        PluginInfo that = (PluginInfo) o;
+         return Objects.equals(className, that.className) &&
+-               type == that.type &&
++               Objects.equals(type, that.type) &&
+                Objects.equals(version, that.version);
+     }
+ 
+@@ -79,11 +82,22 @@ public class ConnectorPluginInfo {
+ 
+     @Override
+     public String toString() {
+-        final StringBuilder sb = new StringBuilder("ConnectorPluginInfo{");
+-        sb.append("className='").append(className).append('\'');
+-        sb.append(", type=").append(type);
+-        sb.append(", version='").append(version).append('\'');
+-        sb.append('}');
+-        return sb.toString();
++        return "PluginInfo{" + "className='" + className + '\'' +
++                ", type=" + type.toString() +
++                ", version='" + version + '\'' +
++                '}';
++    }
++
++    public static final class NoVersionFilter {
++        // This method is used by Jackson to filter the version field for plugins that don't have a version
++        public boolean equals(Object obj) {
++            return DelegatingClassLoader.UNDEFINED_VERSION.equals(obj);
++        }
++
++        // Dummy hashCode method to not fail compilation because of equals() method
++        @Override
++        public int hashCode() {
++            return super.hashCode();
++        }
+     }
+ }
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java
+index 0854c8f8ed..2beda9fb8a 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java
+@@ -16,37 +16,45 @@
+  */
+ package org.apache.kafka.connect.runtime.rest.resources;
+ 
+-import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.runtime.ConnectorConfig;
+ import org.apache.kafka.connect.runtime.Herder;
++import org.apache.kafka.connect.runtime.PredicatedTransformation;
+ import org.apache.kafka.connect.runtime.isolation.PluginDesc;
++import org.apache.kafka.connect.runtime.isolation.PluginType;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfos;
+-import org.apache.kafka.connect.runtime.rest.entities.ConnectorPluginInfo;
++import org.apache.kafka.connect.runtime.rest.entities.ConfigKeyInfo;
++import org.apache.kafka.connect.runtime.rest.entities.PluginInfo;
+ import org.apache.kafka.connect.runtime.rest.errors.ConnectRestException;
+-import org.apache.kafka.connect.tools.MockConnector;
++import org.apache.kafka.connect.sink.SinkConnector;
++import org.apache.kafka.connect.source.SourceConnector;
+ import org.apache.kafka.connect.tools.MockSinkConnector;
+ import org.apache.kafka.connect.tools.MockSourceConnector;
+ import org.apache.kafka.connect.tools.SchemaSourceConnector;
+ import org.apache.kafka.connect.tools.VerifiableSinkConnector;
+ import org.apache.kafka.connect.tools.VerifiableSourceConnector;
++import org.apache.kafka.connect.transforms.Transformation;
+ import org.apache.kafka.connect.util.FutureCallback;
+ 
+ import javax.ws.rs.BadRequestException;
+ import javax.ws.rs.Consumes;
++import javax.ws.rs.DefaultValue;
+ import javax.ws.rs.GET;
+ import javax.ws.rs.PUT;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.PathParam;
+ import javax.ws.rs.Produces;
++import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.MediaType;
+ import javax.ws.rs.core.Response;
+ import java.util.ArrayList;
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
++import java.util.stream.Collectors;
+ 
+ @Path("/connector-plugins")
+ @Produces(MediaType.APPLICATION_JSON)
+@@ -55,17 +63,42 @@ public class ConnectorPluginsResource {
+ 
+     private static final String ALIAS_SUFFIX = "Connector";
+     private final Herder herder;
+-    private final List<ConnectorPluginInfo> connectorPlugins;
++    private final List<PluginInfo> connectorPlugins;
+ 
+-    private static final List<Class<? extends Connector>> CONNECTOR_EXCLUDES = Arrays.asList(
+-            VerifiableSourceConnector.class, VerifiableSinkConnector.class,
+-            MockConnector.class, MockSourceConnector.class, MockSinkConnector.class,
++    static final List<Class<? extends SinkConnector>> SINK_CONNECTOR_EXCLUDES = Arrays.asList(
++            VerifiableSinkConnector.class,
++            MockSinkConnector.class
++    );
++
++    static final List<Class<? extends SourceConnector>> SOURCE_CONNECTOR_EXCLUDES = Arrays.asList(
++            VerifiableSourceConnector.class,
++            MockSourceConnector.class,
+             SchemaSourceConnector.class
+     );
+ 
++    @SuppressWarnings({"unchecked", "rawtypes"})
++    static final List<Class<? extends Transformation<?>>> TRANSFORM_EXCLUDES = Collections.singletonList(
++            (Class) PredicatedTransformation.class
++    );
++
+     public ConnectorPluginsResource(Herder herder) {
+         this.herder = herder;
+         this.connectorPlugins = new ArrayList<>();
++
++        // TODO: improve once plugins are allowed to be added/removed during runtime.
++        addConnectorPlugins(herder.plugins().sinkConnectors(), SINK_CONNECTOR_EXCLUDES);
++        addConnectorPlugins(herder.plugins().sourceConnectors(), SOURCE_CONNECTOR_EXCLUDES);
++        addConnectorPlugins(herder.plugins().transformations(), TRANSFORM_EXCLUDES);
++        addConnectorPlugins(herder.plugins().predicates(), Collections.emptySet());
++        addConnectorPlugins(herder.plugins().converters(), Collections.emptySet());
++        addConnectorPlugins(herder.plugins().headerConverters(), Collections.emptySet());
++    }
++
++    private <T> void addConnectorPlugins(Collection<PluginDesc<T>> plugins, Collection<Class<? extends T>> excludes) {
++        plugins.stream()
++                .filter(p -> !excludes.contains(p.pluginClass()))
++                .map(PluginInfo::new)
++                .forEach(connectorPlugins::add);
+     }
+ 
+     @PUT
+@@ -100,21 +133,24 @@ public class ConnectorPluginsResource {
+ 
+     @GET
+     @Path("/")
+-    public List<ConnectorPluginInfo> listConnectorPlugins() {
+-        return getConnectorPlugins();
+-    }
+-
+-    // TODO: improve once plugins are allowed to be added/removed during runtime.
+-    private synchronized List<ConnectorPluginInfo> getConnectorPlugins() {
+-        if (connectorPlugins.isEmpty()) {
+-            for (PluginDesc<Connector> plugin : herder.plugins().connectors()) {
+-                if (!CONNECTOR_EXCLUDES.contains(plugin.pluginClass())) {
+-                    connectorPlugins.add(new ConnectorPluginInfo(plugin));
+-                }
++    public List<PluginInfo> listConnectorPlugins(@DefaultValue("true") @QueryParam("connectorsOnly") boolean connectorsOnly) {
++        synchronized (this) {
++            if (connectorsOnly) {
++                return Collections.unmodifiableList(connectorPlugins.stream()
++                        .filter(p -> PluginType.SINK.toString().equals(p.type()) || PluginType.SOURCE.toString().equals(p.type()))
++                        .collect(Collectors.toList()));
++            } else {
++                return Collections.unmodifiableList(connectorPlugins);
+             }
+         }
++    }
+ 
+-        return Collections.unmodifiableList(connectorPlugins);
++    @GET
++    @Path("/{name}/config")
++    public List<ConfigKeyInfo> getConnectorConfigDef(final @PathParam("name") String pluginName) {
++        synchronized (this) {
++            return herder.connectorPluginConfig(pluginName);
++        }
+     }
+ 
+     private String normalizedPluginName(String pluginName) {
+@@ -123,4 +159,5 @@ public class ConnectorPluginsResource {
+             ? pluginName.substring(0, pluginName.length() - ALIAS_SUFFIX.length())
+             : pluginName;
+     }
++
+ }
+diff --git a/connect/runtime/src/main/java/org/apache/kafka/connect/tools/VerifiableSinkConnector.java b/connect/runtime/src/main/java/org/apache/kafka/connect/tools/VerifiableSinkConnector.java
+index 55f95a3448..fbe29e13ed 100644
+--- a/connect/runtime/src/main/java/org/apache/kafka/connect/tools/VerifiableSinkConnector.java
++++ b/connect/runtime/src/main/java/org/apache/kafka/connect/tools/VerifiableSinkConnector.java
+@@ -19,7 +19,7 @@ package org.apache.kafka.connect.tools;
+ import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.kafka.common.utils.AppInfoParser;
+ import org.apache.kafka.connect.connector.Task;
+-import org.apache.kafka.connect.source.SourceConnector;
++import org.apache.kafka.connect.sink.SinkConnector;
+ 
+ import java.util.ArrayList;
+ import java.util.HashMap;
+@@ -29,7 +29,7 @@ import java.util.Map;
+ /**
+  * @see VerifiableSinkTask
+  */
+-public class VerifiableSinkConnector extends SourceConnector {
++public class VerifiableSinkConnector extends SinkConnector {
+     private Map<String, String> config;
+ 
+     @Override
+diff --git a/gradle/spotbugs-exclude.xml b/gradle/spotbugs-exclude.xml
+index 98588117f0..8e09cf9267 100644
+--- a/gradle/spotbugs-exclude.xml
++++ b/gradle/spotbugs-exclude.xml
+@@ -260,6 +260,14 @@ For a detailed description of spotbugs bug categories, see https://spotbugs.read
+         <Bug pattern="ICAST_INT_2_LONG_AS_INSTANT"/>
+     </Match>
+ 
++    <Match>
++        <!-- Suppress warning about missing reflexive and symmetric properties of equal.
++             This equals method is used as a value filter for Jackson. -->
++        <Class name="org.apache.kafka.connect.runtime.rest.entities.PluginInfo$NoVersionFilter"/>
++        <Method name="equals"/>
++        <Bug pattern="EQ_CHECK_FOR_OPERAND_NOT_COMPATIBLE_WITH_THIS"/>
++    </Match>
++
+     <Match>
+         <!-- Suppress some minor warnings about machine-generated code for benchmarking. -->
+         <Package name="~org\.apache\.kafka\.jmh\..*\.jmh_generated"/>

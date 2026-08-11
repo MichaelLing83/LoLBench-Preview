@@ -1,0 +1,94 @@
+{
+  "instance_id": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "suite_support": {
+    "env": "LOLBENCH_SUITE",
+    "modes": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "default": "orig"
+  },
+  "sidecar_patch": "eval_tests_aug.patch",
+  "sidecar_patch_sha256": "38296765eef3c68babce73dd6360a728351911413d16e049c79259282a21db5b",
+  "new_file_rule": "All augmented selectors live in new unittest file Lib/test/test_pep646_aug.py via eval_tests_aug.patch.",
+  "tests": {
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_pep646_syntax_doctest_examples": {
+      "kind": "F2P-cov",
+      "requirement_sections": [
+        "Grammar Changes > Change 1: Star Expressions in Indexes",
+        "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+      ],
+      "public_surface": "CPython public doctest execution of test.test_pep646_syntax examples covering starred subscripts and starred vararg annotations.",
+      "kills_mutants": [],
+      "coverage_goal": "The PR shipped many PEP 646 behavior checks as doctests rather than directly loadable unittest selectors. This wrapper runs those public examples through the standard CPython test support path, increasing coverage of the grammar/parser surface while still failing on the base parser that rejects starred subscript and starred vararg annotation syntax.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    },
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_starred_vararg_annotation_runtime_value": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+      ],
+      "public_surface": "exec() of a function definition using `*args: *Ts`, then public function __annotations__ inspection.",
+      "kills_mutants": [
+        "mutant_011_compile_unpack_sequence_expects_two",
+        "mutant_012_compile_builds_tuple_instead_of_unpacking"
+      ],
+      "coverage_goal": "PEP 646 specifies that `*args: *Ts` is evaluated like `[annotation_value] = [*Ts]`, yielding one unpacked TypeVarTuple annotation. The first survivor emits `UNPACK_SEQUENCE 2` and errors at function definition; the second builds a tuple and leaves a tuple-shaped annotation, so this public runtime check distinguishes both from the golden behavior.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    },
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_future_starred_vararg_annotation_string": {
+      "kind": "F2P-cov",
+      "requirement_sections": [
+        "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+      ],
+      "public_surface": "exec() of a future-annotations function definition using `*args: *Ts`, then public function __annotations__ inspection.",
+      "kills_mutants": [],
+      "coverage_goal": "The future-annotations path must preserve starred vararg annotations as strings instead of evaluating them. This public execution check exercises the compiler future-annotations branch for the same PEP 646 syntax and fails on the base parser.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    },
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_plain_vararg_annotation_still_uses_value": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "exec() of an ordinary `def f(*args: int)` definition and public function __annotations__ inspection.",
+      "stability_goal": "PEP 646 adds starred vararg annotation handling without changing ordinary vararg annotations. This guard pins the neighboring pre-existing annotation behavior while the compiler special case for `*args: *Ts` changes.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    },
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_grammar_suite_still_passes": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "unittest execution of the existing unmodified test.test_grammar suite through CPython public grammar tests.",
+      "stability_goal": "PEP 646 grammar changes must preserve ordinary grammar behavior. Running the existing grammar suite inside a sidecar selector guards broad non-PEP-646 parser behavior while improving stability coverage of the generated parser surface.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    },
+    "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_compile_suite_still_passes": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "unittest execution of the existing unmodified test.test_compile suite through CPython public compiler tests.",
+      "stability_goal": "The compiler special case for starred vararg annotations must not disturb ordinary compile-time behavior. Running the existing compile suite pins neighboring compiler functionality through public tests.",
+      "internal_symbol_check": "No CPython internals imported or named; test uses public language execution and/or public CPython regression-test modules."
+    }
+  },
+  "coverage_validation": {
+    "status": "passed",
+    "required_minimum_percent": 80,
+    "reports": {
+      "baseline": "coverage_out/coverage_report_orig.json",
+      "augmented_only": "coverage_out/coverage_report_aug.json",
+      "union": "coverage_out/coverage_report_union.json"
+    },
+    "measurement_note": "Coverage measured with coverage.py plus gcovr over solution.patch Python and C lines; union mode runs original plus augmented F2P/P2P selectors.",
+    "baseline_union_line_coverage_percent": 85.7,
+    "augmented_only_union_line_coverage_percent": 57.1,
+    "union_line_coverage_percent": 85.7,
+    "executable_lines_in_patch": 14,
+    "union_covered_lines": 12,
+    "coverage_complete": true
+  }
+}

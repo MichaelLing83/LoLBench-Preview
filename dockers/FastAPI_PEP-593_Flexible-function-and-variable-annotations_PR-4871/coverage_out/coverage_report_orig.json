@@ -1,0 +1,56 @@
+{
+  "instance_id": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "files_in_scope": [
+    "fastapi/dependencies/utils.py",
+    "fastapi/param_functions.py",
+    "fastapi/params.py",
+    "fastapi/utils.py"
+  ],
+  "per_file": [
+    {
+      "file": "fastapi/dependencies/utils.py",
+      "lines_in_patch": 177,
+      "executable_lines_in_patch": 90,
+      "f2p_covered": 69,
+      "p2p_covered": 72,
+      "union_covered": 87
+    },
+    {
+      "file": "fastapi/param_functions.py",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "fastapi/params.py",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "fastapi/utils.py",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py against fastapi/dependencies/utils.py, param_functions.py, params.py, utils.py",
+    "lines_in_patch_total": 193,
+    "executable_lines_in_patch": 92,
+    "f2p_covered": 71,
+    "p2p_covered": 74,
+    "union_covered": 89,
+    "f2p_pct": 77.2,
+    "p2p_pct": 80.4,
+    "union_pct": 96.7,
+    "coverage_complete": true
+  },
+  "coverage_complete": true
+}

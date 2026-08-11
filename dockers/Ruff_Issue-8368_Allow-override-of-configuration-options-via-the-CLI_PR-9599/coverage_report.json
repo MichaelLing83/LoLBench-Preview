@@ -1,0 +1,213 @@
+{
+  "instance_id": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "files": {
+    "Cargo.lock": {
+      "kind": "build",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable .rs file"
+    },
+    "crates/ruff/Cargo.toml": {
+      "kind": "build",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable .rs file"
+    },
+    "crates/ruff/src/args.rs": {
+      "kind": "rust",
+      "lines_in_patch": 397,
+      "executable_lines_in_patch": 231,
+      "f2p_covered": 224,
+      "p2p_covered": 75,
+      "union_covered": 224,
+      "f2p_pct": 97.0,
+      "p2p_pct": 32.5,
+      "union_pct": 97.0
+    },
+    "crates/ruff/src/commands/add_noqa.rs": {
+      "kind": "rust",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "crates/ruff/src/commands/check.rs": {
+      "kind": "rust",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "crates/ruff/src/commands/check_stdin.rs": {
+      "kind": "rust",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    },
+    "crates/ruff/src/commands/format.rs": {
+      "kind": "rust",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 3,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "crates/ruff/src/commands/format_stdin.rs": {
+      "kind": "rust",
+      "lines_in_patch": 7,
+      "executable_lines_in_patch": 6,
+      "f2p_covered": 5,
+      "p2p_covered": 0,
+      "union_covered": 5,
+      "f2p_pct": 83.3,
+      "p2p_pct": 0.0,
+      "union_pct": 83.3
+    },
+    "crates/ruff/src/commands/show_files.rs": {
+      "kind": "rust",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 0,
+      "p2p_covered": 2,
+      "union_covered": 2,
+      "f2p_pct": 0.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    },
+    "crates/ruff/src/commands/show_settings.rs": {
+      "kind": "rust",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 0,
+      "p2p_covered": 2,
+      "union_covered": 2,
+      "f2p_pct": 0.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    },
+    "crates/ruff/src/lib.rs": {
+      "kind": "rust",
+      "lines_in_patch": 24,
+      "executable_lines_in_patch": 24,
+      "f2p_covered": 5,
+      "p2p_covered": 15,
+      "union_covered": 17,
+      "f2p_pct": 20.8,
+      "p2p_pct": 62.5,
+      "union_pct": 70.8
+    },
+    "crates/ruff/src/resolve.rs": {
+      "kind": "rust",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 8,
+      "f2p_covered": 5,
+      "p2p_covered": 5,
+      "union_covered": 6,
+      "f2p_pct": 62.5,
+      "p2p_pct": 62.5,
+      "union_pct": 75.0
+    },
+    "crates/ruff_dev/src/format_dev.rs": {
+      "kind": "rust",
+      "lines_in_patch": 8,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "crates/ruff_linter/src/settings/types.rs": {
+      "kind": "rust",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "crates/ruff_wasm/src/lib.rs": {
+      "kind": "rust",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "crates/ruff_workspace/src/configuration.rs": {
+      "kind": "rust",
+      "lines_in_patch": 19,
+      "executable_lines_in_patch": 17,
+      "f2p_covered": 17,
+      "p2p_covered": 16,
+      "union_covered": 17,
+      "f2p_pct": 100.0,
+      "p2p_pct": 94.1,
+      "union_pct": 100.0
+    },
+    "crates/ruff_workspace/src/options.rs": {
+      "kind": "rust",
+      "lines_in_patch": 29,
+      "executable_lines_in_patch": 29,
+      "f2p_covered": 7,
+      "p2p_covered": 5,
+      "union_covered": 7,
+      "f2p_pct": 24.1,
+      "p2p_pct": 17.2,
+      "union_pct": 24.1
+    },
+    "crates/ruff_workspace/src/resolver.rs": {
+      "kind": "rust",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 518,
+    "executable_lines_in_patch": 329,
+    "f2p_covered": 265,
+    "p2p_covered": 122,
+    "union_covered": 282,
+    "f2p_pct": 80.5,
+    "p2p_pct": 37.1,
+    "union_pct": 85.7,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_lcov": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_lcov": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

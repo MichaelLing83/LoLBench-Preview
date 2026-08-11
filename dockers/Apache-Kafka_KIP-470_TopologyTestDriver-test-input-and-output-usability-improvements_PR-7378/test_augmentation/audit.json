@@ -1,0 +1,161 @@
+{
+  "instance_id": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "requirement_section_source": "requirement_pr_pairs/Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378.md",
+  "sidecar_patch": "eval_tests_aug.patch",
+  "new_file_only_patch": true,
+  "tests": [
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testAutoAdvanceExplicitTimestampAndManualAdvance",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_001_input_topic_auto_advance_reversed",
+        "mutant_003_explicit_record_timestamp_ignored"
+      ],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/test/TestRecord.java"
+      ],
+      "public_surface": "TopologyTestDriver#createInputTopic, TestInputTopic#pipeInput, TestInputTopic#advanceTime, TestOutputTopic#readRecord, TestRecord constructors.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testSimpleInputTopicDoesNotAutoAdvanceByDefault",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": ["mutant_007_default_input_topic_auto_advances_one_ms"],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TopologyTestDriver.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java"
+      ],
+      "public_surface": "TopologyTestDriver#createInputTopic simple overload and TestInputTopic#pipeInput.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testNegativeDurationsAreRejected",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces"],
+      "kills_mutants": ["mutant_002_advance_time_allows_negative"],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TopologyTestDriver.java"
+      ],
+      "public_surface": "TopologyTestDriver#createInputTopic timestamp overload and TestInputTopic#advanceTime.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testKeyValueListAndMapPreserveKeysAndRejectNullMapKeys",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_004_key_value_list_drops_keys",
+        "mutant_006_key_values_to_map_accepts_null_keys"
+      ],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java"
+      ],
+      "public_surface": "TestInputTopic#pipeKeyValueList, TestInputTopic#pipeInput(value), TestOutputTopic#readKeyValuesToMap.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testOutputReadsQueueStateAndEmptyTopicErrors",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces"],
+      "kills_mutants": [
+        "mutant_005_output_key_value_read_drops_key",
+        "mutant_008_empty_output_topic_returns_null_record",
+        "mutant_009_output_value_deserialized_from_key_bytes",
+        "mutant_010_is_empty_inverted"
+      ],
+      "covers_files": ["streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java"],
+      "public_surface": "TestOutputTopic#getQueueSize, TestOutputTopic#isEmpty, TestOutputTopic#readKeyValue, TestOutputTopic#readRecord.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testValueAndRecordCollectionsPreserveOrderAndTimestamps",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_001_input_topic_auto_advance_reversed",
+        "mutant_004_key_value_list_drops_keys"
+      ],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/test/TestRecord.java"
+      ],
+      "public_surface": "TestInputTopic collection helpers and TestOutputTopic collection read helpers.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testFactoriesUnknownTopicsAndToStringDiagnostics",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces"],
+      "kills_mutants": [
+        "mutant_008_empty_output_topic_returns_null_record",
+        "mutant_010_is_empty_inverted"
+      ],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TopologyTestDriver.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java"
+      ],
+      "public_surface": "TopologyTestDriver#createInputTopic/createOutputTopic and TestInputTopic/TestOutputTopic diagnostics.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testAdditionalInputOutputAndDriverOverloads",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_001_input_topic_auto_advance_reversed",
+        "mutant_003_explicit_record_timestamp_ignored",
+        "mutant_004_key_value_list_drops_keys",
+        "mutant_005_output_key_value_read_drops_key",
+        "mutant_008_empty_output_topic_returns_null_record"
+      ],
+      "covers_files": [
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TopologyTestDriver.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java",
+        "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java"
+      ],
+      "public_surface": "Additional TestInputTopic, TestOutputTopic, and deprecated TopologyTestDriver migration overloads from KIP-470.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordTimestampEqualityAndProducerConstructor",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_011_test_record_timestamp_always_null",
+        "mutant_012_test_record_equality_ignores_timestamp"
+      ],
+      "covers_files": ["streams/test-utils/src/main/java/org/apache/kafka/streams/test/TestRecord.java"],
+      "public_surface": "TestRecord public constructors, accessors, toString, equals, and hashCode.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordNullTimestampAccessorsConsumerConstructorAndEqualityBranches",
+      "goals": ["F2P-mut", "F2P-cov"],
+      "requirement_sections": ["Public Interfaces", "Proposed Changes"],
+      "kills_mutants": [
+        "mutant_011_test_record_timestamp_always_null",
+        "mutant_012_test_record_equality_ignores_timestamp"
+      ],
+      "covers_files": ["streams/test-utils/src/main/java/org/apache/kafka/streams/test/TestRecord.java"],
+      "public_surface": "TestRecord public null-timestamp constructor path, invalid timestamp validation, accessors, ConsumerRecord bridge constructor, and equality branches.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.json.JsonConverterKip470AugTest#testSchemalessNestedMapRoundTripRemainsUnchanged",
+      "goals": ["P2P-stability"],
+      "requirement_sections": ["Compatibility, Deprecation, and Migration Plan"],
+      "stability_goal": "KIP-470 streams test utility changes must not affect unchanged JsonConverter schemaless nested map conversion.",
+      "covers_files": ["connect/json/src/main/java/org/apache/kafka/connect/json/JsonConverter.java"],
+      "public_surface": "JsonConverter public fromConnectData/toConnectData API.",
+      "internal_symbol_check": []
+    }
+  ]
+}

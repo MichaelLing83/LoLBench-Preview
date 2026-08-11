@@ -1,0 +1,23 @@
+{
+  "instance_id": "kafka_1",
+  "source_instance_id": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "source_slug": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "docker_slug": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "dockerhub_image": "smartdub26/lolbench:kafka_1-1.0.0",
+  "dockerhub_digest": "sha256:f43a70d113e7f80ee0e30f8d502e02e68be3b563ed40d7286d040f3987274583",
+  "project": "kafka",
+  "repo": "apache/kafka",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/KAFKA/KIP-470%3A+TopologyTestDriver+test+input+and+output+usability+improvements",
+  "pr_link": "https://github.com/apache/kafka/pull/7378",
+  "base_commit": "0de61a4683b92bdee803c51211c3277578ab3edf",
+  "merge_commit": "50cfdc05d22d51ec9864ecb1722a461bb07a7e4a",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

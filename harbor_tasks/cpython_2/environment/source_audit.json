@@ -1,0 +1,7 @@
+{
+  "source_policy": "dockerfile_fetch_pruned_ancestor_history",
+  "local_reference_policy": "released_zoneinfo_extension_removed",
+  "base_commit": "6e8cda91d92da72800d891b2fc2073ecbc134d98",
+  "repo": "python/cpython",
+  "note": "The Dockerfile fetches only the declared base history, prunes unreachable objects, removes auxiliary reference sources and the released Python 3.10 _zoneinfo extension, and fails the build if that compiled PEP 615 oracle remains importable."
+}

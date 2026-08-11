@@ -1,0 +1,103 @@
+{
+  "instance_id": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "files_in_scope": [
+    "Lib/zoneinfo/__init__.py",
+    "Lib/zoneinfo/_common.py",
+    "Lib/zoneinfo/_tzpath.py",
+    "Lib/zoneinfo/_zoneinfo.py",
+    "Modules/_zoneinfo.c"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/zoneinfo/__init__.py",
+      "language": "python",
+      "lines_in_patch": 29,
+      "executable_lines_in_patch": 15,
+      "f2p_covered": 13,
+      "p2p_covered": 0,
+      "union_covered": 13
+    },
+    {
+      "file": "Lib/zoneinfo/_common.py",
+      "language": "python",
+      "lines_in_patch": 166,
+      "executable_lines_in_patch": 73,
+      "f2p_covered": 69,
+      "p2p_covered": 0,
+      "union_covered": 69
+    },
+    {
+      "file": "Lib/zoneinfo/_tzpath.py",
+      "language": "python",
+      "lines_in_patch": 110,
+      "executable_lines_in_patch": 53,
+      "f2p_covered": 44,
+      "p2p_covered": 0,
+      "union_covered": 44
+    },
+    {
+      "file": "Lib/zoneinfo/_zoneinfo.py",
+      "language": "python",
+      "lines_in_patch": 755,
+      "executable_lines_in_patch": 394,
+      "f2p_covered": 361,
+      "p2p_covered": 0,
+      "union_covered": 361
+    },
+    {
+      "file": "Modules/_zoneinfo.c",
+      "language": "c",
+      "lines_in_patch": 2695,
+      "executable_lines_in_patch": 1112,
+      "f2p_covered": 962,
+      "p2p_covered": 0,
+      "union_covered": 962
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py for Lib/zoneinfo/*.py (Python impl) + gcov/gcovr for Modules/_zoneinfo.c (C accelerator). Build glue (configure, configure.ac, Makefile.pre.in, Modules/Setup, setup.py, Lib/sysconfig.py +1) is recorded in lines_in_patch_total_all but is not Python-/C-executable and is excluded from the coverage denominator.",
+    "lines_in_patch_total": 3755,
+    "lines_in_patch_total_all": 3856,
+    "lines_in_patch_python": 1060,
+    "lines_in_patch_c": 2695,
+    "executable_lines_in_patch": 1647,
+    "f2p_covered": 1449,
+    "p2p_covered": 0,
+    "union_covered": 1449,
+    "f2p_pct": 88.0,
+    "p2p_pct": 0.0,
+    "union_pct": 88.0,
+    "coverage_complete": true,
+    "total_added_lines": 3856,
+    "executable_to_added_ratio": 42.71
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "51P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "93P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

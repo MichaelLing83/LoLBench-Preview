@@ -1,0 +1,285 @@
+diff --git a/flink-core/src/test/java/org/apache/flink/configuration/ConfigurationTypedOptionsAugTest.java b/flink-core/src/test/java/org/apache/flink/configuration/ConfigurationTypedOptionsAugTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-core/src/test/java/org/apache/flink/configuration/ConfigurationTypedOptionsAugTest.java
+@@ -0,0 +1,175 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.configuration;
++
++import org.junit.Test;
++
++import java.time.Duration;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++
++import static org.hamcrest.CoreMatchers.equalTo;
++import static org.hamcrest.CoreMatchers.instanceOf;
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertThat;
++import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
++
++/**
++ * LoLBench augmentation tests for FLIP-77 typed configuration options.
++ *
++ * <p>Public API only: ConfigOptions, ConfigOption, and Configuration. This file
++ * intentionally does not call package-private parsing helpers.
++ */
++public class ConfigurationTypedOptionsAugTest {
++
++	@Test
++	public void testTypedRawStringConversionsForDocumentedAtomicTypes() {
++		Configuration configuration = new Configuration();
++
++		ConfigOption<Integer> intOption = ConfigOptions.key("aug.int")
++			.intType()
++			.noDefaultValue();
++		ConfigOption<Boolean> booleanOption = ConfigOptions.key("aug.boolean")
++			.booleanType()
++			.noDefaultValue();
++		ConfigOption<Duration> durationOption = ConfigOptions.key("aug.duration")
++			.durationType()
++			.noDefaultValue();
++		ConfigOption<MemorySize> memoryOption = ConfigOptions.key("aug.memory")
++			.memoryType()
++			.noDefaultValue();
++		ConfigOption<Map<String, String>> mapOption = ConfigOptions.key("aug.properties")
++			.mapType()
++			.noDefaultValue();
++
++		configuration.setString(intOption.key(), "5");
++		configuration.setString(booleanOption.key(), "false");
++		configuration.setString(durationOption.key(), "20ms");
++		configuration.setString(memoryOption.key(), "16mb");
++		configuration.setString(mapOption.key(), "left:one,right:two");
++
++		Integer intValue = configuration.get(intOption);
++		Boolean booleanValue = configuration.get(booleanOption);
++		Duration durationValue = configuration.get(durationOption);
++		MemorySize memoryValue = configuration.get(memoryOption);
++		Map<String, String> mapValue = configuration.get(mapOption);
++
++		assertThat(intValue, instanceOf(Integer.class));
++		assertEquals(Integer.valueOf(5), intValue);
++		assertThat(booleanValue, instanceOf(Boolean.class));
++		assertEquals(Boolean.FALSE, booleanValue);
++		assertEquals(Duration.ofMillis(20), durationValue);
++		assertEquals(new MemorySize(16L * 1024L * 1024L), memoryValue);
++		assertEquals("one", mapValue.get("left"));
++		assertEquals("two", mapValue.get("right"));
++
++		configuration.setString(booleanOption.key(), "maybe");
++		expectParseFailure(() -> configuration.get(booleanOption), "maybe");
++	}
++
++	@Test
++	public void testListParsingUsesSemicolonEscapingAndPreservesEmptyElements() {
++		Configuration configuration = new Configuration();
++		ConfigOption<List<String>> option = ConfigOptions.key("aug.paths")
++			.stringType()
++			.asList()
++			.noDefaultValue();
++
++		configuration.setString(option.key(), "alpha;;'beta;gamma';\" spaced value \"");
++
++		List<String> parsed = configuration.get(option);
++		assertThat(parsed, equalTo(Arrays.asList(
++			"alpha",
++			"",
++			"beta;gamma",
++			" spaced value ")));
++	}
++
++	@Test
++	public void testMalformedQuotedListValueIsRejectedThroughConfiguration() {
++		Configuration configuration = new Configuration();
++		ConfigOption<List<String>> option = ConfigOptions.key("aug.invalid.paths")
++			.stringType()
++			.asList()
++			.noDefaultValue();
++
++		configuration.setString(option.key(), "'a'b;c");
++
++		expectParseFailure(() -> configuration.get(option), option.key());
++	}
++
++	@Test
++	public void testMapParsingUsesCommaEntriesAndColonPairs() {
++		Configuration configuration = new Configuration();
++		ConfigOption<Map<String, String>> option = ConfigOptions.key("aug.map")
++			.mapType()
++			.noDefaultValue();
++
++		configuration.setString(option.key(), "k1:v1,k2:v2");
++
++		Map<String, String> parsed = configuration.get(option);
++		assertEquals(2, parsed.size());
++		assertEquals("v1", parsed.get("k1"));
++		assertEquals("v2", parsed.get("k2"));
++	}
++
++	@Test
++	public void testTypedSetDefaultAndFallbackKeySemantics() {
++		Configuration configuration = new Configuration();
++		ConfigOption<Integer> defaulted = ConfigOptions.key("aug.defaulted")
++			.intType()
++			.defaultValue(77);
++		ConfigOption<Integer> roundTrip = ConfigOptions.key("aug.roundtrip")
++			.intType()
++			.defaultValue(-1);
++
++		assertEquals(Integer.valueOf(77), configuration.get(defaulted));
++		configuration.set(roundTrip, 7);
++		assertEquals(Integer.valueOf(7), configuration.get(roundTrip));
++
++		ConfigOption<Integer> fallbackOption = ConfigOptions.key("aug.current")
++			.intType()
++			.noDefaultValue()
++			.withFallbackKeys("aug.legacy");
++		Configuration fallbackConfiguration = new Configuration();
++		fallbackConfiguration.setInteger("aug.legacy", 42);
++
++		Optional<Integer> fallbackValue = fallbackConfiguration.getOptional(fallbackOption);
++		assertTrue(fallbackValue.isPresent());
++		assertEquals(Integer.valueOf(42), fallbackValue.get());
++	}
++
++	private static void expectParseFailure(ThrowingRunnable runnable, String expectedMessagePart) {
++		try {
++			runnable.run();
++			fail("Expected IllegalArgumentException");
++		} catch (IllegalArgumentException e) {
++			assertTrue(
++				"Expected message to contain '" + expectedMessagePart + "' but was: " + e.getMessage(),
++				e.getMessage().contains(expectedMessagePart));
++		}
++	}
++
++	private interface ThrowingRunnable {
++		void run();
++	}
++}
+diff --git a/flink-clients/src/test/java/org/apache/flink/client/ConfigurationCompatibilityAugTest.java b/flink-clients/src/test/java/org/apache/flink/client/ConfigurationCompatibilityAugTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-clients/src/test/java/org/apache/flink/client/ConfigurationCompatibilityAugTest.java
+@@ -0,0 +1,100 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.client;
++
++import org.apache.flink.configuration.Configuration;
++
++import org.junit.Test;
++
++import static org.junit.Assert.assertArrayEquals;
++import static org.junit.Assert.assertEquals;
++
++/**
++ * LoLBench augmentation tests for FLIP-77's compatibility clause: existing
++ * configuration options and legacy Configuration accessors keep their behavior.
++ */
++public class ConfigurationCompatibilityAugTest {
++
++	@Test
++	public void testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged() {
++		Configuration configuration = new Configuration();
++
++		assertEquals("fallback", configuration.getString("missing.string", "fallback"));
++		assertEquals(11, configuration.getInteger("missing.int", 11));
++		assertEquals(12L, configuration.getLong("missing.long", 12L));
++		assertEquals(false, configuration.getBoolean("missing.boolean", false));
++
++		configuration.setString("name", "flink");
++		configuration.setInteger("parallelism", 4);
++		configuration.setLong("timeout", 99L);
++		configuration.setBoolean("enabled", true);
++
++		assertEquals("flink", configuration.getString("name", ""));
++		assertEquals(4, configuration.getInteger("parallelism", 0));
++		assertEquals(99L, configuration.getLong("timeout", 0L));
++		assertEquals(true, configuration.getBoolean("enabled", false));
++		assertEquals("4", configuration.getString("parallelism", "0"));
++		assertEquals("true", configuration.getString("enabled", "false"));
++	}
++
++	@Test
++	public void testCopyConstructorAndPrefixedAddAllKeepExistingEntries() {
++		Configuration original = new Configuration();
++		original.setString("host", "localhost");
++		original.setInteger("port", 6123);
++
++		Configuration copy = new Configuration(original);
++		assertEquals("localhost", copy.getString("host", ""));
++		assertEquals(6123, copy.getInteger("port", 0));
++
++		Configuration prefixed = new Configuration();
++		prefixed.addAll(original, "client.");
++		assertEquals("localhost", prefixed.getString("client.host", ""));
++		assertEquals(6123, prefixed.getInteger("client.port", 0));
++	}
++
++	@Test
++	public void testByteArrayAndClassAccessorsRemainCompatible() throws Exception {
++		Configuration configuration = new Configuration();
++		byte[] payload = new byte[] {1, 2, 3, 5, 8};
++
++		configuration.setBytes("payload", payload);
++		configuration.setString("class.name", ConfigurationCompatibilityAugTest.class.getName());
++
++		assertArrayEquals(payload, configuration.getBytes("payload", new byte[0]));
++		assertArrayEquals(new byte[] {9}, configuration.getBytes("missing.payload", new byte[] {9}));
++		assertEquals(
++			ConfigurationCompatibilityAugTest.class,
++			configuration.getClass(
++				"class.name",
++				Object.class,
++				ConfigurationCompatibilityAugTest.class.getClassLoader()));
++		assertEquals(
++			Object.class,
++			configuration.getClass(
++				"missing.class",
++				Object.class,
++				ConfigurationCompatibilityAugTest.class.getClassLoader()));
++
++		Configuration copied = new Configuration(configuration);
++		assertArrayEquals(
++			new byte[] {1, 2, 3, 5, 8},
++			copied.getBytes("payload", new byte[0]));
++	}
++}

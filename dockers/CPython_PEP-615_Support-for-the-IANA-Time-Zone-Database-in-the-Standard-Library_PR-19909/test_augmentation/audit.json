@@ -1,0 +1,534 @@
+{
+  "instance_id": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "augmentation_pass": "lolbench-aug-2026-05-21",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "6ad80eafdaa46706fecd90eeaa29955e7e78a54aa29c598371d9aea64f90b81a",
+    "f2p_aug.txt": "773f1b1fa16ca5f68297271d87a5bd5125299d3682a12e845c6307d599c035c6",
+    "p2p_aug.txt": "c99ea17bd6f611d01af44cc75bb518e93b1da81cdda3b14845cf2024d56c9983"
+  },
+  "summary": {
+    "new_f2p_count": 7,
+    "new_p2p_count": 4,
+    "mutants_targeted": 18,
+    "surviving_mutants_targeted": [
+      "mutant_001_py_primary_constructor_bypasses_weak_cache",
+      "mutant_002_c_no_cache_uses_primary_cache",
+      "mutant_003_py_from_file_is_picklable",
+      "mutant_004_c_from_file_is_picklable",
+      "mutant_005_py_clear_cache_only_keys_clears_all",
+      "mutant_006_c_clear_cache_only_keys_keeps_strong_cache",
+      "mutant_007_str_returns_repr_for_keyed_zones",
+      "mutant_008_no_cache_pickle_unpickles_through_cache",
+      "mutant_009_tzpath_search_order_reversed",
+      "mutant_010_env_tzpath_splits_on_directory_separator",
+      "mutant_011_reset_tzpath_explicit_sequence_ignored",
+      "mutant_012_tzdata_fallback_omits_zoneinfo_package",
+      "mutant_013_tzif_v2_read_as_v1",
+      "mutant_014_dst_fallback_uses_zero_offset",
+      "mutant_015_fold_transition_offsets_swapped",
+      "mutant_016_zoneinfo_not_found_not_keyerror",
+      "mutant_017_path_traversal_key_allowed",
+      "mutant_018_default_tzpath_ignores_sysconfig"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 86.3,
+      "augmented_line_coverage_percent": 88.0,
+      "union_line_coverage_percent": 88.0,
+      "executable_lines_in_patch": 1647,
+      "union_covered_lines": 1449,
+      "coverage_complete": true,
+      "measurement_note": "Hybrid coverage combines coverage.py over Lib/zoneinfo/*.py and gcovr over Modules/_zoneinfo.c. The C parser excludes gcovr rows marked gcovr/noncode so comments and braces are not counted as executable lines."
+    },
+    "no_modification_clauses_pinned": [
+      "Backwards Compatibility: PEP 615 adds zoneinfo without changing existing datetime fixed-offset, pickle, or sysconfig behavior."
+    ],
+    "validation_status": {
+      "status": "validated",
+      "validated_at": "2026-05-21",
+      "validate_sh": {
+        "status": "passed",
+        "output_dir": "validation_out",
+        "suites": {
+          "orig": {
+            "pre": {
+              "f2p": "0P/0F/44E/0S",
+              "p2p": "89P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "44P/0F/0E/0S",
+              "p2p": "89P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "aug": {
+            "pre": {
+              "f2p": "0P/0F/7E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "7P/0F/0E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "union": {
+            "pre": {
+              "f2p": "0P/0F/51E/0S",
+              "p2p": "93P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "51P/0F/0E/0S",
+              "p2p": "93P/0F/0E/0S",
+              "resolved": true
+            }
+          }
+        },
+        "mutants": {
+          "status": "passed",
+          "total": 18,
+          "killed_by_augmented_f2p": 18,
+          "p2p_clean": 18,
+          "suite": "union"
+        }
+      },
+      "coverage": {
+        "status": "passed",
+        "orig_union_line_coverage_percent": 86.3,
+        "augmented_union_line_coverage_percent": 88.0,
+        "minimum_line_coverage_percent": 80,
+        "coverage_report": "coverage_out/coverage_report_union.json",
+        "coverage_complete": true
+      }
+    }
+  },
+  "tests": [
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Deliberate cache invalidation"
+      ],
+      "kills_mutants": [
+        "mutant_001_py_primary_constructor_bypasses_weak_cache",
+        "mutant_002_c_no_cache_uses_primary_cache",
+        "mutant_005_py_clear_cache_only_keys_clears_all",
+        "mutant_006_c_clear_cache_only_keys_keeps_strong_cache"
+      ],
+      "public_surface": "zoneinfo.ZoneInfo primary constructor, ZoneInfo.no_cache(), ZoneInfo.clear_cache(only_keys=...), and ZoneInfo.key through both Python and C implementation lanes.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 requires identical primary-constructor calls to return the same live object, no_cache to bypass that cache, and targeted cache invalidation to remove only requested keys from every cache lane."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Pickle serialization"
+      ],
+      "kills_mutants": [
+        "mutant_003_py_from_file_is_picklable",
+        "mutant_004_c_from_file_is_picklable",
+        "mutant_008_no_cache_pickle_unpickles_through_cache"
+      ],
+      "public_surface": "zoneinfo.ZoneInfo.no_cache(), ZoneInfo.from_file(), pickle.dumps(), and pickle.loads() with sys.modules[\"zoneinfo\"] bound to the selected public module lane.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 specifies that from_file objects cannot be pickled and that no_cache objects pickle through the non-cache constructor rather than the primary cache."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > Sources for time zone data > System time zone information",
+        "Proposal > Search path configuration > Environment variables",
+        "Proposal > Search path configuration > ``reset_tzpath`` function"
+      ],
+      "kills_mutants": [
+        "mutant_009_tzpath_search_order_reversed",
+        "mutant_010_env_tzpath_splits_on_directory_separator",
+        "mutant_011_reset_tzpath_explicit_sequence_ignored",
+        "mutant_017_path_traversal_key_allowed"
+      ],
+      "public_surface": "zoneinfo.reset_tzpath(), zoneinfo.TZPATH, PYTHONTZPATH, and ZoneInfo(key) search through configured TZPATH directories.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 requires TZPATH to preserve search order, parse PYTHONTZPATH with os.pathsep, honor explicit reset_tzpath sequences, and reject keys that escape the configured root."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzdata_fallback_uses_zoneinfo_package_namespace",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > Sources for time zone data > The ``tzdata`` Python package"
+      ],
+      "kills_mutants": [
+        "mutant_012_tzdata_fallback_omits_zoneinfo_package"
+      ],
+      "public_surface": "ZoneInfo(key) fallback to a normal importlib.resources package rooted at tzdata.zoneinfo when TZPATH is empty.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 specifies that, after system TZPATH lookup, ZoneInfo searches the first-party tzdata package under tzdata.zoneinfo; the test installs a temporary public package with only that namespace."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Behavior during data updates"
+      ],
+      "kills_mutants": [
+        "mutant_013_tzif_v2_read_as_v1",
+        "mutant_014_dst_fallback_uses_zero_offset",
+        "mutant_015_fold_transition_offsets_swapped"
+      ],
+      "public_surface": "ZoneInfo(key), ZoneInfo.from_file(), datetime.utcoffset(), datetime.dst(), and datetime.fold on public datetime objects.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 requires eagerly loaded TZif data, correct POSIX footer rules for future dates, correct inferred DST offsets, and correct fold-sensitive offsets for repeated hours."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+        "Proposal > The ``zoneinfo.ZoneInfo`` class > String representation"
+      ],
+      "kills_mutants": [
+        "mutant_007_str_returns_repr_for_keyed_zones",
+        "mutant_016_zoneinfo_not_found_not_keyerror"
+      ],
+      "public_surface": "str(ZoneInfo(key)), repr(ZoneInfo(key)), and catching ZoneInfo(\"Invalid/Zone\") through KeyError.",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 requires str() to return the key for keyed zones and ZoneInfoNotFoundError to be a KeyError subclass when no data source contains the key."
+    },
+    {
+      "test_id": "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_reset_tzpath_uses_sysconfig_default_when_environment_unset",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposal > Search path configuration > Compile-time options",
+        "Proposal > Search path configuration > ``reset_tzpath`` function"
+      ],
+      "kills_mutants": [
+        "mutant_018_default_tzpath_ignores_sysconfig"
+      ],
+      "public_surface": "zoneinfo.reset_tzpath(), zoneinfo.TZPATH, PYTHONTZPATH absence, and sysconfig.get_config_var(\"TZPATH\").",
+      "internal_symbol_check": [
+        "zoneinfo._zoneinfo._*",
+        "zoneinfo._common._*",
+        "zoneinfo._tzpath._*",
+        "_zoneinfo.*"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 615 requires reset_tzpath() to fall back to the compile-time TZPATH from sysconfig when PYTHONTZPATH is unset."
+    },
+    {
+      "test_id": "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fixed_timezone_arithmetic_is_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "datetime.timezone, datetime.datetime arithmetic, and astimezone() with fixed offsets.",
+      "internal_symbol_check": [
+        "zoneinfo",
+        "zoneinfo._zoneinfo",
+        "zoneinfo._common",
+        "zoneinfo._tzpath",
+        "_zoneinfo"
+      ],
+      "no_modification_clause": "Backwards Compatibility: adding zoneinfo must not change pre-existing datetime, pickle, or sysconfig public behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "PEP 615 adds zoneinfo as a new time zone implementation without changing pre-existing fixed-offset datetime.timezone arithmetic and conversion semantics."
+    },
+    {
+      "test_id": "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fold_flag_is_preserved_for_plain_datetime",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "datetime.datetime.replace(fold=...) and equality for plain datetime instances.",
+      "internal_symbol_check": [
+        "zoneinfo",
+        "zoneinfo._zoneinfo",
+        "zoneinfo._common",
+        "zoneinfo._tzpath",
+        "_zoneinfo"
+      ],
+      "no_modification_clause": "Backwards Compatibility: adding zoneinfo must not change pre-existing datetime, pickle, or sysconfig public behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "The new ZoneInfo fold handling must not change the existing PEP 495 fold flag behavior on ordinary datetime objects without zoneinfo."
+    },
+    {
+      "test_id": "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_pickle_roundtrip_for_builtin_timezone_is_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "pickle roundtrip of datetime.datetime using the pre-existing datetime.timezone class.",
+      "internal_symbol_check": [
+        "zoneinfo",
+        "zoneinfo._zoneinfo",
+        "zoneinfo._common",
+        "zoneinfo._tzpath",
+        "_zoneinfo"
+      ],
+      "no_modification_clause": "Backwards Compatibility: adding zoneinfo must not change pre-existing datetime, pickle, or sysconfig public behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "ZoneInfo adds its own pickle protocol but must not disturb pickling of existing datetime objects and fixed-offset time zones."
+    },
+    {
+      "test_id": "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_sysconfig_public_paths_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "sysconfig.get_paths() and sysconfig.get_config_var(\"prefix\") public APIs.",
+      "internal_symbol_check": [
+        "zoneinfo",
+        "zoneinfo._zoneinfo",
+        "zoneinfo._common",
+        "zoneinfo._tzpath",
+        "_zoneinfo"
+      ],
+      "no_modification_clause": "Backwards Compatibility: adding zoneinfo must not change pre-existing datetime, pickle, or sysconfig public behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "PEP 615 adds a TZPATH sysconfig variable, but existing sysconfig path and variable queries must continue to behave as before."
+    }
+  ],
+  "mutant_kill_coverage_check": {
+    "mutant_001_py_primary_constructor_bypasses_weak_cache": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts"
+      ]
+    },
+    "mutant_002_c_no_cache_uses_primary_cache": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts"
+      ]
+    },
+    "mutant_003_py_from_file_is_picklable": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts"
+      ]
+    },
+    "mutant_004_c_from_file_is_picklable": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts"
+      ]
+    },
+    "mutant_005_py_clear_cache_only_keys_clears_all": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts"
+      ]
+    },
+    "mutant_006_c_clear_cache_only_keys_keeps_strong_cache": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts"
+      ]
+    },
+    "mutant_007_str_returns_repr_for_keyed_zones": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract"
+      ]
+    },
+    "mutant_008_no_cache_pickle_unpickles_through_cache": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts"
+      ]
+    },
+    "mutant_009_tzpath_search_order_reversed": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation"
+      ]
+    },
+    "mutant_010_env_tzpath_splits_on_directory_separator": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation"
+      ]
+    },
+    "mutant_011_reset_tzpath_explicit_sequence_ignored": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation"
+      ]
+    },
+    "mutant_012_tzdata_fallback_omits_zoneinfo_package": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzdata_fallback_uses_zoneinfo_package_namespace"
+      ]
+    },
+    "mutant_013_tzif_v2_read_as_v1": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics"
+      ]
+    },
+    "mutant_014_dst_fallback_uses_zero_offset": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics"
+      ]
+    },
+    "mutant_015_fold_transition_offsets_swapped": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics"
+      ]
+    },
+    "mutant_016_zoneinfo_not_found_not_keyerror": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract"
+      ]
+    },
+    "mutant_017_path_traversal_key_allowed": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation"
+      ]
+    },
+    "mutant_018_default_tzpath_ignores_sysconfig": {
+      "killed_by_aug_f2p": [
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_reset_tzpath_uses_sysconfig_default_when_environment_unset"
+      ]
+    }
+  },
+  "validation_status": {
+    "status": "validated",
+    "validated_at": "2026-05-21",
+    "validate_sh": {
+      "status": "passed",
+      "output_dir": "validation_out",
+      "suites": {
+        "orig": {
+          "pre": {
+            "f2p": "0P/0F/44E/0S",
+            "p2p": "89P/0F/0E/0S",
+            "resolved": false
+          },
+          "post": {
+            "f2p": "44P/0F/0E/0S",
+            "p2p": "89P/0F/0E/0S",
+            "resolved": true
+          }
+        },
+        "aug": {
+          "pre": {
+            "f2p": "0P/0F/7E/0S",
+            "p2p": "4P/0F/0E/0S",
+            "resolved": false
+          },
+          "post": {
+            "f2p": "7P/0F/0E/0S",
+            "p2p": "4P/0F/0E/0S",
+            "resolved": true
+          }
+        },
+        "union": {
+          "pre": {
+            "f2p": "0P/0F/51E/0S",
+            "p2p": "93P/0F/0E/0S",
+            "resolved": false
+          },
+          "post": {
+            "f2p": "51P/0F/0E/0S",
+            "p2p": "93P/0F/0E/0S",
+            "resolved": true
+          }
+        }
+      },
+      "mutants": {
+        "status": "passed",
+        "total": 18,
+        "killed_by_augmented_f2p": 18,
+        "p2p_clean": 18,
+        "suite": "union"
+      }
+    },
+    "coverage": {
+      "status": "passed",
+      "orig_union_line_coverage_percent": 86.3,
+      "augmented_union_line_coverage_percent": 88.0,
+      "minimum_line_coverage_percent": 80,
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "coverage_complete": true
+    }
+  }
+}

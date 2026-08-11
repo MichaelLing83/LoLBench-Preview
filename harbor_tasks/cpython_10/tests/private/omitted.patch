@@ -1,0 +1,113 @@
+diff --git a/Doc/library/ast.rst b/Doc/library/ast.rst
+index 0811b3fa0e..eb6a973cac 100644
+--- a/Doc/library/ast.rst
++++ b/Doc/library/ast.rst
+@@ -1724,6 +1724,7 @@ Function and class definitions
+             body=[
+                 FunctionDef(
+                     name='f',
++                    typeparams=[],
+                     args=arguments(
+                         posonlyargs=[],
+                         args=[
+@@ -1847,6 +1848,7 @@ Function and class definitions
+             body=[
+                 ClassDef(
+                     name='Foo',
++                    typeparams=[],
+                     bases=[
+                         Name(id='base1', ctx=Load()),
+                         Name(id='base2', ctx=Load())],
+@@ -1885,6 +1887,7 @@ Async and await
+         body=[
+             AsyncFunctionDef(
+                 name='f',
++                typeparams=[],
+                 args=arguments(
+                     posonlyargs=[],
+                     args=[],
+diff --git a/Misc/NEWS.d/next/Core and Builtins/2023-04-25-08-43-11.gh-issue-103763.ZLBZk1.rst b/Misc/NEWS.d/next/Core and Builtins/2023-04-25-08-43-11.gh-issue-103763.ZLBZk1.rst
+new file mode 100644
+index 0000000000..cefe6429ab
+--- /dev/null
++++ b/Misc/NEWS.d/next/Core and Builtins/2023-04-25-08-43-11.gh-issue-103763.ZLBZk1.rst	
+@@ -0,0 +1,23 @@
++Implement :pep:`695`, adding syntactic support for generic classes, generic
++functions, and type aliases.
++
++A new ``type X = ...`` syntax is added for type aliases, which resolves at
++runtime to an instance of the new class ``typing.TypeAliasType``.
++The value is lazily evaluated and is accessible through the ``.__value__``
++attribute. This is implemented as a new AST node ``ast.TypeAlias``.
++
++New syntax (``class X[T]: ...``, ``def func[T](): ...``) is added for defining
++generic functions and classes. This is implemented as a new
++``typeparams`` attribute on the AST nodes for classes and functions.
++This node holds instances of the new AST classes ``ast.TypeVar``,
++``ast.ParamSpec``, and ``ast.TypeVarTuple``.
++
++``typing.TypeVar``, ``typing.ParamSpec``, ``typing.ParamSpecArgs``,
++``typing.ParamSpecKwargs``, ``typing.TypeVarTuple``, and
++``typing.Generic`` are now implemented in C rather than Python.
++
++There are new bytecode instructions ``LOAD_LOCALS``,
++``LOAD_CLASSDICT_OR_GLOBAL``, and ``LOAD_CLASSDICT_OR_DEREF``
++to support correct resolution of names in class namespaces.
++
++Patch by Eric Traut, Larry Hastings, and Jelle Zijlstra.
+diff --git a/PCbuild/_freeze_module.vcxproj b/PCbuild/_freeze_module.vcxproj
+index d897925f58..c9dbe195d9 100644
+--- a/PCbuild/_freeze_module.vcxproj
++++ b/PCbuild/_freeze_module.vcxproj
+@@ -159,6 +159,7 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <ClCompile Include="..\Objects\structseq.c" />
+     <ClCompile Include="..\Objects\tupleobject.c" />
+     <ClCompile Include="..\Objects\typeobject.c" />
++    <ClCompile Include="..\Objects\typevarobject.c" />
+     <ClCompile Include="..\Objects\unicodectype.c" />
+     <ClCompile Include="..\Objects\unicodeobject.c" />
+     <ClCompile Include="..\Objects\unionobject.c" />
+diff --git a/PCbuild/pythoncore.vcxproj b/PCbuild/pythoncore.vcxproj
+index 28b1517c6f..ca43404454 100644
+--- a/PCbuild/pythoncore.vcxproj
++++ b/PCbuild/pythoncore.vcxproj
+@@ -269,6 +269,7 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <ClInclude Include="..\Include\internal\pycore_tracemalloc.h" />
+     <ClInclude Include="..\Include\internal\pycore_tuple.h" />
+     <ClInclude Include="..\Include\internal\pycore_typeobject.h" />
++    <ClInclude Include="..\Include\internal\pycore_typevarobject.h" />
+     <ClInclude Include="..\Include\internal\pycore_ucnhash.h" />
+     <ClInclude Include="..\Include\internal\pycore_unionobject.h" />
+     <ClInclude Include="..\Include\internal\pycore_unicodeobject.h" />
+@@ -481,6 +482,7 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <ClCompile Include="..\Objects\structseq.c" />
+     <ClCompile Include="..\Objects\tupleobject.c" />
+     <ClCompile Include="..\Objects\typeobject.c" />
++    <ClCompile Include="..\Objects\typevarobject.c" />
+     <ClCompile Include="..\Objects\unicodectype.c" />
+     <ClCompile Include="..\Objects\unicodeobject.c" />
+     <ClCompile Include="..\Objects\unionobject.c" />
+diff --git a/PCbuild/pythoncore.vcxproj.filters b/PCbuild/pythoncore.vcxproj.filters
+index 75e6fbb13f..a3c2e2476d 100644
+--- a/PCbuild/pythoncore.vcxproj.filters
++++ b/PCbuild/pythoncore.vcxproj.filters
+@@ -705,6 +705,9 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <ClInclude Include="..\Include\internal\pycore_typeobject.h">
+       <Filter>Include\internal</Filter>
+     </ClInclude>
++    <ClInclude Include="..\Include\internal\pycore_typevarobject.h">
++      <Filter>Include\internal</Filter>
++    </ClInclude>
+     <ClInclude Include="..\Include\internal\pycore_ucnhash.h">
+       <Filter>Include\internal</Filter>
+     </ClInclude>
+@@ -1364,6 +1367,9 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <ClCompile Include="..\Objects\genericaliasobject.c">
+       <Filter>Objects</Filter>
+     </ClCompile>
++    <ClCompile Include="..\Objects\typevarobject.c">
++      <Filter>Objects</Filter>
++    </ClCompile>
+     <ClCompile Include="..\Objects\unionobject.c">
+       <Filter>Objects</Filter>
+     </ClCompile>

@@ -1,0 +1,6 @@
+test.test_future.AnnotationsFutureTestCase.test_annotations
+test.test_future.AnnotationsFutureTestCase.test_get_type_hints_on_func_with_variadic_arg
+test.test_unparse.UnparseTestCase.test_slices
+test.test_unparse.CosmeticTestCase.test_slices
+test.test_ast.AST_Tests.test_snippets
+test.test_ast.AST_Tests.test_ast_validation

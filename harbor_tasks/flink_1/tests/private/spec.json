@@ -1,0 +1,284 @@
+{
+  "instance_id": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "project": "Apache Flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-77",
+  "pr_link": "https://github.com/apache/flink/pull/9976",
+  "pr_merge_date": "2019-10-29",
+  "language": "Java",
+  "build_system": "Maven",
+  "scope": {
+    "touched_modules": [
+      "flink-core"
+    ],
+    "untouched_p2p_module": "flink-clients",
+    "total_files_changed": 13,
+    "production_files": 7,
+    "test_files": 6
+  },
+  "base_commit": "005bda9be361ffe6c371ebefed32e614cbacd876",
+  "base_commit_note": "Anchor at parent(b7cd6a98) \u2014 the parent of the PR's *actual* one commit. The 4 commits preceding b7cd6a98 in the merge chain (FLINK-14397, FLINK-14134, FLINK-13513) are unrelated changes that landed on master between PR open and merge; including them in solution.patch would force the agent to implement FLINK tasks they were not assigned.",
+  "merge_commit_sha": "b7cd6a984750d7dd98e6408f3703b1978b14355a",
+  "pr_actual_commit": "b7cd6a984750d7dd98e6408f3703b1978b14355a",
+  "pr_head_sha": "32146ce462de7b5cb9bbb4a95833a518e6d71af7",
+  "pr_base_sha_github": "96640cad3d770756cb6e70c73b25bd4269065775",
+  "solution_patch_sha256": "7ae85b894575c8989a1d47657b353118e238d8a530e7576a43c0cb0ed18582ff",
+  "eval_tests_patch_sha256": "97c3372ae297eba41afce106ac6244d48077cba867fe5b4ecdf78b917a40264e",
+  "toolchain": {
+    "java": "1.8",
+    "maven": "3.x",
+    "junit": "4.x (vintage)",
+    "flink_version_at_base": "1.10-SNAPSHOT"
+  },
+  "build_modules": [
+    "flink-core",
+    "flink-clients"
+  ],
+  "fail_to_pass": [
+    "org.apache.flink.configuration.ConfigurationConversionsTest#testConversions",
+    "org.apache.flink.configuration.ConfigurationParsingInvalidFormatsTest#testInvalidStringParsingWithGetOptional",
+    "org.apache.flink.configuration.ConfigurationParsingInvalidFormatsTest#testInvalidStringParsingWithGet",
+    "org.apache.flink.configuration.ConfigurationTest",
+    "org.apache.flink.configuration.ReadableWritableConfigurationTest#testGetOptionalFromObject",
+    "org.apache.flink.configuration.ReadableWritableConfigurationTest#testGetOptionalFromString",
+    "org.apache.flink.configuration.ReadableWritableConfigurationTest#testGetDefaultValue",
+    "org.apache.flink.configuration.ReadableWritableConfigurationTest#testGetOptionalDefaultValueOverride",
+    "org.apache.flink.configuration.UnmodifiableConfigurationTest"
+  ],
+  "pass_to_pass": [
+    "org.apache.flink.client.program.rest.RestClusterClientConfigurationTest#testConfiguration",
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyTest#testInitialWaitGreaterThanMaxWait",
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyTest#testMaxSleepTime",
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyTest#testExponentialGrowth",
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyTest#testMaxAttempts",
+    "org.apache.flink.client.RemoteExecutorHostnameResolutionTest#testUnresolvableHostname1",
+    "org.apache.flink.client.RemoteExecutorHostnameResolutionTest#testUnresolvableHostname2",
+    "org.apache.flink.client.program.LeaderRetrievalServiceHostnameResolutionTest#testUnresolvableHostname1",
+    "org.apache.flink.client.program.LeaderRetrievalServiceHostnameResolutionTest#testUnresolvableHostname2",
+    "org.apache.flink.client.program.PackagedProgramTest#testExtractContainedLibraries",
+    "org.apache.flink.client.ExecutionEnvironmentTest#testExecuteAfterGetExecutionPlanContextEnvironment",
+    "org.apache.flink.client.cli.DefaultCLITest#testConfigurationPassing",
+    "org.apache.flink.client.cli.DefaultCLITest#testManualConfigurationOverride",
+    "org.apache.flink.client.cli.CliFrontendListTest#testList",
+    "org.apache.flink.client.cli.CliFrontendListTest#testListOptions",
+    "org.apache.flink.client.cli.CliFrontendListTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlan",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlanWithParallelism",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testCancel",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testMissingJobId",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testCancelWithSavepoint",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testCancelWithSavepointWithoutJobId",
+    "org.apache.flink.client.cli.CliFrontendCancelTest#testCancelWithSavepointWithoutParameters",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testMissingOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testNonExistingJarFile",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testFileNotJarFile",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testVariantWithExplicitJarAndArgumentsOption",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testVariantWithExplicitJarAndNoArgumentsOption",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testValidVariantWithNoJarAndNoArgumentsOption",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testNoJarNoArgumentsAtAll",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testNonExistingFileWithArguments",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testNonExistingFileWithoutArguments",
+    "org.apache.flink.client.cli.CliFrontendPackageProgramTest#testPlanWithExternalClass",
+    "org.apache.flink.client.cli.CliFrontendRunTest#testRun",
+    "org.apache.flink.client.cli.CliFrontendRunTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendRunTest#testInvalidParallelismOption",
+    "org.apache.flink.client.cli.CliFrontendRunTest#testParallelismWithOverflow",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testTriggerSavepointSuccess",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testTriggerSavepointFailure",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testTriggerSavepointFailureIllegalJobID",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testTriggerSavepointCustomTarget",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testDisposeSavepointSuccess",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testDisposeWithJar",
+    "org.apache.flink.client.cli.CliFrontendSavepointTest#testDisposeSavepointFailure",
+    "org.apache.flink.client.cli.CliFrontendStopWithSavepointTest#testStopWithOnlyJobId"
+  ],
+  "triage": {
+    "fixture_taint_summary": {
+      "f2p_classes_new_in_eval_tests_patch": [
+        "ConfigurationConversionsTest",
+        "ConfigurationParsingInvalidFormatsTest",
+        "ReadableWritableConfigurationTest"
+      ],
+      "f2p_classes_modified_in_eval_tests_patch": [
+        "ConfigurationTest",
+        "UnmodifiableConfigurationTest"
+      ],
+      "f2p_classes_intentionally_omitted": {
+        "StructuredOptionsSplitterTest": "Excluded per Codex round-1 review: the test directly exercises the package-private `@Internal` helper `StructuredOptionsSplitter.splitEscaped(...)`, which would over-constrain valid solutions by requiring agents to land on the exact same helper class name. Public-API behavior is still exercised through `ConfigurationConversionsTest` and `ConfigurationParsingInvalidFormatsTest` (both go through `Configuration` / `ConfigOptions` rather than the helper directly)."
+      },
+      "test_compile_failure_pre_state": "Expected: at base, ConfigOption / Configuration / ReadableConfig lack the new methods or types exercised by the F2P tests; eval_tests.patch references them, so flink-core's test-compile fails in pre-state. Because test-compile is module-scoped, ALL tests in flink-core (including ConfigurationTest and UnmodifiableConfigurationTest, which on their own would compile) surface as ERROR (no Surefire reports). The F2P set therefore mirrors the PR's full modified-test-file inventory minus the helper-leaking StructuredOptionsSplitterTest.",
+      "p2p_isolation": "flink-clients is unchanged by either patch; its tests load the existing Configuration API which the PR preserves, so all 47 original P2P methods pass in both pre and post states. Together with the 3 synthesized sidecar P2P selectors, the union P2P suite has 50 entries.",
+      "p2p_method_level_rationale": "47 original method-level P2P selectors drawn from 14 distinct flink-clients test classes. Method-level selection keeps the P2P suite focused on pre-existing downstream Configuration compatibility behavior while avoiding unrelated, JVM-specific quirks at this Flink 1.10 base."
+    },
+    "module_scope_rationale": "The PR only touches flink-core (production + test side). flink-clients is the smallest downstream consumer of flink-core with stable, fast tests, and serves as the P2P canary. flink-runtime + flink-streaming-java would also work but pull in significantly larger build trees at this commit."
+  },
+  "f2p_entry_count": 9,
+  "p2p_entry_count": 47,
+  "augmented": {
+    "fail_to_pass": [
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testListParsingUsesSemicolonEscapingAndPreservesEmptyElements",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMalformedQuotedListValueIsRejectedThroughConfiguration",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMapParsingUsesCommaEntriesAndColonPairs",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testTypedSetDefaultAndFallbackKeySemantics"
+    ],
+    "pass_to_pass": [
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged",
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testCopyConstructorAndPrefixedAddAllKeepExistingEntries",
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testByteArrayAndClassAccessorsRemainCompatible"
+    ],
+    "eval_tests_aug_patch_sha256": "f8898ceb32c916412fb1378d38d85367fc439896826c3a3cd11b4df155e9bb9e",
+    "synthetic_tests": [
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testTypedRawStringConversionsForDocumentedAtomicTypes",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testListParsingUsesSemicolonEscapingAndPreservesEmptyElements",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMalformedQuotedListValueIsRejectedThroughConfiguration",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMapParsingUsesCommaEntriesAndColonPairs",
+      "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testTypedSetDefaultAndFallbackKeySemantics",
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged",
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testCopyConstructorAndPrefixedAddAllKeepExistingEntries",
+      "org.apache.flink.client.ConfigurationCompatibilityAugTest#testByteArrayAndClassAccessorsRemainCompatible"
+    ],
+    "triage": {
+      "fail_to_pass": {
+        "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testListParsingUsesSemicolonEscapingAndPreservesEmptyElements": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Reads a typed list option through Configuration.get; verifies semicolon splitting, quoted semicolons, quoted whitespace, and empty middle elements.",
+          "public_surface": "org.apache.flink.configuration.ConfigOptions; org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "splitEscaped"
+          ],
+          "runner_surface": "mvn -pl flink-core test -Dtest=ConfigurationTypedOptionsAugTest",
+          "kills_mutants": [
+            "mutant_001_list_metadata_always_false",
+            "mutant_005_list_string_uses_comma_delimiter",
+            "mutant_014_splitter_drops_empty_middle_tokens"
+          ],
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven",
+          "target_requirement": "Section 10: list options use semicolon separators and quote escaping; list tokens are data, including empty tokens between delimiters."
+        },
+        "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMalformedQuotedListValueIsRejectedThroughConfiguration": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Reads a malformed quoted list value through Configuration.get and expects public API parse rejection.",
+          "public_surface": "org.apache.flink.configuration.ConfigOptions; org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "splitEscaped"
+          ],
+          "runner_surface": "mvn -pl flink-core test -Dtest=ConfigurationTypedOptionsAugTest",
+          "kills_mutants": [
+            "mutant_015_splitter_allows_illegal_quote_suffix"
+          ],
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven",
+          "target_requirement": "Section 10: list quote escaping has a grammar; malformed quoting is not accepted."
+        },
+        "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMapParsingUsesCommaEntriesAndColonPairs": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Reads a map option through Configuration.get and verifies comma-separated entries with colon-separated key/value pairs.",
+          "public_surface": "org.apache.flink.configuration.ConfigOptions; org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "splitEscaped"
+          ],
+          "runner_surface": "mvn -pl flink-core test -Dtest=ConfigurationTypedOptionsAugTest",
+          "kills_mutants": [
+            "mutant_004_map_type_registered_as_string",
+            "mutant_011_map_entries_split_on_semicolon",
+            "mutant_012_map_pairs_split_on_equals"
+          ],
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven",
+          "target_requirement": "Section 15: map options use comma between entries and colon between key/value pairs."
+        },
+        "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testTypedSetDefaultAndFallbackKeySemantics": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Uses public typed Configuration.set/get/getOptional and ConfigOption.withFallbackKeys to verify defaults, round-trip writes, and fallback lookup.",
+          "public_surface": "org.apache.flink.configuration.ConfigOptions; org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "getRawValueFromOption",
+            "confData"
+          ],
+          "runner_surface": "mvn -pl flink-core test -Dtest=ConfigurationTypedOptionsAugTest",
+          "kills_mutants": [
+            "mutant_008_typed_get_ignores_default_value",
+            "mutant_009_typed_set_writes_wrong_key",
+            "mutant_010_optional_ignores_fallback_keys"
+          ],
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven",
+          "target_requirement": "Section 8: Configuration implements ReadableConfig/WritableConfig; get returns defaults, set stores typed values, getOptional honors fallback keys."
+        }
+      },
+      "pass_to_pass": {
+        "org.apache.flink.client.ConfigurationCompatibilityAugTest#testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Exercises pre-existing string-key primitive Configuration accessors and default values only.",
+          "public_surface": "org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "ReadableConfig",
+            "WritableConfig"
+          ],
+          "runner_surface": "mvn -pl flink-clients test -Dtest=ConfigurationCompatibilityAugTest#testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged",
+          "no_modification_clause": "Compatibility plan: all existing config options are still valid and have no changed behavior.",
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven"
+        },
+        "org.apache.flink.client.ConfigurationCompatibilityAugTest#testCopyConstructorAndPrefixedAddAllKeepExistingEntries": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Exercises pre-existing Configuration copy and prefixed addAll behavior from a downstream module.",
+          "public_surface": "org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "ReadableConfig",
+            "WritableConfig"
+          ],
+          "runner_surface": "mvn -pl flink-clients test -Dtest=ConfigurationCompatibilityAugTest#testCopyConstructorAndPrefixedAddAllKeepExistingEntries",
+          "no_modification_clause": "Compatibility plan: all existing config options are still valid and have no changed behavior.",
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven"
+        },
+        "org.apache.flink.client.ConfigurationCompatibilityAugTest#testByteArrayAndClassAccessorsRemainCompatible": {
+          "test_level": "public-api-synthetic",
+          "surface_reason": "Exercises pre-existing byte-array and class-name accessors from the downstream flink-clients module.",
+          "public_surface": "org.apache.flink.configuration.Configuration",
+          "internal_symbol_check": [
+            "StructuredOptionsSplitter",
+            "ReadableConfig",
+            "WritableConfig"
+          ],
+          "runner_surface": "mvn -pl flink-clients test -Dtest=ConfigurationCompatibilityAugTest#testByteArrayAndClassAccessorsRemainCompatible",
+          "no_modification_clause": "Compatibility plan: all existing config options are still valid and have no changed behavior.",
+          "synthetic_author": "lolbench-aug",
+          "oracle_kind": "requirement-driven"
+        }
+      }
+    },
+    "validation_status": "pending_evaluator_sweep",
+    "fixture_taint_summary": "eval_tests_aug.patch creates one new flink-core F2P file and one new flink-clients P2P file. The original eval_tests.patch, f2p.txt, and p2p.txt are untouched. F2P uses only public ConfigOptions/ConfigOption/Configuration APIs and does not call StructuredOptionsSplitter directly; P2P lives in flink-clients and exercises only pre-existing Configuration APIs under the FLIP-77 compatibility clause."
+  },
+  "repo": "apache/flink",
+  "image": "lolbench/flink-base-jdk8:1",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/flink-base-jdk8:1"
+  },
+  "test_framework": "junit_maven",
+  "test_level": "system",
+  "test_cmd_template": "mvn test -Dtest='<test_selector>'",
+  "log_parser": "junit_xml",
+  "validation_summary": {
+    "status": "not_recorded",
+    "note": "No detailed validation metadata was present before the 2026-06-10 completeness normalization."
+  },
+  "coverage": {
+    "orig": 85.5,
+    "aug": 89.31,
+    "union": 89.31,
+    "denominator": "union_executable_lines"
+  }
+}

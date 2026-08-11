@@ -1,0 +1,750 @@
+{
+  "instance_id": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0646/",
+  "requirement_doc_title": "PEP 646 \u2014 Variadic Generics",
+  "pr_link": "https://github.com/python/cpython/pull/31018",
+  "pr_number": 31018,
+  "merge_commit": "e8e737bcf6d22927caebc30c5d57ac4634063219",
+  "base_commit": "26cca8067bf5306e372c0e90036d832c5021fd90",
+  "base_commit_note": "PR-31018 squash-merged on 2022-03-26; merge parent 26cca8067bf5306e372c0e90036d832c5021fd90. Same merge-parent pattern as prior CPython instances.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_future.AnnotationsFutureTestCase.test_annotations",
+    "test.test_future.AnnotationsFutureTestCase.test_get_type_hints_on_func_with_variadic_arg",
+    "test.test_unparse.UnparseTestCase.test_slices",
+    "test.test_unparse.CosmeticTestCase.test_slices",
+    "test.test_ast.AST_Tests.test_snippets",
+    "test.test_ast.AST_Tests.test_ast_validation"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_int.IntTestCases.test_basic",
+    "test.test_int.IntTestCases.test_small_ints",
+    "test.test_int.IntTestCases.test_underscores",
+    "test.test_int.IntTestCases.test_no_args",
+    "test.test_float.GeneralFloatCases.test_float",
+    "test.test_float.GeneralFloatCases.test_noargs",
+    "test.test_string.ModuleTest.test_attrs",
+    "test.test_string.ModuleTest.test_capwords",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_end_of_numerical_literals",
+    "test.test_grammar.TokenTests.test_float_exponent_tokenization",
+    "test.test_grammar.GrammarTests.test_eval_input",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_break_continue_loop",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_try",
+    "test.test_grammar.GrammarTests.test_with_statement",
+    "test.test_grammar.GrammarTests.test_async_await",
+    "test.test_grammar.GrammarTests.test_dictcomps",
+    "test.test_grammar.GrammarTests.test_listcomps",
+    "test.test_grammar.GrammarTests.test_genexps",
+    "test.test_grammar.GrammarTests.test_comparison",
+    "test.test_grammar.GrammarTests.test_shift_ops",
+    "test.test_grammar.GrammarTests.test_multiplicative_ops",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_arguments"
+  ],
+  "solution_patch_sha256": "d2caf36554aa94f5976fff2898be42bda014f0e4f34d025db9f03cbe5a50a866",
+  "eval_tests_patch_sha256": "1254a2dec965827095005265257b95e1444f3999c255ac8f0a23cff6db640eeb",
+  "omitted_patch_sha256": "c0cdd554b92e45e3a70834e712af8f7b81bc54718716570ddc6919586538377a",
+  "eval_tests_patch_notes": "eval_tests.patch contains 5 test files: 1 NEW (test_pep646_syntax.py \u2014 doctest-based, not unittest-loadable so not used as F2P) + 4 modified (test_ast.py, test_future.py +1 method, test_syntax.py +doctest lines, test_unparse.py modified test_slices bodies in 2 classes). F2P is necessarily narrow because PEP-646 ships most of its test surface as doctests, which unittest.TestLoader.loadTestsFromName can't directly invoke.",
+  "omitted_patch_notes": "Just the NEWS file.",
+  "fixture_taint_summary": "6 original F2P selectors exercise PEP-646's `*Ts` unpacking syntax in subscripts and annotations. Pre-state rejects `a[*a]` / `tuple[*Ts]` / `def f(*args: *Ts):` syntax at exec()/ast.parse() time; post-state parses and round-trips them. 50 original P2P selectors come from pre-existing CPython tests outside the PEP-646 requirement behavior: 9 TokenTests, 31 GrammarTests, 2 AST_Tests, 4 IntTestCases, 2 GeneralFloatCases, and 2 string.ModuleTest selectors. The 32 selectors added on 2026-06-15 were confirmed in the base image and appended to p2p.txt, not p2p_aug.txt. Ratio P2P/F2P = 8.33\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "test.test_future.AnnotationsFutureTestCase.test_annotations": {
+        "system_reason": "PEP-646 variadic generics test. exec()s annotations containing `tuple[*Ts]`/`slice[*Ts]` etc. Pre-state: parser rejects `*Ts` in subscript \u2192 SyntaxError \u2192 FAIL.",
+        "public_surface": "exec() / get_type_hints on annotations with PEP-646 *Ts unpacking",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_future.AnnotationsFutureTestCase.test_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_future.AnnotationsFutureTestCase.test_get_type_hints_on_func_with_variadic_arg": {
+        "system_reason": "PEP-646 variadic generics test. exec()s annotations containing `tuple[*Ts]`/`slice[*Ts]` etc. Pre-state: parser rejects `*Ts` in subscript \u2192 SyntaxError \u2192 FAIL.",
+        "public_surface": "exec() / get_type_hints on annotations with PEP-646 *Ts unpacking",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_future.AnnotationsFutureTestCase.test_get_type_hints_on_func_with_variadic_arg",
+        "fixture_taint_checked": true
+      },
+      "test.test_unparse.UnparseTestCase.test_slices": {
+        "system_reason": "ast.unparse roundtrip on `a[*a]`/`a[b, *a, c]` source. Pre-state: ast.parse rejects starred subscripts \u2192 roundtrip raises SyntaxError.",
+        "public_surface": "ast.parse + ast.unparse on PEP-646 `a[*a]` source",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_unparse.UnparseTestCase.test_slices",
+        "fixture_taint_checked": true
+      },
+      "test.test_unparse.CosmeticTestCase.test_slices": {
+        "system_reason": "ast.unparse roundtrip on `a[*a]`/`a[b, *a, c]` source. Pre-state: ast.parse rejects starred subscripts \u2192 roundtrip raises SyntaxError.",
+        "public_surface": "ast.parse + ast.unparse on PEP-646 `a[*a]` source",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_unparse.CosmeticTestCase.test_slices",
+        "fixture_taint_checked": true
+      },
+      "test.test_ast.AST_Tests.test_snippets": {
+        "system_reason": "Iterates module-level `exec_tests` / `single_tests` / `eval_tests` lists with PR-added PEP-646 sources (`def f(*args: *Ts): pass`, `x: tuple[*Ts]`, etc.). Each is passed to compile()/ast.parse() \u2014 pre-state parser rejects \u2192 SyntaxError \u2192 method FAIL/ERROR.",
+        "public_surface": "compile(source, '<string>', 'exec', ast.PyCF_ONLY_AST)",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_snippets",
+        "fixture_taint_checked": true
+      },
+      "test.test_ast.AST_Tests.test_ast_validation": {
+        "system_reason": "Similar to test_snippets \u2014 exercises ast.parse + AST validator on PEP-646 source strings added to module-level lists.",
+        "public_surface": "ast.parse(source) + compile()",
+        "internal_symbol_check": [
+          "_PyAST_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_ast_validation",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "test.test_grammar.TokenTests.test_backslash": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_floats": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_basic": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_small_ints": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_small_ints",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_underscores": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_no_args": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_no_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_noargs": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_noargs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_attrs": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_attrs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_capwords": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_capwords",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.TokenTests.test_end_of_numerical_literals": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_end_of_numerical_literals",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.TokenTests.test_float_exponent_tokenization": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_float_exponent_tokenization",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_eval_input": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_eval_input",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_assert": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_if": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_while": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_for": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_break_continue_loop": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_continue_loop",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_return": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_yield": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_raise": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_import": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_global": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_try": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_try",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_with_statement": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_with_statement",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_async_await": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_async_await",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_dictcomps": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_dictcomps",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_listcomps": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_listcomps",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_genexps": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_genexps",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_comparison": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_comparison",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_shift_ops": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_shift_ops",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_multiplicative_ops": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_multiplicative_ops",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_grammar.GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing test_grammar selector. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() grammar/token behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_ast.AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing test_ast selector outside the PEP-646-modified test methods.",
+        "public_surface": "ast public parser/node behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "test.test_ast.AST_Tests.test_arguments": {
+        "system_reason": "Pre-existing test_ast selector outside the PEP-646-modified test methods.",
+        "public_surface": "ast public parser/node behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_arguments",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "test_pep646_syntax.py (NEW doctest-only file)",
+      "reason": "test_pep646_syntax.py is a pure doctest file (uses `__test__ = {'doctests': ...}` pattern). unittest.TestLoader.loadTestsFromName returns an empty suite for this module since there's no TestCase class or load_tests hook. The PR's doctest content covers most PEP-646 syntax (`A[*b]`, `f(*args: *Ts)`, etc.) but can't be invoked via the standard per-test-ID runner. The file remains in eval_tests.patch for fidelity but doesn't contribute to F2P."
+    }
+  ],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; parser.c regenerates from python.gram)",
+    "runtime_caps": "--network=none, default seccomp"
+  },
+  "validated_at": "2026-06-15T01:40:15Z",
+  "coverage_gap_note": "Coverage refreshed on 2026-06-15 after expanding original P2P to 50 selectors. The current gate measures the semantic executable patch surface: Lib/ast.py, Lib/typing.py, Python/ast_unparse.c, and Python/compile.c. Grammar/python.gram and Parser/Python.asdl are non-executable grammar/schema sources; Parser/parser.c is generated/associated and excluded from the denominator. Union coverage is 85.7% (12/14 executable lines); orig is 85.7% and aug is 57.1%. The doctest-only PEP-646 files remain out of direct original selector scope, but the refreshed union suite passes the coverage gate.",
+  "augmented": {
+    "suite_support": {
+      "env": "LOLBENCH_SUITE",
+      "modes": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "default": "orig"
+    },
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "38296765eef3c68babce73dd6360a728351911413d16e049c79259282a21db5b",
+    "f2p_aug_sha256": "94affba20a049ae5c5f9075c1d7e0fd55bedb782447c7764d44054d777d45630",
+    "p2p_aug_sha256": "5f187c870ba3a346fb8ca54818d90601f610bc224fef694718b929d552080121",
+    "fail_to_pass": [
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_pep646_syntax_doctest_examples",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_starred_vararg_annotation_runtime_value",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_future_starred_vararg_annotation_string"
+    ],
+    "pass_to_pass": [
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_plain_vararg_annotation_still_uses_value",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_grammar_suite_still_passes",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_compile_suite_still_passes"
+    ],
+    "targets_mutants": [
+      "mutant_011_compile_unpack_sequence_expects_two",
+      "mutant_012_compile_builds_tuple_instead_of_unpacking"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "measurement_note": "Coverage measured with coverage.py plus gcovr over mapped solution.patch Python and C lines; union mode runs original plus augmented F2P/P2P selectors. The 2026-06-15 P2P refresh recomputed orig/aug/union coverage: orig=85.7%, aug=57.1%, union=85.7% over 14 executable semantic lines.",
+      "baseline_union_line_coverage_percent": 85.7,
+      "augmented_only_union_line_coverage_percent": 57.1,
+      "union_line_coverage_percent": 85.7,
+      "executable_lines_in_patch": 14,
+      "union_covered_lines": 12,
+      "coverage_complete": true
+    },
+    "synthetic_tests": [
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_pep646_syntax_doctest_examples",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_starred_vararg_annotation_runtime_value",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_future_starred_vararg_annotation_string",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_plain_vararg_annotation_still_uses_value",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_grammar_suite_still_passes",
+      "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_compile_suite_still_passes"
+    ],
+    "triage": {
+      "test_level_policy": "All augmented selectors exercise CPython through public language execution with unittest. The F2P selectors run public PEP 646 syntax doctests and compile/execute PEP 646 vararg TypeVarTuple syntax, inspecting public function __annotations__; the P2P selector checks ordinary vararg annotation behavior unchanged by the new starred annotation path.",
+      "fail_to_pass": {
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_pep646_syntax_doctest_examples": {
+          "requirement_sections": [
+            "Grammar Changes > Change 1: Star Expressions in Indexes",
+            "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+          ],
+          "public_surface": "CPython public doctest execution of test.test_pep646_syntax examples covering starred subscripts and starred vararg annotations.",
+          "mutants_targeted": [],
+          "rationale": "The PR shipped many PEP 646 behavior checks as doctests rather than directly loadable unittest selectors. This wrapper runs those public examples through the standard CPython test support path, increasing coverage of the grammar/parser surface while still failing on the base parser that rejects starred subscript and starred vararg annotation syntax."
+        },
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_starred_vararg_annotation_runtime_value": {
+          "requirement_sections": [
+            "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+          ],
+          "public_surface": "exec() of a function definition using `*args: *Ts`, then public function __annotations__ inspection.",
+          "mutants_targeted": [
+            "mutant_011_compile_unpack_sequence_expects_two",
+            "mutant_012_compile_builds_tuple_instead_of_unpacking"
+          ],
+          "rationale": "PEP 646 specifies that `*args: *Ts` is evaluated like `[annotation_value] = [*Ts]`, yielding one unpacked TypeVarTuple annotation. The first survivor emits `UNPACK_SEQUENCE 2` and errors at function definition; the second builds a tuple and leaves a tuple-shaped annotation, so this public runtime check distinguishes both from the golden behavior."
+        },
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_future_starred_vararg_annotation_string": {
+          "requirement_sections": [
+            "Grammar Changes > Change 2: ``*args`` as a TypeVarTuple"
+          ],
+          "public_surface": "exec() of a future-annotations function definition using `*args: *Ts`, then public function __annotations__ inspection.",
+          "mutants_targeted": [],
+          "rationale": "The future-annotations path must preserve starred vararg annotations as strings instead of evaluating them. This public execution check exercises the compiler future-annotations branch for the same PEP 646 syntax and fails on the base parser."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_plain_vararg_annotation_still_uses_value": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "exec() of an ordinary `def f(*args: int)` definition and public function __annotations__ inspection.",
+          "rationale": "PEP 646 adds starred vararg annotation handling without changing ordinary vararg annotations. This guard pins the neighboring pre-existing annotation behavior while the compiler special case for `*args: *Ts` changes."
+        },
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_grammar_suite_still_passes": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "unittest execution of the existing unmodified test.test_grammar suite through CPython public grammar tests.",
+          "rationale": "PEP 646 grammar changes must preserve ordinary grammar behavior. Running the existing grammar suite inside a sidecar selector guards broad non-PEP-646 parser behavior while improving stability coverage of the generated parser surface."
+        },
+        "test.test_pep646_aug.VariadicGenericsAugmentedTest.test_existing_compile_suite_still_passes": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "unittest execution of the existing unmodified test.test_compile suite through CPython public compiler tests.",
+          "rationale": "The compiler special case for starred vararg annotations must not disturb ordinary compile-time behavior. Running the existing compile suite pins neighboring compiler functionality through public tests."
+        }
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-pr-31018:1",
+  "pr_head_sha": "973e9cca59abd57831561ae51284d6f9aaa921ac",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-pr-31018:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 85.7,
+    "aug": 57.1,
+    "union": 85.7,
+    "denominator": "union_executable_lines"
+  },
+  "p2p_entry_count": 50
+}

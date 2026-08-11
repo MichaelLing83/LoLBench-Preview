@@ -1,0 +1,23 @@
+{
+  "instance_id": "flink_7",
+  "source_instance_id": "Apache-Flink_FLIP-467-Introduce-Generalized-Watermarks_PR-25731",
+  "source_slug": "Apache-Flink_FLIP-467-Introduce-Generalized-Watermarks_PR-25731",
+  "docker_slug": "Apache-Flink_FLIP-467-Introduce-Generalized-Watermarks_PR-25731",
+  "dockerhub_image": "smartdub26/lolbench:flink_7-1.0.0",
+  "dockerhub_digest": "sha256:d70fed6d43be4d0a60634073ea233c92052e49117e081f97e07a2033cb91837e",
+  "project": "flink",
+  "repo": "apache/flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-467",
+  "pr_link": "https://github.com/apache/flink/pull/25731",
+  "base_commit": "f0c8f18ee09297c4c92b36d8ce7d0e0259f80178",
+  "merge_commit": "cb40b8ad46441836fbdac39a785d4c65d45d71be",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

@@ -1,0 +1,921 @@
+{
+  "instance_id": "CPython_PEP-709_Inlined-comprehensions_PR-101441",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0709/",
+  "requirement_doc_title": "PEP 709 \u2014 Inlined Comprehensions",
+  "pr_link": "https://github.com/python/cpython/pull/101441",
+  "pr_number": 101441,
+  "merge_commit": "c3b595e73efac59360d6dc869802abc752092460",
+  "base_commit": "0aeda297931820436a50b78f4f7f0597274b5df4",
+  "base_commit_note": "PR-101441 was squash-merged into main on 2023-05-09; the merge commit c3b595e73efac59360d6dc869802abc752092460 has a single parent 0aeda297931820436a50b78f4f7f0597274b5df4, and diffing against that parent isolates the PR contribution from intervening drift. Same override pattern as PEP-617 / PEP-634 / PEP-654 / PEP-669 / PEP-680 / PEP-615.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_compile.TestSourcePositions.test_multiline_list_comprehension",
+    "test.test_compile.TestSourcePositions.test_multiline_async_list_comprehension",
+    "test.test_compile.TestSourcePositions.test_multiline_set_comprehension",
+    "test.test_compile.TestSourcePositions.test_multiline_async_set_comprehension",
+    "test.test_compile.TestSourcePositions.test_multiline_dict_comprehension",
+    "test.test_compile.TestSourcePositions.test_multiline_async_dict_comprehension",
+    "test.test_trace.TestLineCounts.test_trace_list_comprehension"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_slice",
+    "test.test_ast.AST_Tests.test_base_classes",
+    "test.test_ast.AST_Tests.test_no_fields",
+    "test.test_ast.AST_Tests.test_from_import",
+    "test.test_ast.ASTHelpers_Test.test_parse",
+    "test.test_ast.ASTHelpers_Test.test_dump",
+    "test.test_ast.ASTHelpers_Test.test_copy_location",
+    "test.test_ast.ASTHelpers_Test.test_iter_fields",
+    "test.test_ast.ConstantTests.test_singletons",
+    "test.test_ast.ConstantTests.test_literal_eval",
+    "test.test_ast.EndPositionTests.test_lambda",
+    "test.test_ast.EndPositionTests.test_func_def",
+    "test.test_sys.SysModuleTest.test_sys_flags",
+    "test.test_sys.SysModuleTest.test_getframe",
+    "test.test_module.ModuleTests.test_uninitialized",
+    "test.test_module.ModuleTests.test_module_getattr",
+    "test.test_module.ModuleTests.test_module_dir",
+    "test.test_module.ModuleTests.test_no_docstring",
+    "test.test_module.ModuleTests.test_reinit",
+    "test.test_module.ModuleTests.test_ascii_docstring",
+    "test.test_ast.AST_Tests.test_arguments",
+    "test.test_ast.AST_Tests.test_alias",
+    "test.test_ast.ASTHelpers_Test.test_literal_eval",
+    "test.test_sys.SysModuleTest.test_module_names",
+    "test.test_sys.SysModuleTest.test_stdlib_dir"
+  ],
+  "solution_patch_sha256": "9fc4995243593c06de59a3d4942d8fed3623a5157b9462a22463b5a0f99ae736",
+  "eval_tests_patch_sha256": "39e99d5c594967fe77958ac6c73c774d9f9e27d375f041c34643a7c932ded4c6",
+  "omitted_patch_sha256": "6bc7c94cece8a67dbc60fcfe9b9e37bbc72678ef62b9daaf3c3eb8bd26e09ac6",
+  "eval_tests_patch_notes": "eval_tests.patch modifies 6 existing test files: Lib/test/test_listcomps.py (the heaviest \u2014 converts the old doctest-style file to a class-based ListComprehensionTest with 20 new methods, all of which become F2P), plus minor tweaks to test_compile.py, test_compiler_assemble.py, test_dis.py, test_inspect.py, test_trace.py (mostly assertion-update adjustments for the new bytecode layout). None of the 20 ListComprehensionTest methods exist at base_commit; they are all NEW per the AST class-diff.",
+  "omitted_patch_notes": "omitted.patch contains 3 files: Doc/library/dis.rst (dis docs update), Doc/whatsnew/3.12.rst (changelog), Misc/NEWS.d/next/Core and Builtins/2023-01-30-15-40-29.gh-issue-97933.nUlp3r.rst (NEWS entry). None affect runtime test execution.",
+  "fixture_taint_summary": "7 F2P selectors from two modified test files (Lib/test/test_compile.py and Lib/test/test_trace.py). All 7 assert PEP-709-only observable bytecode/trace behavior: 6 test_compile.TestSourcePositions test_multiline_{list,set,dict}_comprehension selectors validate parent-code-object comprehension opcodes, and 1 test_trace.TestLineCounts.test_trace_list_comprehension selector validates the removed synthetic listcomp trace event. Codex round 1 verified empirically on Python 3.9 that the original 20 ListComprehensionTest selectors all PASS at pre-state; they are regression locks for behavior PEP 709 preserves, not behavioral validators. The original P2P set now contains 50 pre-existing selectors spread across untouched tests: 24 test_grammar.py + 16 test_ast.py + 4 test_sys.py (including allowlisted sys._getframe) + 6 test_module.py. None are modified by this PR. Ratio P2P/F2P = 7.14x.",
+  "triage": {
+    "fail_to_pass": {
+      "TestSourcePositions.test_multiline_list_comprehension": {
+        "system_reason": "Exercises a multi-line listcomp via compile() and asserts LIST_APPEND opcode source-position is in the MODULE code object (no co_consts[0] descent). Pre-state: listcomp has its own synthetic code object; LIST_APPEND lives in module.co_consts[0], NOT in module \u2192 assertion fails (the opcode is not found at the asserted position). Post-state: PEP-709 inlines, LIST_APPEND is in module code \u2192 passes.",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_list_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestSourcePositions.test_multiline_async_list_comprehension": {
+        "system_reason": "Same logic as the sync variant but inside an async def f. Pre-state: LIST_APPEND is in f.__code__.co_consts[1]; post-state: inlined into f.__code__ directly. Also changes RETURN_VALUE \u2192 RETURN_CONST.",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_async_list_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestSourcePositions.test_multiline_set_comprehension": {
+        "system_reason": "SET_ADD in module code (not in a synthetic setcomp's co_consts[0]).",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_set_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestSourcePositions.test_multiline_async_set_comprehension": {
+        "system_reason": "SET_ADD in async function code (not co_consts[1]).",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_async_set_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestSourcePositions.test_multiline_dict_comprehension": {
+        "system_reason": "MAP_ADD in module code (not in synthetic dictcomp's co_consts[0]).",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_dict_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestSourcePositions.test_multiline_async_dict_comprehension": {
+        "system_reason": "MAP_ADD in async function code (not co_consts[1]).",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_compile.TestSourcePositions.test_multiline_async_dict_comprehension",
+        "fixture_taint_checked": true
+      },
+      "TestLineCounts.test_trace_list_comprehension": {
+        "system_reason": "Asserts the line-event count for the line containing a listcomp is exactly 11. Pre-state: 12 events (one extra for the synthetic listcomp call); post-state: 11 (no synthetic call). PEP 709 directly removes that extra trace event.",
+        "public_surface": "compile() + dis.get_instructions() (test_compile) / sys.settrace + trace.Trace (test_trace) \u2014 both pure public API",
+        "internal_symbol_check": [
+          "_PyComp_*",
+          "INLINED_COMP_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_trace.TestLineCounts.test_trace_list_comprehension",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_slice": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_slice",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_base_classes": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_base_classes",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_no_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_no_fields",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_from_import": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_from_import",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_copy_location": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_copy_location",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_iter_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_iter_fields",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_singletons": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_singletons",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_literal_eval": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_literal_eval",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_lambda": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_lambda",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_func_def": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_func_def",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_sys_flags": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.* public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_sys_flags",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_getframe": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR. Uses sys._getframe (allowlisted).",
+        "public_surface": "sys.* public API + sys._getframe (allowlisted)",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [
+          "sys._getframe"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_getframe",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_uninitialized": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_uninitialized",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_getattr": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_getattr",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_dir": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_dir",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_no_docstring": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_no_docstring",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_reinit": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_reinit",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_ascii_docstring": {
+        "system_reason": "Pre-existing module-object machinery test. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_ascii_docstring",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_arguments": {
+        "system_reason": "Pre-existing AST regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.parse() / compile() AST argument node behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_arguments",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "AST_Tests.test_alias": {
+        "system_reason": "Pre-existing AST regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.parse() / compile() AST alias node behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_alias",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "ASTHelpers_Test.test_literal_eval": {
+        "system_reason": "Pre-existing AST helper regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.literal_eval() public helper behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_literal_eval",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "SysModuleTest.test_module_names": {
+        "system_reason": "Pre-existing sys module regression test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys module public metadata invariants",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_module_names",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "SysModuleTest.test_stdlib_dir": {
+        "system_reason": "Pre-existing sys module regression test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys module standard-library path metadata",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_stdlib_dir",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "20 ListComprehensionTest methods in Lib/test/test_listcomps.py",
+      "reason": "Codex round 1 (Critical 1) verified on Python 3.9.13 that all 20 ListComprehensionTest methods PASS at pre-state. PEP 709 preserves legacy comprehension scoping observably; these tests are regression locks the PR author added to ensure the inlined implementation didn't break compatibility, NOT behavioral validators. They cannot satisfy the \u00a77 F2P invariant (must FAIL/ERROR at pre-state). The test bodies remain in eval_tests.patch for fidelity (the whole file is rewritten from doctest to unittest), but are not selected as F2P."
+    },
+    {
+      "surface": "Internal comprehension implementation: _PyComp_*, INLINED_COMP_*",
+      "reason": "Internal compiler helpers introduced by the PR. F2P checks observable bytecode/trace behavior, not internal helper names."
+    }
+  ],
+  "public_surface_allowlist": [
+    {
+      "symbol": "sys._getframe",
+      "rationale": "Documented CPython implementation detail; canonical Python-level frame accessor. Used by one P2P selector: test_sys.SysModuleTest.test_getframe (unmodified by this PR). The agent does NOT need to re-implement sys._getframe \u2014 it's pre-existing infrastructure.",
+      "tests": [
+        "test.test_sys.SysModuleTest.test_getframe"
+      ]
+    }
+  ],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; PEP 709 does not touch configure.ac, so no reconfigure is needed at eval time)",
+    "runtime_caps": "--network=none, default seccomp (no SYS_PTRACE needed)"
+  },
+  "validated_at": "2026-06-15T00:00:00Z",
+  "coverage_gap_note": "Superseded by augmented coverage. The original selector union covers 72.7% (152/209 executable patch lines) under the hybrid coverage.py + gcov/gcovr measurement. The augmented suite covers 81.3% (170/209 executable patch lines), passing the 80% gate while leaving only CPython error-cleanup branches and a few hard-to-trigger analyzer failure paths uncovered.",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "82eccdd8d9db4ebcf862512b17955d1a03bae73933a57f81507175b0b6d64c80",
+    "f2p_aug_sha256": "2ab753f4bb603fd6d95dad19e0692c6af26d2ed3aaaf46d1c5014679cd08a585",
+    "p2p_aug_sha256": "00af5da26f93f35fc702da3fdf78188ffbfb6f944eab6eb956ce34a812f3225b",
+    "fail_to_pass": [
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_opcode_tables_and_parent_bytecode_show_inlined_comprehensions",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_inlined_comprehension_locals_are_restored_and_hidden",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_traceback_and_profile_do_not_report_comprehension_frames",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_global_cell_and_freevar_targets_preserve_isolation",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_async_comprehensions_are_inlined_and_use_async_iteration",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_list_and_tuple_subiterators_are_inlined",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_async_subiterator_is_inlined",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_magic_number_marks_new_inlined_comprehension_bytecode",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_locals_inside_comprehension_include_outer_values",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_and_class_scope_locals_hide_temporary_fast_locals",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_shadowed_outer_object_is_restored_and_outer_reads_stay_fast",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_scope_name_is_restored_after_comprehension",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_assembler_fasthidden_metadata_hides_fast_local_from_locals",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_comprehension_children_are_spliced_into_parent_symtable",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_cellvar_targets_are_recreated_for_lambdas_inside_comprehensions",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_debug_opcode_metadata_names_load_fast_and_clear"
+    ],
+    "pass_to_pass": [
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_comprehension_results_and_iteration_variable_isolation_are_stable",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_nested_comprehension_semantics_are_stable",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_generator_expressions_keep_lazy_behavior",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_exception_behavior_inside_comprehension_is_stable"
+    ],
+    "targets_mutants": [
+      "mutant_001_localsplus_omits_fast_hidden_kind",
+      "mutant_002_frame_locals_exposes_hidden_fast_locals",
+      "mutant_005_async_comprehensions_not_inlined",
+      "mutant_006_load_fast_and_clear_does_not_clear_slot",
+      "mutant_007_opcode_module_does_not_mark_load_fast_and_clear_local",
+      "mutant_008_magic_number_not_bumped_for_new_bytecode",
+      "mutant_012_async_comprehension_uses_sync_iterator_opcode",
+      "mutant_014_fast_hidden_state_not_restored_after_comprehension",
+      "mutant_015_scope_override_not_applied_inside_comprehension",
+      "mutant_016_cell_target_not_recreated_for_comprehension_scope",
+      "mutant_017_inlined_comprehension_children_not_spliced_into_parent",
+      "mutant_018_new_comprehension_symbols_forced_global",
+      "mutant_019_free_vars_always_kept_in_comprehension_free_set",
+      "mutant_021_opcode_name_misregistered_for_load_fast_and_clear",
+      "mutant_024_debug_opcode_name_hides_load_fast_and_clear"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 72.7,
+      "augmented_line_coverage_percent": 81.3,
+      "union_line_coverage_percent": 81.3,
+      "executable_lines_in_patch": 209,
+      "union_covered_lines": 170,
+      "coverage_complete": true,
+      "measurement_note": "Hybrid coverage.py for the two Python files and gcov/gcovr for hand-written C/H files. Generated opcode/bytecode artifacts are recorded as raw patch lines but excluded from the executable denominator. Coverage reports were refreshed after expanding original P2P to 50 pre-existing selectors; union remains 170/209 (81.3%)."
+    },
+    "synthetic_tests": [
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_opcode_tables_and_parent_bytecode_show_inlined_comprehensions",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_inlined_comprehension_locals_are_restored_and_hidden",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_traceback_and_profile_do_not_report_comprehension_frames",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_global_cell_and_freevar_targets_preserve_isolation",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_async_comprehensions_are_inlined_and_use_async_iteration",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_list_and_tuple_subiterators_are_inlined",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_async_subiterator_is_inlined",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_magic_number_marks_new_inlined_comprehension_bytecode",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_locals_inside_comprehension_include_outer_values",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_and_class_scope_locals_hide_temporary_fast_locals",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_shadowed_outer_object_is_restored_and_outer_reads_stay_fast",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_scope_name_is_restored_after_comprehension",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_assembler_fasthidden_metadata_hides_fast_local_from_locals",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_comprehension_children_are_spliced_into_parent_symtable",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_cellvar_targets_are_recreated_for_lambdas_inside_comprehensions",
+      "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_debug_opcode_metadata_names_load_fast_and_clear",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_comprehension_results_and_iteration_variable_isolation_are_stable",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_nested_comprehension_semantics_are_stable",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_generator_expressions_keep_lazy_behavior",
+      "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_exception_behavior_inside_comprehension_is_stable"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors exercise PEP 709 behavior through normal function execution, nested sync and async comprehension chains, dis, opcode, importlib.util, locals(), tracebacks, sys.setprofile, symtable, code object metadata, CPython assembler metadata, and the CPython source-distribution opcode metadata used by debug builds. Augmented P2P selectors use ordinary comprehension and generator-expression behavior that should remain stable on base, golden, and mutant states. Requirement section names exactly match the PEP 709 Section Classification Summary in requirement_pr_pairs/CPython_PEP-709_Inlined-comprehensions_PR-101441.md.",
+      "fail_to_pass": {
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_opcode_tables_and_parent_bytecode_show_inlined_comprehensions": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "Function compilation, dis.get_instructions(), and the public opcode module tables for bytecode names, local-operand metadata, and pseudo-ops.",
+          "mutants_targeted": [
+            "mutant_007_opcode_module_does_not_mark_load_fast_and_clear_local",
+            "mutant_021_opcode_name_misregistered_for_load_fast_and_clear"
+          ],
+          "rationale": "PEP 709 introduces LOAD_FAST_AND_CLEAR and STORE_FAST_MAYBE_NULL as the observable bytecode machinery for inlining comprehensions. The test requires an inlined list comprehension to disassemble in the parent code object and verifies the public opcode metadata agrees with that emitted bytecode."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_inlined_comprehension_locals_are_restored_and_hidden": {
+          "requirement_sections": [
+            "Specification",
+            "Backwards Compatibility > locals() includes outer variables"
+          ],
+          "public_surface": "User functions, list comprehension execution, and locals() snapshots.",
+          "mutants_targeted": [
+            "mutant_001_localsplus_omits_fast_hidden_kind",
+            "mutant_002_frame_locals_exposes_hidden_fast_locals",
+            "mutant_006_load_fast_and_clear_does_not_clear_slot",
+            "mutant_014_fast_hidden_state_not_restored_after_comprehension",
+            "mutant_018_new_comprehension_symbols_forced_global"
+          ],
+          "rationale": "The PEP replaces the synthetic comprehension frame with an inlined sub-scope. The test verifies that shadowed iteration variables do not leak into the enclosing locals after the comprehension and that no new outer binding is left behind."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_traceback_and_profile_do_not_report_comprehension_frames": {
+          "requirement_sections": [
+            "Backwards Compatibility > No comprehension frame in tracebacks",
+            "Backwards Compatibility > Tracing/profiling will no longer show a call/return for the comprehension"
+          ],
+          "public_surface": "Tracebacks raised by normal Python execution and sys.setprofile call/return events.",
+          "mutants_targeted": [
+            "mutant_005_async_comprehensions_not_inlined",
+            "mutant_017_inlined_comprehension_children_not_spliced_into_parent"
+          ],
+          "rationale": "PEP 709 explicitly changes tracebacks and profiling by removing the separate comprehension frame. The test asserts that failing list/set comprehensions no longer report synthetic <listcomp>/<setcomp> frames or calls."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_global_cell_and_freevar_targets_preserve_isolation": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "Global declarations, closures, nested functions, and comprehension evaluation results.",
+          "mutants_targeted": [
+            "mutant_015_scope_override_not_applied_inside_comprehension",
+            "mutant_016_cell_target_not_recreated_for_comprehension_scope",
+            "mutant_018_new_comprehension_symbols_forced_global",
+            "mutant_019_free_vars_always_kept_in_comprehension_free_set"
+          ],
+          "rationale": "The inlined sub-scope must preserve legacy isolation when a comprehension target shadows a global name or a cell variable. The test checks both cases through ordinary function results."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_async_comprehensions_are_inlined_and_use_async_iteration": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "async def functions, async generators, asyncio.run(), and dis.get_instructions().",
+          "mutants_targeted": [
+            "mutant_005_async_comprehensions_not_inlined",
+            "mutant_012_async_comprehension_uses_sync_iterator_opcode"
+          ],
+          "rationale": "PEP 709 applies to async list, set, and dict comprehensions while preserving async iteration semantics. The test verifies async comprehensions are inlined and still use GET_AITER over an async generator."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_list_and_tuple_subiterators_are_inlined": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "User functions, nested list comprehensions over list and tuple sub-iterables, and dis.get_instructions().",
+          "mutants_targeted": [],
+          "rationale": "PEP 709 compiles nested list-comprehension generators inside the enclosing code object. The test asserts that list and tuple sub-iterators, including singleton and multi-element literals, are inlined without a synthetic <listcomp> code object while preserving the observable nested-comprehension result."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_async_subiterator_is_inlined": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "async def functions, async generators, nested async list comprehensions, asyncio.run(), and dis.get_instructions().",
+          "mutants_targeted": [
+            "mutant_005_async_comprehensions_not_inlined",
+            "mutant_012_async_comprehension_uses_sync_iterator_opcode"
+          ],
+          "rationale": "PEP 709 applies to async comprehensions and must inline nested async generator clauses while preserving async iteration. The test verifies a nested async list comprehension has no synthetic <listcomp> code object and still produces the expected async-iteration result."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_magic_number_marks_new_inlined_comprehension_bytecode": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "importlib.util.MAGIC_NUMBER.",
+          "mutants_targeted": [
+            "mutant_008_magic_number_not_bumped_for_new_bytecode"
+          ],
+          "rationale": "The emitted bytecode format changes for PEP 709, so import metadata must report the bumped magic number. The test asserts the documented 3529 bytecode version exposed through importlib.util."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_locals_inside_comprehension_include_outer_values": {
+          "requirement_sections": [
+            "Backwards Compatibility > locals() includes outer variables"
+          ],
+          "public_surface": "locals() inside a list comprehension evaluated from a normal user function.",
+          "mutants_targeted": [
+            "mutant_001_localsplus_omits_fast_hidden_kind",
+            "mutant_002_frame_locals_exposes_hidden_fast_locals",
+            "mutant_006_load_fast_and_clear_does_not_clear_slot"
+          ],
+          "rationale": "PEP 709 documents that locals() inside a comprehension now includes variables from the enclosing function. The test asserts that compatibility-visible locals() behavior directly."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_and_class_scope_locals_hide_temporary_fast_locals": {
+          "requirement_sections": [
+            "Specification",
+            "Backwards Compatibility > locals() includes outer variables"
+          ],
+          "public_surface": "compile(), exec(), class creation, and locals() snapshots in module and class scopes.",
+          "mutants_targeted": [
+            "mutant_001_localsplus_omits_fast_hidden_kind",
+            "mutant_002_frame_locals_exposes_hidden_fast_locals"
+          ],
+          "rationale": "PEP 709 must hide temporary fast locals used for inlined comprehension iteration variables while preserving the enclosing module or class binding visible through locals()."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_shadowed_outer_object_is_restored_and_outer_reads_stay_fast": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "User functions, weakref.ref(), list comprehension execution, and function code object metadata.",
+          "mutants_targeted": [
+            "mutant_006_load_fast_and_clear_does_not_clear_slot",
+            "mutant_019_free_vars_always_kept_in_comprehension_free_set"
+          ],
+          "rationale": "The inlined sub-scope moves an existing local value out of the fast-local slot and restores it after the comprehension, and outer names read only by the comprehension should remain ordinary fast locals rather than unnecessary cells."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_scope_name_is_restored_after_comprehension": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "compile(), exec(), module-scope list comprehension execution, and normal name lookup after the comprehension.",
+          "mutants_targeted": [
+            "mutant_014_fast_hidden_state_not_restored_after_comprehension"
+          ],
+          "rationale": "A comprehension creates only a temporary inlined sub-scope; after the comprehension, a module-scope name shadowed by the comprehension target must again resolve to the original binding."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_assembler_fasthidden_metadata_hides_fast_local_from_locals": {
+          "requirement_sections": [
+            "Specification",
+            "Backwards Compatibility > locals() includes outer variables"
+          ],
+          "public_surface": "User functions, list comprehension execution, function code object metadata (co_varnames), and locals() snapshots.",
+          "mutants_targeted": [
+            "mutant_001_localsplus_omits_fast_hidden_kind",
+            "mutant_002_frame_locals_exposes_hidden_fast_locals"
+          ],
+          "rationale": "PEP 709 hides the compiler-created temporary fast local used for an inlined comprehension's iteration variable. The test runs an inlined comprehension whose target has no outer binding and asserts the target occupies a real fast-local slot (co_varnames) yet is absent from the enclosing frame's locals(); pre-patch the comprehension is a separate function so the target is not a parent local at all."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_comprehension_children_are_spliced_into_parent_symtable": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "symtable.symtable() over ordinary Python source containing a lambda inside a list comprehension.",
+          "mutants_targeted": [
+            "mutant_017_inlined_comprehension_children_not_spliced_into_parent"
+          ],
+          "rationale": "Inlining removes the comprehension block as a runtime frame, so nested children such as lambdas are analyzed as children of the enclosing function rather than remaining under a synthetic listcomp symbol table."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_cellvar_targets_are_recreated_for_lambdas_inside_comprehensions": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "User functions, lambdas, closures, and list comprehension results.",
+          "mutants_targeted": [
+            "mutant_016_cell_target_not_recreated_for_comprehension_scope"
+          ],
+          "rationale": "When an inlined comprehension target is captured by a nested lambda, the compiler must create a comprehension-local cell so lambdas capture the comprehension value without corrupting the outer cell."
+        },
+        "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_debug_opcode_metadata_names_load_fast_and_clear": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "The CPython source distribution shipped in the benchmark image, specifically the generated opcode metadata header used by debug builds.",
+          "mutants_targeted": [
+            "mutant_024_debug_opcode_name_hides_load_fast_and_clear"
+          ],
+          "rationale": "PEP 709 adds a named LOAD_FAST_AND_CLEAR bytecode. The generated opcode metadata shipped with the source tree must name that opcode consistently so debug builds report the emitted bytecode rather than a reserved slot."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_comprehension_results_and_iteration_variable_isolation_are_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "List, set, and dict comprehension values plus normal local variable lookup.",
+          "rationale": "PEP 709 changes implementation strategy but preserves ordinary comprehension results and does not leak iteration variables into the surrounding function for existing programs."
+        },
+        "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_nested_comprehension_semantics_are_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "Nested list comprehensions and tuple results.",
+          "rationale": "Nested comprehension ordering and filtering are unrelated behavior that should remain stable while the compiler changes the frame layout."
+        },
+        "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_generator_expressions_keep_lazy_behavior": {
+          "requirement_sections": [
+            "Rejected Ideas > More efficient comprehension calling, without inlining"
+          ],
+          "public_surface": "Generator expression creation and next() iteration.",
+          "rationale": "PEP 709 intentionally targets list, set, and dict comprehensions rather than generator expressions. This P2P pins generator laziness so unrelated expression semantics are not pulled into the inlining change."
+        },
+        "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_exception_behavior_inside_comprehension_is_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "Exception propagation from ordinary list comprehension evaluation.",
+          "rationale": "The implementation removes a frame but should not change whether exceptions raised inside a comprehension propagate to the caller."
+        }
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-base:1",
+  "pr_head_sha": "95401febe1db5be154c205ec37c237ff104e497a",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-base:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 72.73,
+    "aug": 81.34,
+    "union": 81.34,
+    "denominator": "union_executable_lines"
+  },
+  "p2p_entry_count": 50
+}

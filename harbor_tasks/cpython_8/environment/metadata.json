@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_8",
+  "source_instance_id": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "source_slug": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "docker_slug": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "dockerhub_image": "smartdub26/lolbench:cpython_8-1.0.0",
+  "dockerhub_digest": "sha256:e182b5979ba260545ee4cad6978c03303c1fdd2d591a7b0e85bc8595b96e8c74",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0701/",
+  "pr_link": "https://github.com/python/cpython/pull/102855",
+  "base_commit": "a6b07b5a345f7f54ee9f6d75e81d2fb55971b35c",
+  "merge_commit": "1ef61cf71a218c71860ff6aecf0fd51edb8b65dc",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

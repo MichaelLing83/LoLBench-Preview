@@ -1,0 +1,2 @@
+org.apache.kafka.connect.runtime.rest.resources.ConnectorPluginsResourceTest#testListConnectorPlugins
+org.apache.kafka.connect.runtime.rest.resources.ConnectorPluginsResourceTest#testListAllPlugins

@@ -1,0 +1,4 @@
+org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testDefaultDeclarationPoliciesAndWatermarks
+org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testExplicitDeclarationPoliciesAndHandlingStrategies
+org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testPolicyGetterCarriesWaitForAllFlag
+org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testWatermarkValueAndDeclarationAccessors

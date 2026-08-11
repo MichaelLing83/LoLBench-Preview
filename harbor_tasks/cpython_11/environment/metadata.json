@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_11",
+  "source_instance_id": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "source_slug": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "docker_slug": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "dockerhub_image": "smartdub26/lolbench:cpython_11-1.0.0",
+  "dockerhub_digest": "sha256:7bd5599b76a316951fd1e6ebf6a228cdd3cb0cc9b8ee263b1a541aeebc0a7144",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0696/",
+  "pr_link": "https://github.com/python/cpython/pull/116129",
+  "base_commit": "852263e1086748492602a90347ecc0a3925e1dda",
+  "merge_commit": "ca269e58c290be8ca11bb728004ea842d9f85e3a",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

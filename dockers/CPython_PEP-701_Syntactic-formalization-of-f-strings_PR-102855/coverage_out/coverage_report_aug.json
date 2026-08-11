@@ -1,0 +1,181 @@
+{
+  "instance_id": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "files_in_scope": [
+    "Include/internal/pycore_token.h",
+    "Lib/token.py",
+    "Parser/action_helpers.c",
+    "Parser/pegen.c",
+    "Parser/pegen.h",
+    "Parser/pegen_errors.c",
+    "Parser/string_parser.c",
+    "Parser/string_parser.h",
+    "Parser/token.c",
+    "Parser/tokenizer.c",
+    "Parser/tokenizer.h",
+    "Programs/test_frozenmain.h",
+    "Python/Python-tokenize.c"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/token.py",
+      "language": "python",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_token.h",
+      "language": "c",
+      "lines_in_patch": 14,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Parser/action_helpers.c",
+      "language": "c",
+      "lines_in_patch": 449,
+      "executable_lines_in_patch": 230,
+      "f2p_covered": 187,
+      "p2p_covered": 126,
+      "union_covered": 187
+    },
+    {
+      "file": "Parser/pegen.c",
+      "language": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "Parser/pegen.h",
+      "language": "c",
+      "lines_in_patch": 14,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Parser/pegen_errors.c",
+      "language": "c",
+      "lines_in_patch": 12,
+      "executable_lines_in_patch": 7,
+      "f2p_covered": 5,
+      "p2p_covered": 0,
+      "union_covered": 5
+    },
+    {
+      "file": "Parser/string_parser.c",
+      "language": "c",
+      "lines_in_patch": 35,
+      "executable_lines_in_patch": 23,
+      "f2p_covered": 17,
+      "p2p_covered": 11,
+      "union_covered": 17
+    },
+    {
+      "file": "Parser/string_parser.h",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Parser/token.c",
+      "language": "c",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "Parser/tokenizer.c",
+      "language": "c",
+      "lines_in_patch": 483,
+      "executable_lines_in_patch": 261,
+      "f2p_covered": 203,
+      "p2p_covered": 138,
+      "union_covered": 203
+    },
+    {
+      "file": "Parser/tokenizer.h",
+      "language": "c",
+      "lines_in_patch": 29,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Programs/test_frozenmain.h",
+      "language": "c",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/Python-tokenize.c",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 2,
+      "p2p_covered": 0,
+      "union_covered": 2
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py for Lib/token.py + gcov/gcovr for the authored/runtime PEP-701 C source/header files (Parser/action_helpers.c, Parser/{pegen,pegen_errors,string_parser,token,tokenizer}.c, Parser/{pegen,string_parser,tokenizer}.h, Python/Python-tokenize.c, Include/internal/pycore_token.h, and Programs/test_frozenmain.h). Grammar/python.gram is a grammar source and Parser/parser.c is its generated parser output, so parser.c is not part of the executable denominator; generated parser behavior is still exercised through public compile(), ast, eval(), and tokenize tests.",
+    "lines_in_patch_total": 1066,
+    "lines_in_patch_total_all": 6145,
+    "lines_in_patch_python": 16,
+    "lines_in_patch_c": 1050,
+    "executable_lines_in_patch": 525,
+    "f2p_covered": 416,
+    "p2p_covered": 277,
+    "union_covered": 416,
+    "f2p_pct": 79.2,
+    "p2p_pct": 52.8,
+    "union_pct": 79.2,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "9P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "3P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

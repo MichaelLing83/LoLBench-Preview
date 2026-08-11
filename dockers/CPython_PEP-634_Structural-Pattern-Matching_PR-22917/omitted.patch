@@ -1,0 +1,87 @@
+diff --git a/Doc/library/dis.rst b/Doc/library/dis.rst
+--- a/Doc/library/dis.rst
++++ b/Doc/library/dis.rst
+@@ -752,6 +752,49 @@ iterations of the loop.
+    .. versionadded:: 3.2
+ 
+ 
++.. opcode:: COPY_DICT_WITHOUT_KEYS
++
++   TOS is a tuple of mapping keys, and TOS1 is the match subject.  Replace TOS
++   with a :class:`dict` formed from the items of TOS1, but without any of the
++   keys in TOS.
++
++   .. versionadded:: 3.10
++
++
++.. opcode:: GET_LEN
++
++   Push ``len(TOS)`` onto the stack.
++
++   .. versionadded:: 3.10
++
++
++.. opcode:: MATCH_MAPPING
++
++   If TOS is an instance of :class:`collections.abc.Mapping`, push ``True`` onto
++   the stack.  Otherwise, push ``False``.
++
++   .. versionadded:: 3.10
++
++
++.. opcode:: MATCH_SEQUENCE
++
++   If TOS is an instance of :class:`collections.abc.Sequence` and is *not* an
++   instance of :class:`str`/:class:`bytes`/:class:`bytearray`, push ``True``
++   onto the stack.  Otherwise, push ``False``.
++
++   .. versionadded:: 3.10
++
++
++.. opcode:: MATCH_KEYS
++
++   TOS is a tuple of mapping keys, and TOS1 is the match subject.  If TOS1
++   contains all of the keys in TOS, push a :class:`tuple` containing the
++   corresponding values, followed by ``True``. Otherwise, push ``None``,
++   followed by ``False``.
++
++   .. versionadded:: 3.10
++
++
+ All of the following opcodes use their arguments.
+ 
+ .. opcode:: STORE_NAME (namei)
+@@ -1192,6 +1235,19 @@ All of the following opcodes use their arguments.
+    .. versionadded:: 3.6
+ 
+ 
++.. opcode:: MATCH_CLASS (count)
++
++   TOS is a tuple of keyword attribute names, TOS1 is the class being matched
++   against, and TOS2 is the match subject.  *count* is the number of positional
++   sub-patterns.
++
++   Pop TOS.  If TOS2 is an instance of TOS1 and has the positional and keyword
++   attributes required by *count* and TOS, set TOS to ``True`` and TOS1 to a
++   tuple of extracted attributes.  Otherwise, set TOS to ``False``.
++
++   .. versionadded:: 3.10
++
++
+ .. opcode:: HAVE_ARGUMENT
+ 
+    This is not really an opcode.  It identifies the dividing line between
+diff --git a/Doc/tools/susp-ignored.csv b/Doc/tools/susp-ignored.csv
+--- a/Doc/tools/susp-ignored.csv
++++ b/Doc/tools/susp-ignored.csv
+@@ -365,3 +365,4 @@ whatsnew/changelog,,::,default::DeprecationWarning
+ library/importlib.metadata,,:main,"EntryPoint(name='wheel', value='wheel.cli:main', group='console_scripts')"
+ library/importlib.metadata,,`,loading the metadata for packages for the indicated ``context``.
+ library/re,,`,"`"
++library/dis,,:TOS1,TOS[x:TOS1 - 1 - y]
+diff --git a/"Misc/NEWS.d/next/Core and Builtins/2020-10-23-08-54-04.bpo-42128.SWmVEm.rst" b/"Misc/NEWS.d/next/Core and Builtins/2020-10-23-08-54-04.bpo-42128.SWmVEm.rst"
+new file mode 100644
+--- /dev/null
++++ b/"Misc/NEWS.d/next/Core and Builtins/2020-10-23-08-54-04.bpo-42128.SWmVEm.rst"
+@@ -0,0 +1 @@
++Implement :pep:`634` (structural pattern matching). Patch by Brandt Bucher.

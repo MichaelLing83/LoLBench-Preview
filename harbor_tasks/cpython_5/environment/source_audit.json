@@ -1,0 +1,7 @@
+{
+  "source_policy": "dockerfile_fetch_sanitized_parentless_baseline",
+  "local_reference_policy": "ensurepip_wheels_removed_git_objects_pruned",
+  "base_commit": "0b5a573ce8e8e90daad4d24b215aabb7356f4fce",
+  "repo": "python/cpython",
+  "note": "The Dockerfile removes every Lib/ensurepip/_bundled wheel, writes the sanitized index as a parentless baseline commit, repoints the retained tags, deletes pseudo-refs, repacks and prunes the former history, asserts that git fsck finds no unreachable object, and removes installed Python reference sources and package-manager caches."
+}

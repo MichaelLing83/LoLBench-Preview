@@ -1,0 +1,895 @@
+{
+  "instance_id": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0680/",
+  "requirement_doc_title": "PEP 680 \u2014 tomllib: Support for Parsing TOML in the Standard Library",
+  "pr_link": "https://github.com/python/cpython/pull/31498",
+  "pr_number": 31498,
+  "merge_commit": "591f6754b56cb7f6c31fce8c22528bdf0a99556c",
+  "base_commit": "0b5a573ce8e8e90daad4d24b215aabb7356f4fce",
+  "base_commit_note": "PR-31498 was squash-merged into main on 2022-03-08; the merge commit 591f6754b56cb7f6c31fce8c22528bdf0a99556c has a single parent 0b5a573ce8e8e90daad4d24b215aabb7356f4fce, and diffing against that parent isolates the PR contribution from ~2 weeks of unrelated drift on main. Both the merge-parent and the PR-creation-time tip carry identical content for the 3 PR-touched non-NEWS files (Lib/tomllib/__init__.py and Lib/tomllib/_parser.py do not exist at either; Python/stdlib_module_names.h has the same blob hash); the patches apply cleanly at either. Using merge_parent (4d95fa1a\u2026) for consistency with prior CPython instances and to avoid carrying drift commits in the base tree. Same pattern as PEP-617 / PEP-634 / PEP-654 / PEP-669.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_tomllib.test_data.TestData.test_invalid",
+    "test.test_tomllib.test_data.TestData.test_valid",
+    "test.test_tomllib.test_error.TestError.test_line_and_col",
+    "test.test_tomllib.test_error.TestError.test_missing_value",
+    "test.test_tomllib.test_error.TestError.test_invalid_char_quotes",
+    "test.test_tomllib.test_error.TestError.test_module_name",
+    "test.test_tomllib.test_error.TestError.test_invalid_parse_float",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_load",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_incorrect_load",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_parse_float",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_deepcopy",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_inline_array_recursion_limit",
+    "test.test_tomllib.test_misc.TestMiscellaneous.test_inline_table_recursion_limit"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_slice",
+    "test.test_ast.AST_Tests.test_alias",
+    "test.test_ast.AST_Tests.test_base_classes",
+    "test.test_ast.AST_Tests.test_no_fields",
+    "test.test_ast.ASTHelpers_Test.test_parse",
+    "test.test_ast.ASTHelpers_Test.test_dump",
+    "test.test_ast.ASTHelpers_Test.test_copy_location",
+    "test.test_ast.ASTHelpers_Test.test_iter_fields",
+    "test.test_ast.ConstantTests.test_singletons",
+    "test.test_ast.ConstantTests.test_literal_eval",
+    "test.test_ast.EndPositionTests.test_lambda",
+    "test.test_ast.EndPositionTests.test_func_def",
+    "test.test_sys.SysModuleTest.test_module_names",
+    "test.test_sys.SysModuleTest.test_stdlib_dir",
+    "test.test_module.ModuleTests.test_uninitialized",
+    "test.test_module.ModuleTests.test_module_getattr",
+    "test.test_module.ModuleTests.test_module_dir",
+    "test.test_ast.AST_Tests.test_arguments",
+    "test.test_ast.AST_Tests.test_from_import",
+    "test.test_ast.ASTHelpers_Test.test_literal_eval",
+    "test.test_sys.SysModuleTest.test_sys_flags",
+    "test.test_sys.SysModuleTest.test_getframe",
+    "test.test_module.ModuleTests.test_no_docstring",
+    "test.test_module.ModuleTests.test_reinit",
+    "test.test_module.ModuleTests.test_ascii_docstring"
+  ],
+  "solution_patch_sha256": "06bd1792e3683d4f17990dd9e63237e0e5c43a2db348e94f7da2129f1aace4a1",
+  "eval_tests_patch_sha256": "6a43da17e7437d217ab57eccdd92b9cb2549f4f9fe12eae12d3a8ebd517b8052",
+  "omitted_patch_sha256": "bf94cf8962e9c8e87795cd327081684e8eb85eed187d6e0472d4347eb02d7073",
+  "eval_tests_patch_notes": "eval_tests.patch contains the entire Lib/test/test_tomllib/ subtree added by PR-31498: 3 test modules (test_data.py, test_error.py, test_misc.py), 1 helper module (burntsushi.py), the package __init__.py + __main__.py, and 74 .toml/.json fixture files under data/valid/ and data/invalid/. No existing test files are modified.",
+  "omitted_patch_notes": "omitted.patch holds: Doc/library/tomllib.rst (new doc), Doc/library/fileformats.rst (+1 line linking to tomllib), Doc/whatsnew/3.11.rst (+2/-1), Misc/NEWS.d/next/Library/2022-02-23-01-11-08.bpo-40059.Iwc9UH.rst (+1, NEWS entry), .github/CODEOWNERS (+2). None affect runtime test execution. Reapplying omitted.patch on top of base produces a tree byte-identical to the merge commit for the non-omitted files.",
+  "fixture_taint_summary": "13 F2P from 3 modules of the NEW Lib/test/test_tomllib/ subtree: test_data.py (2 methods iterating the .toml fixture data), test_error.py (5 methods exercising TOMLDecodeError paths), test_misc.py (6 methods exercising tomllib.load / parse_float / recursion / deepcopy). All 13 methods use only documented public surface (tomllib.loads, tomllib.load, tomllib.TOMLDecodeError, tomllib.__name__) plus stdlib helpers (Path, copy.deepcopy, tempfile, decimal.Decimal). Pre-state: Lib/tomllib/ does not exist \u2192 ModuleNotFoundError on `import tomllib` from test/test_tomllib/__init__.py \u2192 all 13 ERROR. Post-state: PR adds Lib/tomllib/{__init__,_parser,_re,_types}.py (818 lines) \u2192 all 13 PASS. 50 P2P spread across 4 pre-existing files, none modified by this PR: 24 test_grammar.py + 16 test_ast.py (grammar / public-AST sanity) + 4 test_sys.py (sys.stdlib_module_names / sys flags / allowlisted sys._getframe behavior, adjacent to the PR's Python/stdlib_module_names.h +1 line) + 6 test_module.py (module-object machinery adjacent to adding a new stdlib module). All 8 selectors added in the 2026-06-15 P2P refresh are original pre-existing CPython unittest selectors appended to p2p.txt, not synthesized sidecar tests. Ratio P2P/F2P = 3.85\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "TestData.test_invalid": {
+        "system_reason": "Iterates the .toml fixtures in Lib/test/test_tomllib/data/ and parses each with public tomllib.loads(); compares results against the .json expected output (valid set) or asserts TOMLDecodeError (invalid set). Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_data.TestData.test_invalid",
+        "fixture_taint_checked": true
+      },
+      "TestData.test_valid": {
+        "system_reason": "Iterates the .toml fixtures in Lib/test/test_tomllib/data/ and parses each with public tomllib.loads(); compares results against the .json expected output (valid set) or asserts TOMLDecodeError (invalid set). Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_data.TestData.test_valid",
+        "fixture_taint_checked": true
+      },
+      "TestError.test_line_and_col": {
+        "system_reason": "Drives error-path behavior of tomllib.loads() \u2014 invalid inputs that should raise TOMLDecodeError, plus the test that tomllib.TOMLDecodeError.__module__ == 'tomllib'. Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError / tomllib.__name__",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_error.TestError.test_line_and_col",
+        "fixture_taint_checked": true
+      },
+      "TestError.test_missing_value": {
+        "system_reason": "Drives error-path behavior of tomllib.loads() \u2014 invalid inputs that should raise TOMLDecodeError, plus the test that tomllib.TOMLDecodeError.__module__ == 'tomllib'. Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError / tomllib.__name__",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_error.TestError.test_missing_value",
+        "fixture_taint_checked": true
+      },
+      "TestError.test_invalid_char_quotes": {
+        "system_reason": "Drives error-path behavior of tomllib.loads() \u2014 invalid inputs that should raise TOMLDecodeError, plus the test that tomllib.TOMLDecodeError.__module__ == 'tomllib'. Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError / tomllib.__name__",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_error.TestError.test_invalid_char_quotes",
+        "fixture_taint_checked": true
+      },
+      "TestError.test_module_name": {
+        "system_reason": "Drives error-path behavior of tomllib.loads() \u2014 invalid inputs that should raise TOMLDecodeError, plus the test that tomllib.TOMLDecodeError.__module__ == 'tomllib'. Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError / tomllib.__name__",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_error.TestError.test_module_name",
+        "fixture_taint_checked": true
+      },
+      "TestError.test_invalid_parse_float": {
+        "system_reason": "Drives error-path behavior of tomllib.loads() \u2014 invalid inputs that should raise TOMLDecodeError, plus the test that tomllib.TOMLDecodeError.__module__ == 'tomllib'. Public API only.",
+        "public_surface": "tomllib.loads / tomllib.TOMLDecodeError / tomllib.__name__",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_error.TestError.test_invalid_parse_float",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_load": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_load",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_incorrect_load": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_incorrect_load",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_parse_float": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_parse_float",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_deepcopy": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_deepcopy",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_inline_array_recursion_limit": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_inline_array_recursion_limit",
+        "fixture_taint_checked": true
+      },
+      "TestMiscellaneous.test_inline_table_recursion_limit": {
+        "system_reason": "Exercises the rest of the public surface: tomllib.load(binary_file), parse_float keyword arg, recursion-limit guard rails, deepcopy roundtrip. Public API only.",
+        "public_surface": "tomllib.load (with rb file) / tomllib.loads(parse_float=...)",
+        "internal_symbol_check": [
+          "tomllib._parser._*",
+          "tomllib._re._*",
+          "tomllib._types._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_tomllib.test_misc.TestMiscellaneous.test_inline_table_recursion_limit",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar-rule test via compile()/exec on Python source. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_slice": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_slice",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_alias": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_alias",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_base_classes": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_base_classes",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_no_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_no_fields",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_copy_location": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_copy_location",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_iter_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_iter_fields",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_singletons": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_singletons",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_literal_eval": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_literal_eval",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_lambda": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_lambda",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_func_def": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_func_def",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_module_names": {
+        "system_reason": "Asserts sys.stdlib_module_names is a frozenset of str. Behaviorally adjacent to the PR \u2014 solution.patch adds 'tomllib' to Python/stdlib_module_names.h \u2014 but the test only checks type, not contents, so it PASSES pre/post identically. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.stdlib_module_names",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_module_names",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_stdlib_dir": {
+        "system_reason": "Asserts sys._stdlib_dir resolves to the os.path.dirname of os.__file__. Behaviorally close to the PR (it touches stdlib_module_names.h, which is regenerated from sys._stdlib_dir/os.py et al.) but unaffected by tomllib. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys._stdlib_dir",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_stdlib_dir",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_uninitialized": {
+        "system_reason": "Pre-existing module-object machinery test (uninitialized state, __getattr__ on modules, dir() on modules). Behaviorally close to the PR (it adds a new stdlib module, exercising the same machinery) but does not test tomllib specifically. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_uninitialized",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_getattr": {
+        "system_reason": "Pre-existing module-object machinery test (uninitialized state, __getattr__ on modules, dir() on modules). Behaviorally close to the PR (it adds a new stdlib module, exercising the same machinery) but does not test tomllib specifically. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_getattr",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_dir": {
+        "system_reason": "Pre-existing module-object machinery test (uninitialized state, __getattr__ on modules, dir() on modules). Behaviorally close to the PR (it adds a new stdlib module, exercising the same machinery) but does not test tomllib specifically. test_module.py is NOT modified by this PR.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "tomllib._*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_dir",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_arguments": {
+        "system_reason": "Pre-existing AST regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.parse() / compile() AST argument node behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_arguments",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "AST_Tests.test_from_import": {
+        "system_reason": "Pre-existing AST regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.parse() / compile() import-from AST behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_from_import",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "ASTHelpers_Test.test_literal_eval": {
+        "system_reason": "Pre-existing AST helper regression test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "ast.literal_eval() public helper behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_literal_eval",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "SysModuleTest.test_sys_flags": {
+        "system_reason": "Pre-existing sys module regression test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.flags public metadata invariants",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_sys_flags",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "SysModuleTest.test_getframe": {
+        "system_reason": "Pre-existing sys module regression test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "allowlisted CPython sys._getframe implementation-detail behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [
+          "sys._getframe"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_getframe",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "ModuleTests.test_no_docstring": {
+        "system_reason": "Pre-existing module object regression test. test_module.py is NOT modified by this PR.",
+        "public_surface": "module object public __doc__ behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_no_docstring",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "ModuleTests.test_reinit": {
+        "system_reason": "Pre-existing module object regression test. test_module.py is NOT modified by this PR.",
+        "public_surface": "module object reinitialization behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_reinit",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      },
+      "ModuleTests.test_ascii_docstring": {
+        "system_reason": "Pre-existing module object regression test. test_module.py is NOT modified by this PR.",
+        "public_surface": "module object ASCII docstring behavior",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_ascii_docstring",
+        "fixture_taint_checked": true,
+        "preexisting_at_base_commit": true,
+        "synthetic": false
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "tomllib._parser._* / tomllib._re._* / tomllib._types._*",
+      "reason": "Implementation-internal helpers in the new tomllib module (e.g. Parser._parse_value, _re.RE_NUMBER, _types.MutableMapping aliases). The PR makes them private with a leading underscore on purpose. F2P that exercises these would over-constrain agents to reproduce internal structure rather than observable behavior. The 3 test_tomllib modules selected as F2P touch only tomllib.loads / tomllib.load / tomllib.TOMLDecodeError / tomllib.__name__ \u2014 all public surface per PEP 680."
+    }
+  ],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; tomllib is pure Python so the C build is essentially identical pre/post)",
+    "runtime_caps": "--network=none, default seccomp (no SYS_PTRACE needed)"
+  },
+  "validated_at": "2026-06-15T01:16:12Z",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "24850f925f31df7412c6f543e8870f584cc63b07916b6169e9357b727669df3e",
+    "f2p_aug_sha256": "9c339b8f4c6a8b4c15b144010d8afd56b5f1a30918f96df4f0b673625f7b4c01",
+    "p2p_aug_sha256": "cbdde8c662ebe06d68477a0ea6e126e500deddbed40dab5b7d5d168b0800eee5",
+    "fail_to_pass": [
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_load_accepts_binary_file_objects_only",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_loads_accepts_str_and_rejects_bytes",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers"
+    ],
+    "pass_to_pass": [
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_json_parse_float_callback_is_unchanged",
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_configparser_defaults_and_interpolation_are_unchanged",
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_datetime_fromisoformat_timezone_offsets_are_unchanged"
+    ],
+    "targets_mutants": [
+      "mutant_001_load_stringifies_binary_bytes",
+      "mutant_002_loads_requires_bytes_decode",
+      "mutant_003_parse_float_callback_ignored",
+      "mutant_004_parse_float_allows_containers",
+      "mutant_005_duplicate_key_overwrites_value",
+      "mutant_006_inline_table_duplicate_key_overwrites",
+      "mutant_007_inline_table_namespace_mutable",
+      "mutant_008_dotted_key_parent_reopenable",
+      "mutant_009_basic_string_allows_newline",
+      "mutant_010_unicode_surrogate_escape_allowed",
+      "mutant_011_false_literal_returns_true",
+      "mutant_012_array_trailing_comma_rejected",
+      "mutant_013_timezone_offset_sign_inverted",
+      "mutant_014_date_only_returns_datetime",
+      "mutant_015_non_decimal_int_base10_only",
+      "mutant_016_comments_accept_control_chars"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 100.0,
+      "union_line_coverage_percent": 100.0,
+      "executable_lines_in_patch": 508,
+      "union_covered_lines": 508,
+      "coverage_complete": true,
+      "measurement_note": "coverage.py line coverage over the Python files added by solution.patch under Lib/tomllib/*.py; Python/stdlib_module_names.h is non-Python executable and excluded from the denominator. The 2026-06-15 P2P refresh recomputed orig/aug/union coverage: orig=100.0%, aug=67.3%, union=100.0% over 508 executable lines. Original coverage already covers the full executable patch surface, so the augmentation's primary contribution remains F2P-mut rather than coverage improvement.",
+      "aug_line_coverage_percent": 67.3
+    },
+    "synthetic_tests": [
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_load_accepts_binary_file_objects_only",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_loads_accepts_str_and_rejects_bytes",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules",
+      "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers",
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_json_parse_float_callback_is_unchanged",
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_configparser_defaults_and_interpolation_are_unchanged",
+      "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_datetime_fromisoformat_timezone_offsets_are_unchanged"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors import only the public tomllib module and drive load(), loads(), parse_float, TOMLDecodeError, and documented TOML value conversions. Augmented P2P selectors avoid tomllib entirely and use pre-existing public json, configparser, and datetime APIs, so they pass in base, golden, and mutant states while guarding unrelated stdlib behavior.",
+      "fail_to_pass": {
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_load_accepts_binary_file_objects_only": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.load with a binary io.BytesIO object and text-mode io.StringIO rejection.",
+          "mutants_targeted": [
+            "mutant_001_load_stringifies_binary_bytes"
+          ],
+          "rationale": "PEP 680 requires load() to deserialize a binary file-like object. The test proves bytes are decoded as TOML input and that text-mode reads are rejected instead of silently parsed."
+        },
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_loads_accepts_str_and_rejects_bytes": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.loads with str input and bytes rejection.",
+          "mutants_targeted": [
+            "mutant_002_loads_requires_bytes_decode"
+          ],
+          "rationale": "PEP 680 specifies loads() takes a str. The test requires a normal str document to parse and bytes input to fail rather than being decoded implicitly."
+        },
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.loads(parse_float=...) returning decimal.Decimal and rejecting dict/list callback results.",
+          "mutants_targeted": [
+            "mutant_003_parse_float_callback_ignored",
+            "mutant_004_parse_float_allows_containers"
+          ],
+          "rationale": "PEP 680 states parse_float receives the original float string and its result is part of the returned object. The test records callback arguments, asserts Decimal values, and rejects container results that would be confused with TOML arrays/tables."
+        },
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.loads invalid duplicate key, inline table, frozen namespace, and dotted-key/table documents.",
+          "mutants_targeted": [
+            "mutant_005_duplicate_key_overwrites_value",
+            "mutant_006_inline_table_duplicate_key_overwrites",
+            "mutant_007_inline_table_namespace_mutable",
+            "mutant_008_dotted_key_parent_reopenable"
+          ],
+          "rationale": "Invalid TOML must raise TOMLDecodeError. The test covers duplicate scalar keys, duplicate inline-table keys, attempts to extend an inline-table namespace, and reopening a dotted-key parent as a table."
+        },
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.loads string, comment, and boolean parsing through TOMLDecodeError and bool output.",
+          "mutants_targeted": [
+            "mutant_009_basic_string_allows_newline",
+            "mutant_010_unicode_surrogate_escape_allowed",
+            "mutant_011_false_literal_returns_true",
+            "mutant_016_comments_accept_control_chars"
+          ],
+          "rationale": "PEP 680 exposes a TOML parser that returns Python bools and raises TOMLDecodeError for invalid TOML. The test rejects newline-containing basic strings, surrogate escapes, and control characters in comments, and asserts false maps to False."
+        },
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "tomllib.loads array, datetime, date, and integer values.",
+          "mutants_targeted": [
+            "mutant_012_array_trailing_comma_rejected",
+            "mutant_013_timezone_offset_sign_inverted",
+            "mutant_014_date_only_returns_datetime",
+            "mutant_015_non_decimal_int_base10_only"
+          ],
+          "rationale": "PEP 680 requires TOML values to deserialize into basic Python objects, including datetime.date/datetime and int. The test accepts trailing-comma arrays, checks positive timezone offset sign, preserves local dates as date not datetime, and parses hex integers."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_json_parse_float_callback_is_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "json.loads(parse_float=...) from the existing json module.",
+          "rationale": "Pins an unrelated pre-existing standard-library parse_float callback behavior so adding tomllib does not affect json deserialization semantics."
+        },
+        "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_configparser_defaults_and_interpolation_are_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "configparser.ConfigParser read_file/get/getboolean/sections public APIs.",
+          "rationale": "Guards the established INI parser against collateral stdlib file-format regressions while PEP 680 adds TOML parsing as a separate module."
+        },
+        "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_datetime_fromisoformat_timezone_offsets_are_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "datetime.datetime.fromisoformat timezone offset parsing.",
+          "rationale": "Pins pre-existing datetime offset sign handling adjacent to TOML datetime outputs without importing or exercising tomllib."
+        }
+      }
+    },
+    "validation_status": "validated",
+    "validated_at": "2026-05-21",
+    "validation_status_note": "./validate.sh previously passed orig/aug/union pre/post invariants and the union-suite mutant arm killed all 16 PEP-680 mutants while keeping the then-current P2P clean. The 2026-06-15 P2P expansion added 8 original pre-existing selectors to p2p.txt; refreshed orig pre/post and union pre/post validations passed with 50 original P2P and 53 union P2P selectors. Coverage was refreshed for orig/aug/union."
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-base:1",
+  "pr_head_sha": "2898cc38bbcd86ef9bf1442e7395dfdc3ac03c1c",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-base:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 100.0,
+    "aug": 67.3,
+    "union": 100.0,
+    "denominator": "union_executable_lines"
+  },
+  "p2p_entry_count": 50
+}

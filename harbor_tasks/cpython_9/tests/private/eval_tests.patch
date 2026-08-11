@@ -1,0 +1,547 @@
+diff --git a/Lib/test/test_compile.py b/Lib/test/test_compile.py
+index dca3841893..c68b9ce388 100644
+--- a/Lib/test/test_compile.py
++++ b/Lib/test/test_compile.py
+@@ -1352,14 +1352,11 @@ def test_multiline_list_comprehension(self):
+                                and x != 50)]
+             """)
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+-        compiled_code = compiled_code.co_consts[0]
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'LIST_APPEND',
+             line=1, end_line=2, column=1, end_column=8, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=1, end_line=2, column=1, end_column=8, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
+-            line=1, end_line=6, column=0, end_column=32, occurrence=1)
+ 
+     def test_multiline_async_list_comprehension(self):
+         snippet = textwrap.dedent("""\
+@@ -1374,13 +1371,13 @@ def test_multiline_async_list_comprehension(self):
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+         g = {}
+         eval(compiled_code, g)
+-        compiled_code = g['f'].__code__.co_consts[1]
++        compiled_code = g['f'].__code__
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'LIST_APPEND',
+             line=2, end_line=3, column=5, end_column=12, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=2, end_line=3, column=5, end_column=12, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
++        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_CONST',
+             line=2, end_line=7, column=4, end_column=36, occurrence=1)
+ 
+     def test_multiline_set_comprehension(self):
+@@ -1393,14 +1390,11 @@ def test_multiline_set_comprehension(self):
+                                and x != 50)}
+             """)
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+-        compiled_code = compiled_code.co_consts[0]
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'SET_ADD',
+             line=1, end_line=2, column=1, end_column=8, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=1, end_line=2, column=1, end_column=8, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
+-            line=1, end_line=6, column=0, end_column=32, occurrence=1)
+ 
+     def test_multiline_async_set_comprehension(self):
+         snippet = textwrap.dedent("""\
+@@ -1415,13 +1409,13 @@ def test_multiline_async_set_comprehension(self):
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+         g = {}
+         eval(compiled_code, g)
+-        compiled_code = g['f'].__code__.co_consts[1]
++        compiled_code = g['f'].__code__
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'SET_ADD',
+             line=2, end_line=3, column=5, end_column=12, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=2, end_line=3, column=5, end_column=12, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
++        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_CONST',
+             line=2, end_line=7, column=4, end_column=36, occurrence=1)
+ 
+     def test_multiline_dict_comprehension(self):
+@@ -1434,14 +1428,11 @@ def test_multiline_dict_comprehension(self):
+                                and x != 50)}
+             """)
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+-        compiled_code = compiled_code.co_consts[0]
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'MAP_ADD',
+             line=1, end_line=2, column=1, end_column=7, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=1, end_line=2, column=1, end_column=7, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
+-            line=1, end_line=6, column=0, end_column=32, occurrence=1)
+ 
+     def test_multiline_async_dict_comprehension(self):
+         snippet = textwrap.dedent("""\
+@@ -1456,13 +1447,13 @@ def test_multiline_async_dict_comprehension(self):
+         compiled_code, _ = self.check_positions_against_ast(snippet)
+         g = {}
+         eval(compiled_code, g)
+-        compiled_code = g['f'].__code__.co_consts[1]
++        compiled_code = g['f'].__code__
+         self.assertIsInstance(compiled_code, types.CodeType)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'MAP_ADD',
+             line=2, end_line=3, column=5, end_column=11, occurrence=1)
+         self.assertOpcodeSourcePositionIs(compiled_code, 'JUMP_BACKWARD',
+             line=2, end_line=3, column=5, end_column=11, occurrence=1)
+-        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_VALUE',
++        self.assertOpcodeSourcePositionIs(compiled_code, 'RETURN_CONST',
+             line=2, end_line=7, column=4, end_column=36, occurrence=1)
+ 
+     def test_matchcase_sequence(self):
+@@ -1711,9 +1702,6 @@ def test_column_offset_deduplication(self):
+         for source in [
+             "lambda: a",
+             "(a for b in c)",
+-            "[a for b in c]",
+-            "{a for b in c}",
+-            "{a: b for c in d}",
+         ]:
+             with self.subTest(source):
+                 code = compile(f"{source}, {source}", "<test>", "eval")
+diff --git a/Lib/test/test_compiler_assemble.py b/Lib/test/test_compiler_assemble.py
+index 0bd7a09b00..3e2a127de7 100644
+--- a/Lib/test/test_compiler_assemble.py
++++ b/Lib/test/test_compiler_assemble.py
+@@ -16,7 +16,7 @@ def complete_metadata(self, metadata, filename="myfile.py"):
+             metadata.setdefault(key, key)
+         for key in ['consts']:
+             metadata.setdefault(key, [])
+-        for key in ['names', 'varnames', 'cellvars', 'freevars']:
++        for key in ['names', 'varnames', 'cellvars', 'freevars', 'fasthidden']:
+             metadata.setdefault(key, {})
+         for key in ['argcount', 'posonlyargcount', 'kwonlyargcount']:
+             metadata.setdefault(key, 0)
+@@ -33,6 +33,9 @@ def assemble_test(self, insts, metadata, expected):
+ 
+         expected_metadata = {}
+         for key, value in metadata.items():
++            if key == "fasthidden":
++                # not exposed on code object
++                continue
+             if isinstance(value, list):
+                 expected_metadata[key] = tuple(value)
+             elif isinstance(value, dict):
+diff --git a/Lib/test/test_dis.py b/Lib/test/test_dis.py
+index 2f5d67fde8..c90702a408 100644
+--- a/Lib/test/test_dis.py
++++ b/Lib/test/test_dis.py
+@@ -154,7 +154,7 @@ def bug708901():
+ 
+ 
+ def bug1333982(x=[]):
+-    assert 0, ([s for s in x] +
++    assert 0, ((s for s in x) +
+               1)
+     pass
+ 
+@@ -162,7 +162,7 @@ def bug1333982(x=[]):
+ %3d        RESUME                   0
+ 
+ %3d        LOAD_ASSERTION_ERROR
+-           LOAD_CONST               1 (<code object <listcomp> at 0x..., file "%s", line %d>)
++           LOAD_CONST               1 (<code object <genexpr> at 0x..., file "%s", line %d>)
+            MAKE_FUNCTION            0
+            LOAD_FAST                0 (x)
+            GET_ITER
+@@ -675,7 +675,7 @@ def _g(x):
+ def _h(y):
+     def foo(x):
+         '''funcdoc'''
+-        return [x + z for z in y]
++        return list(x + z for z in y)
+     return foo
+ 
+ dis_nested_0 = """\
+@@ -705,13 +705,15 @@ def foo(x):
+ 
+ %3d        RESUME                   0
+ 
+-%3d        LOAD_CLOSURE             0 (x)
++%3d        LOAD_GLOBAL              1 (NULL + list)
++           LOAD_CLOSURE             0 (x)
+            BUILD_TUPLE              1
+-           LOAD_CONST               1 (<code object <listcomp> at 0x..., file "%s", line %d>)
++           LOAD_CONST               1 (<code object <genexpr> at 0x..., file "%s", line %d>)
+            MAKE_FUNCTION            8 (closure)
+            LOAD_DEREF               1 (y)
+            GET_ITER
+            CALL                     0
++           CALL                     1
+            RETURN_VALUE
+ """ % (dis_nested_0,
+        __file__,
+@@ -723,21 +725,28 @@ def foo(x):
+ )
+ 
+ dis_nested_2 = """%s
+-Disassembly of <code object <listcomp> at 0x..., file "%s", line %d>:
++Disassembly of <code object <genexpr> at 0x..., file "%s", line %d>:
+            COPY_FREE_VARS           1
+ 
+-%3d        RESUME                   0
+-           BUILD_LIST               0
++%3d        RETURN_GENERATOR
++           POP_TOP
++           RESUME                   0
+            LOAD_FAST                0 (.0)
+-        >> FOR_ITER                 7 (to 26)
++        >> FOR_ITER                 9 (to 32)
+            STORE_FAST               1 (z)
+            LOAD_DEREF               2 (x)
+            LOAD_FAST                1 (z)
+            BINARY_OP                0 (+)
+-           LIST_APPEND              2
+-           JUMP_BACKWARD            9 (to 8)
++           YIELD_VALUE              1
++           RESUME                   1
++           POP_TOP
++           JUMP_BACKWARD           11 (to 10)
+         >> END_FOR
+-           RETURN_VALUE
++           RETURN_CONST             0 (None)
++        >> CALL_INTRINSIC_1         3 (INTRINSIC_STOPITERATION_ERROR)
++           RERAISE                  1
++ExceptionTable:
++1 row
+ """ % (dis_nested_1,
+        __file__,
+        _h.__code__.co_firstlineno + 3,
+diff --git a/Lib/test/test_inspect.py b/Lib/test/test_inspect.py
+index d2b2f3171e..364f75db90 100644
+--- a/Lib/test/test_inspect.py
++++ b/Lib/test/test_inspect.py
+@@ -4280,14 +4280,14 @@ def test(*args, **kwargs):
+ 
+     @cpython_only
+     def test_signature_bind_implicit_arg(self):
+-        # Issue #19611: getcallargs should work with set comprehensions
++        # Issue #19611: getcallargs should work with comprehensions
+         def make_set():
+-            return {z * z for z in range(5)}
+-        setcomp_code = make_set.__code__.co_consts[1]
+-        setcomp_func = types.FunctionType(setcomp_code, {})
++            return set(z * z for z in range(5))
++        gencomp_code = make_set.__code__.co_consts[1]
++        gencomp_func = types.FunctionType(gencomp_code, {})
+ 
+         iterator = iter(range(5))
+-        self.assertEqual(self.call(setcomp_func, iterator), {0, 1, 4, 9, 16})
++        self.assertEqual(set(self.call(gencomp_func, iterator)), {0, 1, 4, 9, 16})
+ 
+     def test_signature_bind_posonly_kwargs(self):
+         def foo(bar, /, **kwargs):
+diff --git a/Lib/test/test_listcomps.py b/Lib/test/test_listcomps.py
+index 91bf2547ed..92fed98dd0 100644
+--- a/Lib/test/test_listcomps.py
++++ b/Lib/test/test_listcomps.py
+@@ -1,4 +1,5 @@
+ import doctest
++import textwrap
+ import unittest
+ 
+ 
+@@ -87,63 +88,227 @@
+     >>> [None for i in range(10)]
+     [None, None, None, None, None, None, None, None, None, None]
+ 
+-########### Tests for various scoping corner cases ############
+-
+-Return lambdas that use the iteration variable as a default argument
+-
+-    >>> items = [(lambda i=i: i) for i in range(5)]
+-    >>> [x() for x in items]
+-    [0, 1, 2, 3, 4]
+-
+-Same again, only this time as a closure variable
+-
+-    >>> items = [(lambda: i) for i in range(5)]
+-    >>> [x() for x in items]
+-    [4, 4, 4, 4, 4]
+-
+-Another way to test that the iteration variable is local to the list comp
+-
+-    >>> items = [(lambda: i) for i in range(5)]
+-    >>> i = 20
+-    >>> [x() for x in items]
+-    [4, 4, 4, 4, 4]
+-
+-And confirm that a closure can jump over the list comp scope
+-
+-    >>> items = [(lambda: y) for i in range(5)]
+-    >>> y = 2
+-    >>> [x() for x in items]
+-    [2, 2, 2, 2, 2]
+-
+-We also repeat each of the above scoping tests inside a function
+-
+-    >>> def test_func():
+-    ...     items = [(lambda i=i: i) for i in range(5)]
+-    ...     return [x() for x in items]
+-    >>> test_func()
+-    [0, 1, 2, 3, 4]
++"""
+ 
+-    >>> def test_func():
+-    ...     items = [(lambda: i) for i in range(5)]
+-    ...     return [x() for x in items]
+-    >>> test_func()
+-    [4, 4, 4, 4, 4]
+-
+-    >>> def test_func():
+-    ...     items = [(lambda: i) for i in range(5)]
+-    ...     i = 20
+-    ...     return [x() for x in items]
+-    >>> test_func()
+-    [4, 4, 4, 4, 4]
+-
+-    >>> def test_func():
+-    ...     items = [(lambda: y) for i in range(5)]
+-    ...     y = 2
+-    ...     return [x() for x in items]
+-    >>> test_func()
+-    [2, 2, 2, 2, 2]
+ 
+-"""
++class ListComprehensionTest(unittest.TestCase):
++    def _check_in_scopes(self, code, outputs=None, ns=None, scopes=None, raises=()):
++        code = textwrap.dedent(code)
++        scopes = scopes or ["module", "class", "function"]
++        for scope in scopes:
++            with self.subTest(scope=scope):
++                if scope == "class":
++                    newcode = textwrap.dedent("""
++                        class _C:
++                            {code}
++                    """).format(code=textwrap.indent(code, "    "))
++                    def get_output(moddict, name):
++                        return getattr(moddict["_C"], name)
++                elif scope == "function":
++                    newcode = textwrap.dedent("""
++                        def _f():
++                            {code}
++                            return locals()
++                        _out = _f()
++                    """).format(code=textwrap.indent(code, "    "))
++                    def get_output(moddict, name):
++                        return moddict["_out"][name]
++                else:
++                    newcode = code
++                    def get_output(moddict, name):
++                        return moddict[name]
++                ns = ns or {}
++                try:
++                    exec(newcode, ns)
++                except raises as e:
++                    # We care about e.g. NameError vs UnboundLocalError
++                    self.assertIs(type(e), raises)
++                else:
++                    for k, v in (outputs or {}).items():
++                        self.assertEqual(get_output(ns, k), v)
++
++    def test_lambdas_with_iteration_var_as_default(self):
++        code = """
++            items = [(lambda i=i: i) for i in range(5)]
++            y = [x() for x in items]
++        """
++        outputs = {"y": [0, 1, 2, 3, 4]}
++        self._check_in_scopes(code, outputs)
++
++    def test_lambdas_with_free_var(self):
++        code = """
++            items = [(lambda: i) for i in range(5)]
++            y = [x() for x in items]
++        """
++        outputs = {"y": [4, 4, 4, 4, 4]}
++        self._check_in_scopes(code, outputs)
++
++    def test_class_scope_free_var_with_class_cell(self):
++        class C:
++            def method(self):
++                super()
++                return __class__
++            items = [(lambda: i) for i in range(5)]
++            y = [x() for x in items]
++
++        self.assertEqual(C.y, [4, 4, 4, 4, 4])
++        self.assertIs(C().method(), C)
++
++    def test_inner_cell_shadows_outer(self):
++        code = """
++            items = [(lambda: i) for i in range(5)]
++            i = 20
++            y = [x() for x in items]
++        """
++        outputs = {"y": [4, 4, 4, 4, 4], "i": 20}
++        self._check_in_scopes(code, outputs)
++
++    def test_closure_can_jump_over_comp_scope(self):
++        code = """
++            items = [(lambda: y) for i in range(5)]
++            y = 2
++            z = [x() for x in items]
++        """
++        outputs = {"z": [2, 2, 2, 2, 2]}
++        self._check_in_scopes(code, outputs)
++
++    def test_inner_cell_shadows_outer_redefined(self):
++        code = """
++            y = 10
++            items = [(lambda: y) for y in range(5)]
++            x = y
++            y = 20
++            out = [z() for z in items]
++        """
++        outputs = {"x": 10, "out": [4, 4, 4, 4, 4]}
++        self._check_in_scopes(code, outputs)
++
++    def test_shadows_outer_cell(self):
++        code = """
++            def inner():
++                return g
++            [g for g in range(5)]
++            x = inner()
++        """
++        outputs = {"x": -1}
++        self._check_in_scopes(code, outputs, ns={"g": -1})
++
++    def test_assignment_expression(self):
++        code = """
++            x = -1
++            items = [(x:=y) for y in range(3)]
++        """
++        outputs = {"x": 2}
++        # assignment expression in comprehension is disallowed in class scope
++        self._check_in_scopes(code, outputs, scopes=["module", "function"])
++
++    def test_free_var_in_comp_child(self):
++        code = """
++            lst = range(3)
++            funcs = [lambda: x for x in lst]
++            inc = [x + 1 for x in lst]
++            [x for x in inc]
++            x = funcs[0]()
++        """
++        outputs = {"x": 2}
++        self._check_in_scopes(code, outputs)
++
++    def test_shadow_with_free_and_local(self):
++        code = """
++            lst = range(3)
++            x = -1
++            funcs = [lambda: x for x in lst]
++            items = [x + 1 for x in lst]
++        """
++        outputs = {"x": -1}
++        self._check_in_scopes(code, outputs)
++
++    def test_shadow_comp_iterable_name(self):
++        code = """
++            x = [1]
++            y = [x for x in x]
++        """
++        outputs = {"x": [1]}
++        self._check_in_scopes(code, outputs)
++
++    def test_nested_free(self):
++        code = """
++            x = 1
++            def g():
++                [x for x in range(3)]
++                return x
++            g()
++        """
++        outputs = {"x": 1}
++        self._check_in_scopes(code, outputs)
++
++    def test_introspecting_frame_locals(self):
++        code = """
++            import sys
++            [i for i in range(2)]
++            i = 20
++            sys._getframe().f_locals
++        """
++        outputs = {"i": 20}
++        self._check_in_scopes(code, outputs)
++
++    def test_nested(self):
++        code = """
++            l = [2, 3]
++            y = [[x ** 2 for x in range(x)] for x in l]
++        """
++        outputs = {"y": [[0, 1], [0, 1, 4]]}
++        self._check_in_scopes(code, outputs)
++
++    def test_nested_2(self):
++        code = """
++            l = [1, 2, 3]
++            x = 3
++            y = [x for [x ** x for x in range(x)][x - 1] in l]
++        """
++        outputs = {"y": [3, 3, 3]}
++        self._check_in_scopes(code, outputs)
++
++    def test_nested_3(self):
++        code = """
++            l = [(1, 2), (3, 4), (5, 6)]
++            y = [x for (x, [x ** x for x in range(x)][x - 1]) in l]
++        """
++        outputs = {"y": [1, 3, 5]}
++        self._check_in_scopes(code, outputs)
++
++    def test_nameerror(self):
++        code = """
++            [x for x in [1]]
++            x
++        """
++
++        self._check_in_scopes(code, raises=NameError)
++
++    def test_dunder_name(self):
++        code = """
++            y = [__x for __x in [1]]
++        """
++        outputs = {"y": [1]}
++        self._check_in_scopes(code, outputs)
++
++    def test_unbound_local_after_comprehension(self):
++        def f():
++            if False:
++                x = 0
++            [x for x in [1]]
++            return x
++
++        with self.assertRaises(UnboundLocalError):
++            f()
++
++    def test_unbound_local_inside_comprehension(self):
++        def f():
++            l = [None]
++            return [1 for (l[0], l) in [[1, 2]]]
++
++        with self.assertRaises(UnboundLocalError):
++            f()
+ 
+ 
+ __test__ = {'doctests' : doctests}
+diff --git a/Lib/test/test_trace.py b/Lib/test/test_trace.py
+index fad2b3b837..73339ebdb7 100644
+--- a/Lib/test/test_trace.py
++++ b/Lib/test/test_trace.py
+@@ -187,9 +187,7 @@ def test_trace_list_comprehension(self):
+         firstlineno_called = get_firstlineno(traced_doubler)
+         expected = {
+             (self.my_py_filename, firstlineno_calling + 1): 1,
+-            # List comprehensions work differently in 3.x, so the count
+-            # below changed compared to 2.x.
+-            (self.my_py_filename, firstlineno_calling + 2): 12,
++            (self.my_py_filename, firstlineno_calling + 2): 11,
+             (self.my_py_filename, firstlineno_calling + 3): 1,
+             (self.my_py_filename, firstlineno_called + 1): 10,
+         }

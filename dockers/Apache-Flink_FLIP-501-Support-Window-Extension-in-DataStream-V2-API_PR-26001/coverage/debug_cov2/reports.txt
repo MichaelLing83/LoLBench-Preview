@@ -1,0 +1,2 @@
+org.apache.flink.table.planner.runtime.batch.sql.adaptive.AdaptiveSkewedJoinITCase.txt
+TEST-org.apache.flink.table.planner.runtime.batch.sql.adaptive.AdaptiveSkewedJoinITCase.xml

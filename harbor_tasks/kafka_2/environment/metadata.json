@@ -1,0 +1,23 @@
+{
+  "instance_id": "kafka_2",
+  "source_instance_id": "Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572",
+  "source_slug": "Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572",
+  "docker_slug": "Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572",
+  "dockerhub_image": "smartdub26/lolbench:kafka_2-1.0.0",
+  "dockerhub_digest": "sha256:368ffd392be3be9cbeb107b42809a165b2ae8001f9abf3a244eb8da059d719ef",
+  "project": "kafka",
+  "repo": "apache/kafka",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/KAFKA/KIP-769",
+  "pr_link": "https://github.com/apache/kafka/pull/11572",
+  "base_commit": "066cdc8c621dfc4d26e12ee539368d6c1eb2707f",
+  "merge_commit": "1913e7102db6a671bd96627928ce9faabe6bcdc9",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

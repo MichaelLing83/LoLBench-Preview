@@ -1,0 +1,930 @@
+{
+  "instance_id": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "project": "Apache Kafka",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/KAFKA/KIP-470%3A+TopologyTestDriver+test+input+and+output+usability+improvements",
+  "pr_link": "https://github.com/apache/kafka/pull/7378",
+  "pr_merge_date": "2019-10-07",
+  "language": "Java",
+  "build_system": "Gradle",
+  "scope": {
+    "touched_modules": [
+      "streams (test sources only)",
+      "streams/test-utils (new TestInputTopic/TestOutputTopic public API + tests)",
+      "streams/examples (WordCountDemo + tests rewritten to use new API)",
+      "streams/streams-scala (tests rewritten)"
+    ],
+    "f2p_modules": [
+      ":streams:test-utils",
+      ":streams:examples"
+    ],
+    "p2p_module": ":connect:json",
+    "total_files_changed": 59,
+    "production_files": 7,
+    "build_files": 1,
+    "test_files": 50,
+    "documentation_files": 1
+  },
+  "base_commit": "0de61a4683b92bdee803c51211c3277578ab3edf",
+  "base_commit_note": "parent(merge_commit) = parent(a5a6938c). Gives a clean `git diff base..merge` containing exactly the 59 files in the PR; trunk advanced before merge, so the base is the merge-parent, not the PR-open-time tip.",
+  "merge_commit_sha": "a5a6938c69f4310f7ec519036f0df77d8022326a",
+  "pr_head_sha": "50cfdc05d22d51ec9864ecb1722a461bb07a7e4a",
+  "diff_source": "integration_commit",
+  "solution_patch_sha256": "75cf0e7cd8321acd747379186c0510f953a1d6d9bad43eb5d13d11517e2de18a",
+  "eval_tests_patch_sha256": "bf32ea533c9e9e9e2d827069a05bafa9b875b050b98474b04fa3ffc3ad4a9993",
+  "omitted_patch_sha256": "ced5ccb6f26af5da858fc54486db911032b7166ba2c97599f6e0b691d30322a1",
+  "toolchain": {
+    "java": "1.8",
+    "scala": "2.12.10",
+    "gradle": "5.6.2",
+    "junit": "4.13-beta-3",
+    "kafka_version_at_base": "2.4.0-SNAPSHOT"
+  },
+  "build_modules": [
+    ":clients",
+    ":connect:api",
+    ":connect:json",
+    ":streams",
+    ":streams:test-utils",
+    ":streams:examples"
+  ],
+  "test_framework": "junit-gradle",
+  "test_level": "system",
+  "fail_to_pass": [
+    "org.apache.kafka.streams.TestTopicsTest#testValue",
+    "org.apache.kafka.streams.TestTopicsTest#testKeyValue",
+    "org.apache.kafka.streams.TestTopicsTest#testKeyValuesToMap"
+  ],
+  "pass_to_pass": [
+    "org.apache.kafka.connect.json.JsonConverterTest#testConnectSchemaMetadataTranslation",
+    "org.apache.kafka.connect.json.JsonConverterTest#booleanToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#byteToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#shortToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#intToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#longToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#floatToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#doubleToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#bytesToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#stringToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#arrayToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#mapToConnectStringKeys",
+    "org.apache.kafka.connect.json.JsonConverterTest#mapToConnectNonStringKeys",
+    "org.apache.kafka.connect.json.JsonConverterTest#structToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#nullToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#nullSchemaPrimitiveToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectOptional",
+    "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectOptionalWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#numericDecimalToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#highPrecisionNumericDecimalToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#dateToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectOptional",
+    "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectOptionalWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#timeToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectOptional",
+    "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectOptionalWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnect",
+    "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectOptional",
+    "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectOptionalWithDefaultValue",
+    "org.apache.kafka.connect.json.JsonConverterTest#testJsonSchemaMetadataTranslation",
+    "org.apache.kafka.connect.json.JsonConverterTest#testCacheSchemaToConnectConversion",
+    "org.apache.kafka.connect.json.JsonConverterTest#booleanToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#byteToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#shortToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#intToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#longToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#floatToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#doubleToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#bytesToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#stringToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#arrayToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#mapToJsonStringKeys",
+    "org.apache.kafka.connect.json.JsonConverterTest#mapToJsonNonStringKeys",
+    "org.apache.kafka.connect.json.JsonConverterTest#structToJson",
+    "org.apache.kafka.connect.json.JsonConverterTest#structSchemaIdentical"
+  ],
+  "augmented": {
+    "suite_support": {
+      "env": "LOLBENCH_SUITE",
+      "modes": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "default": "orig"
+    },
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "d2dabbf23e0a5970dceb3dfd9a69c0860eefb10eccfb3acc7dcb2a7896d96c5c",
+    "f2p_aug_sha256": "a3d7cbb5ae10362cfc936fa487493a6002c35e925107412ea967475a6f58ec51",
+    "p2p_aug_sha256": "6adb2a1284c1f4d527f700419e2c99b55569e4c01efd504053ed0d1a2ec8d0fb",
+    "fail_to_pass": [
+      "org.apache.kafka.streams.TestTopicsAugTest#testAutoAdvanceExplicitTimestampAndManualAdvance",
+      "org.apache.kafka.streams.TestTopicsAugTest#testSimpleInputTopicDoesNotAutoAdvanceByDefault",
+      "org.apache.kafka.streams.TestTopicsAugTest#testNegativeDurationsAreRejected",
+      "org.apache.kafka.streams.TestTopicsAugTest#testKeyValueListAndMapPreserveKeysAndRejectNullMapKeys",
+      "org.apache.kafka.streams.TestTopicsAugTest#testOutputReadsQueueStateAndEmptyTopicErrors",
+      "org.apache.kafka.streams.TestTopicsAugTest#testValueAndRecordCollectionsPreserveOrderAndTimestamps",
+      "org.apache.kafka.streams.TestTopicsAugTest#testFactoriesUnknownTopicsAndToStringDiagnostics",
+      "org.apache.kafka.streams.TestTopicsAugTest#testAdditionalInputOutputAndDriverOverloads",
+      "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordTimestampEqualityAndProducerConstructor",
+      "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordNullTimestampAccessorsConsumerConstructorAndEqualityBranches"
+    ],
+    "pass_to_pass": [
+      "org.apache.kafka.connect.json.JsonConverterKip470AugTest#testSchemalessNestedMapRoundTripRemainsUnchanged"
+    ],
+    "targets_mutants": [
+      "mutant_001_input_topic_auto_advance_reversed",
+      "mutant_002_advance_time_allows_negative",
+      "mutant_003_explicit_record_timestamp_ignored",
+      "mutant_004_key_value_list_drops_keys",
+      "mutant_005_output_key_value_read_drops_key",
+      "mutant_006_key_values_to_map_accepts_null_keys",
+      "mutant_007_default_input_topic_auto_advances_one_ms",
+      "mutant_008_empty_output_topic_returns_null_record",
+      "mutant_009_output_value_deserialized_from_key_bytes",
+      "mutant_010_is_empty_inverted",
+      "mutant_011_test_record_timestamp_always_null",
+      "mutant_012_test_record_equality_ignores_timestamp"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "executable_lines_in_patch": 252,
+      "baseline_line_coverage_percent": 41.7,
+      "augmented_line_coverage_percent": 91.3,
+      "union_line_coverage_percent": 92.5,
+      "union_covered_lines": 233,
+      "coverage_complete": true
+    },
+    "triage": {
+      "test_level_policy": "Augmented F2P entries are JUnit tests in a new streams/test-utils test file. They drive the public KIP-470 TestInputTopic, TestOutputTopic, TopologyTestDriver, and TestRecord APIs through a StreamsBuilder topology and public serializers/deserializers. The augmented P2P entry drives the unchanged public JsonConverter API in :connect:json, an independent module outside the KIP-470 streams changes.",
+      "requirement_section_source": "All requirement_sections strings are copied exactly from the Section column of requirement_pr_pairs/Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378.md.",
+      "fail_to_pass": {
+        "org.apache.kafka.streams.TestTopicsAugTest#testAutoAdvanceExplicitTimestampAndManualAdvance": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TopologyTestDriver#createInputTopic, TestInputTopic#pipeInput, TestInputTopic#advanceTime, TestOutputTopic#readRecord, TestRecord constructors and equality.",
+          "mutants_targeted": [
+            "mutant_001_input_topic_auto_advance_reversed",
+            "mutant_003_explicit_record_timestamp_ignored"
+          ],
+          "rationale": "KIP-470 adds timestamp-managed input topics. This test verifies auto-advance order, manual advance, explicit TestRecord timestamps, and long timestamp overloads through the public input/output-topic round trip."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testSimpleInputTopicDoesNotAutoAdvanceByDefault": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TopologyTestDriver#createInputTopic without start timestamp or autoAdvance, TestInputTopic#pipeInput, TestOutputTopic#readRecord.",
+          "mutants_targeted": [
+            "mutant_007_default_input_topic_auto_advances_one_ms"
+          ],
+          "rationale": "KIP-470 specifies that the simple input-topic factory uses the current time and disables auto-advance; this rejects default timestamp drift between consecutive records."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testNegativeDurationsAreRejected": {
+          "requirement_sections": [
+            "Public Interfaces"
+          ],
+          "public_surface": "TopologyTestDriver#createInputTopic with Duration autoAdvance and TestInputTopic#advanceTime.",
+          "mutants_targeted": [
+            "mutant_002_advance_time_allows_negative"
+          ],
+          "rationale": "The public timestamp-management API must reject negative durations both at topic creation and manual advancement."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testKeyValueListAndMapPreserveKeysAndRejectNullMapKeys": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TestInputTopic#pipeKeyValueList, TestInputTopic#pipeInput(value), TestOutputTopic#readKeyValuesToMap.",
+          "mutants_targeted": [
+            "mutant_004_key_value_list_drops_keys",
+            "mutant_006_key_values_to_map_accepts_null_keys"
+          ],
+          "rationale": "KIP-470 adds bulk input and map output helpers; this verifies that key-value bulk input preserves keys and that map output still rejects null keys."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testOutputReadsQueueStateAndEmptyTopicErrors": {
+          "requirement_sections": [
+            "Public Interfaces"
+          ],
+          "public_surface": "TestOutputTopic#getQueueSize, TestOutputTopic#isEmpty, TestOutputTopic#readKeyValue, TestOutputTopic#readRecord.",
+          "mutants_targeted": [
+            "mutant_005_output_key_value_read_drops_key",
+            "mutant_008_empty_output_topic_returns_null_record",
+            "mutant_009_output_value_deserialized_from_key_bytes",
+            "mutant_010_is_empty_inverted"
+          ],
+          "rationale": "The new output topic API must accurately report queue state, deserialize keys and values independently, and throw on empty reads instead of returning null."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testValueAndRecordCollectionsPreserveOrderAndTimestamps": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TestInputTopic#pipeValueList, TestInputTopic#pipeKeyValueList with timestamp advance, TestOutputTopic#readValuesToList, TestOutputTopic#readRecordsToList.",
+          "mutants_targeted": [
+            "mutant_001_input_topic_auto_advance_reversed",
+            "mutant_004_key_value_list_drops_keys"
+          ],
+          "rationale": "Covers KIP-470 collection helpers through public bulk APIs, checking output ordering and timestamp progression across generated records."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testFactoriesUnknownTopicsAndToStringDiagnostics": {
+          "requirement_sections": [
+            "Public Interfaces"
+          ],
+          "public_surface": "TopologyTestDriver#createInputTopic, TopologyTestDriver#createOutputTopic, TestInputTopic#toString, TestOutputTopic#toString.",
+          "mutants_targeted": [
+            "mutant_008_empty_output_topic_returns_null_record",
+            "mutant_010_is_empty_inverted"
+          ],
+          "rationale": "Exercises factory-created topic objects on unknown-topic error paths and diagnostic public toString output without relying on internal test-driver classes."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testAdditionalInputOutputAndDriverOverloads": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TestInputTopic#pipeInput(value, Instant), TestInputTopic#pipeRecordList, TestInputTopic#pipeValueList(startTimestamp, advance), TestOutputTopic#readKeyValuesToList, TestOutputTopic#readValuesToList, deprecated TopologyTestDriver#pipeInput/#readOutput/#advanceWallClockTime bridge methods.",
+          "mutants_targeted": [
+            "mutant_001_input_topic_auto_advance_reversed",
+            "mutant_003_explicit_record_timestamp_ignored",
+            "mutant_004_key_value_list_drops_keys",
+            "mutant_005_output_key_value_read_drops_key",
+            "mutant_008_empty_output_topic_returns_null_record"
+          ],
+          "rationale": "Covers public collection and migration overloads that KIP-470 added or kept as deprecated bridges, including record-list piping, explicit timestamp value-list piping, list output reads, legacy raw driver input, wall-clock advancement, and deprecated null-on-missing output reads."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordTimestampEqualityAndProducerConstructor": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TestRecord constructors, accessors, toString, equals, hashCode, and ProducerRecord constructor bridge.",
+          "mutants_targeted": [
+            "mutant_011_test_record_timestamp_always_null",
+            "mutant_012_test_record_equality_ignores_timestamp"
+          ],
+          "rationale": "KIP-470 introduces TestRecord as the public record value type; this pins timestamp access, constructor conversion, and timestamp-sensitive equality."
+        },
+        "org.apache.kafka.streams.TestTopicsAugTest#testTestRecordNullTimestampAccessorsConsumerConstructorAndEqualityBranches": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes"
+          ],
+          "public_surface": "TestRecord public constructors, timestamp validation, getHeaders/getKey/getValue/getRecordTime accessors, ConsumerRecord constructor bridge, and equals branches.",
+          "mutants_targeted": [
+            "mutant_011_test_record_timestamp_always_null",
+            "mutant_012_test_record_equality_ignores_timestamp"
+          ],
+          "rationale": "Expands TestRecord coverage over null timestamp handling, invalid timestamp rejection, ConsumerRecord conversion, JavaBean-style accessors, and the public equality branch behavior around key, value, type, and timestamp differences."
+        }
+      },
+      "pass_to_pass": {
+        "org.apache.kafka.connect.json.JsonConverterKip470AugTest#testSchemalessNestedMapRoundTripRemainsUnchanged": {
+          "requirement_sections": [
+            "Compatibility, Deprecation, and Migration Plan"
+          ],
+          "public_surface": "Unchanged org.apache.kafka.connect.json.JsonConverter public fromConnectData/toConnectData schemaless round trip behavior.",
+          "stability_goal": "KIP-470 changes streams test utilities and must not affect the independent :connect:json conversion surface.",
+          "rationale": "Pins an adjacent unchanged Kafka module through public JsonConverter behavior and does not call any PR-modified streams class."
+        }
+      }
+    }
+  },
+  "synthetic_tests": [],
+  "triage": {
+    "fail_to_pass": {
+      "org.apache.kafka.streams.TestTopicsTest#testValue": {
+        "system_reason": "NEW test added by the PR (TestTopicsTest is a brand-new file in eval_tests.patch). Drives the new public TestInputTopic.pipeInput and TestOutputTopic.readValue API through a one-source/one-sink topology built via StreamsBuilder; observes value passthrough at the public output.",
+        "public_surface": "org.apache.kafka.streams.{TestInputTopic,TestOutputTopic,TopologyTestDriver}, org.apache.kafka.streams.kstream.{Consumed,Produced}",
+        "internal_symbol_check": [
+          "org.apache.kafka.streams.processor.internals.* (absent)",
+          "org.apache.kafka.streams.state.internals.* (absent)"
+        ],
+        "runner_surface": "gradle :streams:test-utils:test --tests org.apache.kafka.streams.TestTopicsTest.testValue",
+        "fixture_taint_checked": true,
+        "change_type": "added",
+        "pre_state_signal": "ERROR \u2014 :streams:test-utils test-compile fails because TestInputTopic / TestOutputTopic / new TopologyTestDriver factories don't exist in the base sources; module-scoped compile failure surfaces every test in the module as ERROR."
+      },
+      "org.apache.kafka.streams.TestTopicsTest#testKeyValue": {
+        "system_reason": "NEW. Pipes a key-value pair through the public TestInputTopic/TestOutputTopic round-trip; asserts the pair surfaces at the public read API.",
+        "public_surface": "org.apache.kafka.streams.{TestInputTopic,TestOutputTopic,TopologyTestDriver}",
+        "internal_symbol_check": [
+          "org.apache.kafka.streams.processor.internals.* (absent)"
+        ],
+        "runner_surface": "gradle :streams:test-utils:test --tests org.apache.kafka.streams.TestTopicsTest.testKeyValue",
+        "fixture_taint_checked": true,
+        "change_type": "added",
+        "pre_state_signal": "ERROR (same compile mechanism)."
+      },
+      "org.apache.kafka.streams.TestTopicsTest#testKeyValuesToMap": {
+        "system_reason": "NEW. Exercises TestOutputTopic.readKeyValuesToMap on the public output \u2014 the typed read variant that KIP-470 introduces to replace ConsumerRecordFactory + raw TopologyTestDriver.readOutput.",
+        "public_surface": "org.apache.kafka.streams.{TestInputTopic,TestOutputTopic,TopologyTestDriver}",
+        "internal_symbol_check": [
+          "org.apache.kafka.streams.processor.internals.* (absent)"
+        ],
+        "runner_surface": "gradle :streams:test-utils:test --tests org.apache.kafka.streams.TestTopicsTest.testKeyValuesToMap",
+        "fixture_taint_checked": true,
+        "change_type": "added",
+        "pre_state_signal": "ERROR (same compile mechanism)."
+      }
+    },
+    "pass_to_pass": {
+      "_summary": "50 untouched pre-existing Kafka 2.4 connect-json JsonConverterTest selectors expanded in p2p.txt on 2026-06-15; they cover legacy public JSON conversion, schema cache, logical type, default value, and decimal/time behavior outside the KIP-470 streams/test-utils surface.",
+      "org.apache.kafka.connect.json.JsonConverterTest#testConnectSchemaMetadataTranslation": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.testConnectSchemaMetadataTranslation",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#booleanToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.booleanToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#byteToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.byteToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#shortToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.shortToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#intToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.intToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#longToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.longToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#floatToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.floatToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#doubleToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.doubleToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#bytesToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.bytesToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#stringToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.stringToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#arrayToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.arrayToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#mapToConnectStringKeys": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.mapToConnectStringKeys",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#mapToConnectNonStringKeys": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.mapToConnectNonStringKeys",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#structToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.structToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#nullToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.nullToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#nullSchemaPrimitiveToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.nullSchemaPrimitiveToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.decimalToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectOptional": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.decimalToConnectOptional",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.decimalToConnectWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#decimalToConnectOptionalWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.decimalToConnectOptionalWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#numericDecimalToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.numericDecimalToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#highPrecisionNumericDecimalToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.highPrecisionNumericDecimalToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#dateToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.dateToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectOptional": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.dateToConnectOptional",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.dateToConnectWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#dateToConnectOptionalWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.dateToConnectOptionalWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timeToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timeToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectOptional": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timeToConnectOptional",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timeToConnectWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timeToConnectOptionalWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timeToConnectOptionalWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnect": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timestampToConnect",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectOptional": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timestampToConnectOptional",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timestampToConnectWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#timestampToConnectOptionalWithDefaultValue": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.timestampToConnectOptionalWithDefaultValue",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#testJsonSchemaMetadataTranslation": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.testJsonSchemaMetadataTranslation",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#testCacheSchemaToConnectConversion": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.testCacheSchemaToConnectConversion",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#booleanToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.booleanToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#byteToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.byteToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#shortToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.shortToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#intToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.intToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#longToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.longToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#floatToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.floatToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#doubleToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.doubleToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#bytesToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.bytesToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#stringToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.stringToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#arrayToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.arrayToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#mapToJsonStringKeys": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.mapToJsonStringKeys",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#mapToJsonNonStringKeys": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.mapToJsonNonStringKeys",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#structToJson": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.structToJson",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      },
+      "org.apache.kafka.connect.json.JsonConverterTest#structSchemaIdentical": {
+        "system_reason": "Pre-existing upstream Kafka connect-json regression selector (NOT modified by this PR); P2P may be unit/focused under the 2026-06-15 LoLBench rule.",
+        "public_surface": "Kafka Connect JsonConverter public conversion, schema cache, logical type, default value, and decimal/time behavior.",
+        "internal_symbol_check": [
+          "No selected selector references KIP-470 streams/test-utils implementation surfaces."
+        ],
+        "runner_surface": "gradle :connect:json:test --tests org.apache.kafka.connect.json.JsonConverterTest.structSchemaIdentical",
+        "fixture_taint_checked": true,
+        "method_body_changed_in_eval_tests_patch": false,
+        "module_independence_note": ":connect:json is outside the KIP-470 :streams* source and eval-test patches; its dependency chain is at base in pre and post states."
+      }
+    },
+    "fixture_taint_summary": "TestTopicsTest and WordCountDemoTest are brand-new files added by eval_tests.patch \u2014 no fixture taint possible. The three DeveloperGuideTesting F2P methods all share the @Before block that constructs a tiny Processor topology + TopologyTestDriver; the @Before is also modified by eval_tests.patch (which is fine because the same modification is what enables these tests to run against the new API). The P2P JsonConverterTest entries live in :connect:json, a module entirely outside eval_tests.patch's reach \u2014 no taint possible.",
+    "module_scope_rationale": "F2P modules (:streams:test-utils, :streams:examples) host the new public KIP-470 API tests. P2P module (:connect:json) is independent: selected original tests exercise public JsonConverter behavior, never reference :streams or anything touched by the PR, and therefore are expected to compile and pass in both pre and post states.",
+    "f2p_intentionally_omitted": {
+      "org.apache.kafka.streams.examples.wordcount.WordCountDemoTest#testCountListOfWords": "Genuine F2P candidate (NEW file driving the public WordCountDemo via the new TestInputTopic/TestOutputTopic API), but its topology uses a KTable backed by the default RocksDB persistent store. rocksdbjni 5.18 (the version pinned by Kafka 2.4's gradle/dependencies.gradle) ships NO ARM64 native libs \u2014 UnsatisfiedLinkError at runtime on Apple Silicon hosts. Re-include once the bundle is rebuilt with --platform=linux/amd64 (Rosetta-translated) or rocksdbjni is bumped to a 6.x version with ARM64 support.",
+      "org.apache.kafka.streams.examples.docs.DeveloperGuideTesting#shouldFlushStoreForFirstInput, #shouldUpdateStoreForNewKey, #shouldPunctuateIfEvenTimeAdvances, #shouldNotUpdateStoreForSmallerValue, #shouldNotUpdateStoreForLargerValue, #shouldPunctuateIfWallClockTimeAdvances": "All six rewritten methods build a topology with Stores.persistentKeyValueStore (RocksDB-backed); same UnsatisfiedLinkError on ARM64 as above.",
+      "org.apache.kafka.streams.test.TestRecordTest#*": "NEW test file for the public TestRecord value-type. Per Codex round-1 review, the file imports org.apache.kafka.common.header.internals.RecordHeader \u2014 `*.internals.*` matches \u00a76.1's Java internal-symbol pattern. Excluded until a Kafka public_surface.yaml explicitly allow-lists common.header.internals as a test-allowed package.",
+      "org.apache.kafka.streams.TopologyTestDriverTest rewritten methods (e.g. shouldProcessRecordForTopic)": "Per Codex round-1 review, the modified TopologyTestDriverTest file imports org.apache.kafka.streams.state.internals.KeyValueStoreBuilder \u2014 an internal symbol. F2P candidates from this file are disqualified by \u00a76.1 until either the import is removed by the agent or our public_surface.yaml is updated."
+    },
+    "test_compile_failure_pre_state": "Expected for F2P (which lives in :streams:test-utils + :streams:examples). With only eval_tests.patch applied, tests in those modules reference TestInputTopic / TestOutputTopic / new TopologyTestDriver factories \u2014 all introduced by solution.patch and absent in the base sources. Module-scoped compile failure \u2192 ERROR for every F2P selector. P2P (:connect:json) is unaffected: it depends only on :clients and :connect:api (both at base, both unmodified), so its tests compile and PASS in pre-state."
+  },
+  "f2p_entry_count": 3,
+  "p2p_entry_count": 50,
+  "timeout_s": 5400,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 8
+  },
+  "validated_at": "2026-06-15",
+  "repo": "apache/kafka",
+  "image": "lolbench/apache-kafka-kip-470-pr-7378:1",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --memory 8g --cpus 4 -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/apache-kafka-kip-470-pr-7378:1"
+  },
+  "test_cmd_template": "./run_tests.sh <test_selector>",
+  "log_parser": "generic_log",
+  "coverage": {
+    "orig": 41.67,
+    "aug": 91.27,
+    "union": 92.46,
+    "denominator": "union_executable_lines"
+  },
+  "validation_summary": {
+    "status": "validated",
+    "note": "P2P expanded to 50 pre-existing Kafka 2.4 JsonConverterTest selectors on 2026-06-15. orig/aug/union pre-state validation retained strict P2P passes, and post-state validation passed with union P2P=51. orig/aug/union coverage refreshed to 41.7/91.3/92.5."
+  }
+}

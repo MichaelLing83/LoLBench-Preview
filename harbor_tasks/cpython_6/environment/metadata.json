@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_6",
+  "source_instance_id": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "source_slug": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "docker_slug": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "dockerhub_image": "smartdub26/lolbench:cpython_6-1.0.0",
+  "dockerhub_digest": "sha256:c2b85773638a5f57f002c9b010a75e06fce8fb7e3ca090e9fe2bc32e5e66d3ef",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0646/",
+  "pr_link": "https://github.com/python/cpython/pull/31018",
+  "base_commit": "26cca8067bf5306e372c0e90036d832c5021fd90",
+  "merge_commit": "e8e737bcf6d22927caebc30c5d57ac4634063219",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

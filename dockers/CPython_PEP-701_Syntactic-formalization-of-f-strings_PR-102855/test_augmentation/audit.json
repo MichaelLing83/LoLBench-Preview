@@ -1,0 +1,260 @@
+{
+  "instance_id": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "requirement_section_source": "requirement_pr_pairs/CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855.md",
+  "sidecar_patch": "eval_tests_aug.patch",
+  "new_file_only_patch": true,
+  "tests": [
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_token_constants_are_distinct_and_c_tokenizer_uses_them",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > New tokens",
+        "Specification > Changes to the tokenize module"
+      ],
+      "kills_mutants": [
+        "mutant_001_token_module_swaps_fstring_start_middle",
+        "mutant_002_token_module_duplicates_fstring_end_value",
+        "mutant_003_token_module_exclamation_exact_type_is_op"
+      ],
+      "covers_files": [
+        "Lib/token.py",
+        "Python/Python-tokenize.c",
+        "Parser/tokenizer.c"
+      ],
+      "public_surface": "token module constants and tokenize module C-tokenizer bridge returning TokenInfo values.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_c_tokenizer_reports_fstring_middle_positions_across_lines",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Changes to the tokenize module",
+        "Specification > How to produce these new tokens"
+      ],
+      "kills_mutants": [
+        "mutant_006_python_tokenize_uses_string_only_positions",
+        "mutant_005_c_isstringlit_excludes_fstring_middle"
+      ],
+      "covers_files": [
+        "Python/Python-tokenize.c",
+        "Parser/tokenizer.c",
+        "Include/internal/pycore_token.h"
+      ],
+      "public_surface": "tokenize module C-tokenizer bridge exposing f-string TokenInfo positions.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_source_distribution_keeps_c_parser_token_names",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Specification > New tokens"
+      ],
+      "kills_mutants": [
+        "mutant_004_c_token_names_swap_fstring_start_middle"
+      ],
+      "covers_files": [
+        "Parser/token.c"
+      ],
+      "public_surface": "source-distribution check of the shipped CPython token-name table.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_doubled_braces_collapse_with_new_quote_reuse",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > How to produce these new tokens",
+        "Specification > Consequences of the new grammar"
+      ],
+      "kills_mutants": [
+        "mutant_008_literal_double_braces_not_collapsed"
+      ],
+      "covers_files": [
+        "Parser/action_helpers.c",
+        "Parser/tokenizer.c"
+      ],
+      "public_surface": "eval of f-string literals through Python expression evaluation, plus a source-distribution check of the shipped AST helper text.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_ast_for_same_quote_fstrings_is_flat_without_empty_constants",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification",
+        "Specification > Handling of f-string debug expressions",
+        "Specification > Consequences of the new grammar"
+      ],
+      "kills_mutants": [
+        "mutant_009_joined_str_debug_nodes_not_flattened",
+        "mutant_011_empty_fstring_middle_constants_retained"
+      ],
+      "covers_files": [
+        "Parser/action_helpers.c",
+        "Grammar/python.gram"
+      ],
+      "public_surface": "ast.parse public AST for f-string expressions, plus a source-distribution check of the shipped AST helper text.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_raw_fstring_prefixes_preserve_literal_backslashes_with_quote_reuse",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > How to produce these new tokens",
+        "Specification > Consequences of the new grammar"
+      ],
+      "kills_mutants": [
+        "mutant_010_raw_fstring_prefix_ignored_in_joined_str",
+        "mutant_018_lowercase_raw_fstring_prefix_ignored",
+        "mutant_019_r_prefixed_fstring_prefix_ignored"
+      ],
+      "covers_files": [
+        "Parser/action_helpers.c",
+        "Parser/tokenizer.c"
+      ],
+      "public_surface": "eval of raw f-string literals with public rf/fr/Rf prefixes, plus a source-distribution check of the shipped tokenizer raw-prefix branch.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_new_expression_grammar_allows_comments_backslashes_and_quote_reuse",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Consequences of the new grammar"
+      ],
+      "kills_mutants": [
+        "mutant_029_fstring_expression_comments_allowed_wrongly"
+      ],
+      "covers_files": [
+        "Grammar/python.gram",
+        "Parser/parser.c",
+        "Parser/action_helpers.c",
+        "Parser/string_parser.c",
+        "Parser/tokenizer.c",
+        "Parser/pegen_errors.c"
+      ],
+      "public_surface": "compile/eval/tokenize of f-string expressions using quote reuse, backslashes, comments, a broad Lib source corpus, and public test_syntax doctest examples.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_nested_format_spec_replacement_fields_are_tokenized_as_expressions",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification",
+        "Specification > How to produce these new tokens"
+      ],
+      "kills_mutants": [
+        "mutant_021_format_spec_open_brace_not_expression",
+        "mutant_022_format_spec_double_close_brace_allowed",
+        "mutant_030_unterminated_matching_quote_reports_string_error"
+      ],
+      "covers_files": [
+        "Grammar/python.gram",
+        "Parser/tokenizer.c",
+        "Parser/action_helpers.c"
+      ],
+      "public_surface": "eval of same-quote f-strings and nested f-string format-spec replacement fields.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_string_formatter_nested_lookup_and_conversion_remain_stable",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "kills_mutants": [],
+      "covers_files": [
+        "Lib/string.py"
+      ],
+      "public_surface": "string.Formatter public API.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_template_substitution_and_escaping_remain_stable",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "kills_mutants": [],
+      "covers_files": [
+        "Lib/string.py"
+      ],
+      "public_surface": "string.Template public API.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_calendar_formatting_and_weekday_errors_remain_stable",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "kills_mutants": [],
+      "covers_files": [
+        "Lib/calendar.py"
+      ],
+      "public_surface": "calendar.TextCalendar, calendar.isleap, and calendar.setfirstweekday public APIs.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_debug_expression_text_node_starts_at_the_expression",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Specification > Handling of f-string debug expressions"
+      ],
+      "kills_mutants": [
+        "mutant_014_debug_expression_text_includes_open_brace"
+      ],
+      "covers_files": [
+        "Parser/action_helpers.c"
+      ],
+      "public_surface": "public ast module only: ast.parse of an f-string debug expression and the col_offset of the implicit debug-text Constant node.",
+      "rationale": "PEP-701 gives f-string debug expressions accurate AST positions: the implicit debug-text Constant must start at the expression, not the opening brace. mutant_014 shifts its col_offset from the expression (3) to the brace (2); pre-PEP-701 the node carries the f-string's col_offset (0). Runtime debug-text output is unchanged, so the AST position is the discriminating signal."
+    }
+  ],
+  "sidecar_patch_sha256": "adff7208744c47b4266d5d7751a34ccae9d3b89ece7152afd81c38147f62434b",
+  "coverage_validation": {
+    "status": "passed",
+    "required_minimum_percent": 80,
+    "baseline_union_line_coverage_percent": 83.8,
+    "augmented_only_union_line_coverage_percent": 79.2,
+    "union_line_coverage_percent": 84.2,
+    "executable_lines_in_patch": 526,
+    "union_covered_lines": 443,
+    "coverage_complete": true,
+    "reports": {
+      "baseline": "coverage_out/coverage_report_orig.json",
+      "augmented_only": "coverage_out/coverage_report_aug.json",
+      "union": "coverage_out/coverage_report_union.json"
+    },
+    "measurement_note": "Coverage uses the union suite report after excluding generated artifact Parser/parser.c from the executable denominator; requirement_pr_pairs classifies that file as generated output from Grammar/python.gram. Generated parser behavior is still exercised through public compile(), ast.parse(), eval(), and tokenize tests.",
+    "scope": "coverage.py for Lib/token.py + gcov/gcovr for the authored/runtime PEP-701 C source/header files (Parser/action_helpers.c, Parser/{pegen,pegen_errors,string_parser,token,tokenizer}.c, Parser/{pegen,string_parser,tokenizer}.h, Python/Python-tokenize.c, Include/internal/pycore_token.h, and Programs/test_frozenmain.h). Grammar/python.gram is a grammar source and Parser/parser.c is its generated parser output, so parser.c is not part of the executable denominator; generated parser behavior is still exercised through public compile(), ast, eval(), and tokenize tests."
+  }
+}

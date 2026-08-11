@@ -1,0 +1,685 @@
+{
+  "instance_id": "Apache-Flink_FLIP-501-Support-Window-Extension-in-DataStream-V2-API_PR-26001",
+  "sidecar": {
+    "eval_tests_aug_patch_sha256": "4abd64d756f9c2c7c5a019529aac0327e2f264d9fa8fce46e538d6d7a04e3bb6",
+    "f2p_aug_sha256": "0967819b9f47d8e7eeaef5675311a46e6930af2237f38f5233d124f051b9c51a",
+    "p2p_aug_sha256": "f53008570f026e7e6a1a6028a745b3f5ec5f8ff8ce13e50a3be47d1d9dd50825",
+    "f2p_count": 27,
+    "p2p_count": 2,
+    "f2p_selected_count": 22
+  },
+  "coverage": {
+    "baseline_report": "coverage_out/coverage_report_orig.json",
+    "augmented_report": "coverage_out/coverage_report_aug.json",
+    "union_report": "coverage_out/coverage_report_union.json",
+    "baseline_union_pct": 53.3,
+    "augmented_only_union_pct": 81.2,
+    "final_union_pct": 82.3,
+    "final_union_covered": 1106,
+    "executable_lines_in_patch": 1344,
+    "coverage_complete": true
+  },
+  "validation": {
+    "full_validate": "passed",
+    "mutants_killed": 43,
+    "mutant_suite": "union"
+  },
+  "tests": [
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testOneInputTumblingContextBoundsAndRecords",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "ExecutionEnvironment, EventTimeExtension watermarks, BuiltinFuncs.window, OneInputWindowStreamProcessFunction, and OneInputWindowContext.",
+      "kills_mutants": [
+        "mutant_003_tumbling_default_processing_time",
+        "mutant_017_one_input_start_time_returns_end",
+        "mutant_018_one_input_end_time_returns_start",
+        "mutant_021_one_input_put_record_noop",
+        "mutant_022_one_input_get_all_records_empty",
+        "mutant_041_keyed_one_input_window_route_disabled"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Runs a keyed event-time tumbling window and verifies trigger-time start/end bounds plus all records stored by the default one-input record path."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoInputTumblingContextBoundsAndBothRecordSides",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "Two keyed NonKeyedPartitionStream inputs connected through BuiltinFuncs.window and TwoInputWindowContext.",
+      "kills_mutants": [
+        "mutant_019_two_input_start_time_returns_end",
+        "mutant_020_two_input_end_time_returns_start",
+        "mutant_023_two_input_put_record1_noop",
+        "mutant_024_two_input_put_record2_noop",
+        "mutant_025_two_input_get_records1_empty",
+        "mutant_026_two_input_get_records2_empty"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Verifies that two-input windows expose the correct bounds and retain records independently from both input sides."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testSessionWindowMergesRecordsWithinGap",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.session with event-time watermarks through a keyed DataStream V2 window job.",
+      "kills_mutants": [
+        "mutant_001_session_default_processing_time",
+        "mutant_008_session_gap_getter_returns_zero",
+        "mutant_012_session_factory_forces_processing"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Sends records separated by less than the configured session gap and requires one merged trigger containing all records."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testDeclaredWindowStateIsScopedAndReadable",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > State"
+      ],
+      "public_surface": "WindowProcessFunction.useWindowStates and OneInputWindowContext.getWindowState using public ValueStateDeclaration APIs.",
+      "kills_mutants": [],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Exercises declared window state through onRecord and onTrigger so the scoped state path is covered via the public window process function contract."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testUndeclaredWindowStateAccessFailsAtExecution",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > State"
+      ],
+      "public_surface": "OneInputWindowContext.getWindowState called from a public WindowProcessFunction without declaring the state.",
+      "kills_mutants": [
+        "mutant_027_undeclared_window_state_allowed"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "The FLIP requires window states to be declared before use; this job must fail when user code accesses undeclared window state."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testNonKeyedTimeWindowIsRejected",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "NonKeyedPartitionStream.process with a public BuiltinFuncs.window time-window function.",
+      "kills_mutants": [
+        "mutant_043_nonkeyed_allows_time_windows"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "The FLIP explicitly excludes non-keyed time windows; this test checks the public stream API rejects that unsupported route."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoOutputWindowRoutesBothOutputs",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "TwoOutputWindowStreamProcessFunction through BuiltinFuncs.window and keyed DataStream V2 process routing.",
+      "kills_mutants": [
+        "mutant_042_keyed_two_output_window_route_disabled"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Runs the public two-output window wrapper and requires a trigger to emit to both output streams."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testRegularKeyedProcessRoutesRemainAvailableNextToWindowRouting",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Build a ProcessFunction",
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "KeyedPartitionStream.process overloads for regular one-output and two-output DataStream V2 process functions, exercised beside the new window routing branches added by FLIP-501.",
+      "kills_mutants": [],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Covers the PR-modified routing code path that must continue to dispatch non-window process functions through the regular keyed operators while FLIP-501 intercepts only BuiltinFuncs.window wrappers."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testGlobalStreamTumblingWindowUsesSingleKeyRoute",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "GlobalStream.process with BuiltinFuncs.window and OneInputWindowContext over event-time tumbling windows.",
+      "kills_mutants": [
+        "mutant_003_tumbling_default_processing_time",
+        "mutant_021_one_input_put_record_noop",
+        "mutant_022_one_input_get_all_records_empty"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Covers the FLIP route that permits time windows on GlobalStream by converting to the internal single-key window execution path."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testGlobalStreamTwoInputAndTwoOutputWindowRoutes",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "GlobalStream two-input and two-output process methods using BuiltinFuncs.window.",
+      "kills_mutants": [
+        "mutant_023_two_input_put_record1_noop",
+        "mutant_024_two_input_put_record2_noop",
+        "mutant_025_two_input_get_records1_empty",
+        "mutant_026_two_input_get_records2_empty",
+        "mutant_042_keyed_two_output_window_route_disabled"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Exercises GlobalStream routing for both new multi-input/multi-output window process-function shapes and asserts both record sides and outputs are visible."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testNonKeyedGlobalWindowRoutesWithoutKeyBy",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "NonKeyedPartitionStream.process/connectAndProcess with WindowStrategy.global through the public DataStream V2 API.",
+      "kills_mutants": [
+        "mutant_009_global_factory_returns_base_strategy",
+        "mutant_043_nonkeyed_allows_time_windows"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Confirms the one non-keyed window strategy allowed by the FLIP, global windowing, executes for one-input, two-input, and two-output functions without keyBy."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoInputSessionWindowMergesBothRecordSides",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "Two keyed inputs connected with BuiltinFuncs.window and WindowStrategy.session.",
+      "kills_mutants": [
+        "mutant_001_session_default_processing_time",
+        "mutant_008_session_gap_getter_returns_zero",
+        "mutant_012_session_factory_forces_processing",
+        "mutant_023_two_input_put_record1_noop",
+        "mutant_024_two_input_put_record2_noop",
+        "mutant_025_two_input_get_records1_empty",
+        "mutant_026_two_input_get_records2_empty",
+        "mutant_035_merge_set_persist_noop",
+        "mutant_036_merge_set_ignores_existing_windows",
+        "mutant_037_merge_set_state_window_identity"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Extends the session-window merge contract to the public two-input function shape and requires merged state to retain records from both sides."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoOutputSessionWindowMergesAndRoutesBothOutputs",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "TwoOutputWindowStreamProcessFunction with WindowStrategy.session through keyed DataStream V2 process routing.",
+      "kills_mutants": [
+        "mutant_001_session_default_processing_time",
+        "mutant_008_session_gap_getter_returns_zero",
+        "mutant_012_session_factory_forces_processing",
+        "mutant_021_one_input_put_record_noop",
+        "mutant_022_one_input_get_all_records_empty",
+        "mutant_035_merge_set_persist_noop",
+        "mutant_036_merge_set_ignores_existing_windows",
+        "mutant_037_merge_set_state_window_identity",
+        "mutant_042_keyed_two_output_window_route_disabled"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Covers session-window merging in the two-output operator while asserting the merged records are available and both public output collectors receive data."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testProcessingTimeWindowsTriggerAllFunctionShapes",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling with PROCESSING_TIME through one-input, two-input, and two-output BuiltinFuncs.window jobs.",
+      "kills_mutants": [
+        "mutant_010_tumbling_factory_forces_processing",
+        "mutant_014_window_utils_tumbling_event_uses_processing",
+        "mutant_038_builtin_one_input_drops_lateness",
+        "mutant_039_builtin_two_input_drops_lateness",
+        "mutant_040_builtin_two_output_drops_lateness"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Drives the public processing-time window mode across all three function shapes, covering processing-time trigger registration/firing and cleanup lifecycle paths that event-time-only tests do not execute."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testAllDeclaredWindowStateTypesAreScopedToTheWindow",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > State"
+      ],
+      "public_surface": "WindowProcessFunction.useWindowStates and OneInputWindowContext.getWindowState for value, list, map, reducing, and aggregating declarations.",
+      "kills_mutants": [],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Broadens the public state contract beyond ValueState and verifies each declared window-state type is retrieved, updated, and read in the scoped window namespace."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testRedistributableWindowStateIsRejectedAtExecution",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > State"
+      ],
+      "public_surface": "OneInputWindowContext.getWindowState with a public redistributable ListStateDeclaration.",
+      "kills_mutants": [],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Checks the FLIP state restrictions reject non-NONE redistribution modes for window state instead of silently creating unsupported state."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testSessionWindowRejectsWindowStateAccess",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > State",
+        "Proposed Changes > Declare Window"
+      ],
+      "public_surface": "WindowStrategy.session with declared window state accessed through OneInputWindowContext.",
+      "kills_mutants": [
+        "mutant_001_session_default_processing_time",
+        "mutant_008_session_gap_getter_returns_zero",
+        "mutant_035_merge_set_persist_noop",
+        "mutant_036_merge_set_ignores_existing_windows",
+        "mutant_037_merge_set_state_window_identity"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Verifies merging/session windows do not permit window-state retrieval, covering the documented state limitation for merging window strategies."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testLateRecordsReachOneInputAndTwoOutputCallbacks",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "OneInputWindowStreamProcessFunction.onLateRecord and TwoOutputWindowStreamProcessFunction.onLateRecord through event-time tumbling jobs.",
+      "kills_mutants": [
+        "mutant_028_allowed_lateness_tumbling_zero",
+        "mutant_030_window_late_boundary_exclusive",
+        "mutant_031_element_late_boundary_exclusive",
+        "mutant_034_cleanup_time_ignores_lateness",
+        "mutant_038_builtin_one_input_drops_lateness",
+        "mutant_040_builtin_two_output_drops_lateness"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Feeds out-of-order event-time records so cleaned windows route skipped late elements into the public late-record callbacks for one-input and two-output functions."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testLateRecordsReachTwoInputCallbacks",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "TwoInputNonBroadcastWindowStreamProcessFunction.onLateRecord1/onLateRecord2 through event-time tumbling jobs.",
+      "kills_mutants": [
+        "mutant_028_allowed_lateness_tumbling_zero",
+        "mutant_030_window_late_boundary_exclusive",
+        "mutant_031_element_late_boundary_exclusive",
+        "mutant_034_cleanup_time_ignores_lateness",
+        "mutant_039_builtin_two_input_drops_lateness"
+      ],
+      "coverage_target": "solution.patch modified window API, routing, state, utility, and lifecycle lines",
+      "rationale": "Covers late-record lifecycle callbacks on both sides of the public two-input window function so lateness handling remains side-specific."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testEventTimeSlidingWindowBoundsAndOverlap",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.sliding(Duration, Duration) two-argument default through BuiltinFuncs.window with event-time watermarks; OneInputWindowContext.getStartTime/getEndTime/getAllRecords.",
+      "kills_mutants": [
+        "mutant_002_sliding_default_processing_time",
+        "mutant_006_sliding_interval_replaced_by_size",
+        "mutant_007_sliding_size_getter_returns_slide",
+        "mutant_011_sliding_factory_forces_processing",
+        "mutant_015_window_utils_sliding_event_uses_processing"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "SlidingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body drives only documented public surface: WindowStrategy.sliding(Duration, Duration) (requirement_docs L230), BuiltinFuncs.window, OneInputWindowStreamProcessFunction, OneInputWindowContext.getStartTime/getEndTime (L315/L324)/getAllRecords, EventTimeExtension watermarks, and the file's own helpers (getSource, ValueWithTimestamp, count, CollectingProcessFunction, WrappedSink, DiscardingSink). No getTimeType(), no SlidingTimeWindowStrategy cast/getter, no WindowUtils or org.apache.flink.datastream.impl.* symbol."
+      },
+      "coverage_target": "solution.patch sliding-window strategy + WindowUtils assigner lines reached only by an event-time sliding runtime job",
+      "rationale": "Runs a keyed event-time sliding window built from the documented two-argument default factory and asserts event-time-only semantics: the slide-aligned [0, 5000) window fires with all five records, every window spans the configured size (not the slide), and overlapping windows are one slide interval apart. Under processing-time assignment the event watermarks never drive these windows, so no window starting at event-time 0 is observed and the assertions fail."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testEventTimeSlidingWindowFromFourArgFactoryKeepsSlideInterval",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.sliding(Duration, Duration, TimeType, Duration) four-argument event-time factory through BuiltinFuncs.window; OneInputWindowContext.getStartTime/getEndTime/getAllRecords.",
+      "kills_mutants": [
+        "mutant_013_sliding_factory_drops_slide"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "SlidingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses the documented four-argument factory WindowStrategy.sliding(Duration, Duration, TimeType, Duration) (requirement_docs L238) plus WindowStrategy.EVENT_TIME (L197), BuiltinFuncs.window, OneInputWindowContext getters, and the file's own helpers. No PR-internal symbol absent from requirement_docs is referenced."
+      },
+      "coverage_target": "solution.patch four-argument sliding factory line that forwards window size and slide interval separately",
+      "rationale": "Exercises the documented four-argument sliding factory with EVENT_TIME and zero lateness, asserting the slide interval stays independent of the window size: the [0, 5000) window fires with all five records and overlapping windows are one slide interval apart. A factory that forwards the size as the slide collapses the windows into non-overlapping spans and fails the gap assertion."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testEventTimeSlidingWindowDefaultLatenessIsZeroAndExplicitLatenessIsHonored",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.sliding(Duration, Duration) default and WindowStrategy.sliding(Duration, Duration, TimeType, Duration) explicit factories through BuiltinFuncs.window; OneInputWindowStreamProcessFunction.onLateRecord; OneInputWindowContext.getStartTime/getAllRecords; event-time watermarks.",
+      "kills_mutants": [
+        "mutant_004_sliding_default_lateness_uses_slide",
+        "mutant_029_allowed_lateness_sliding_zero"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body drives lateness only through observable runtime behavior: the documented two-argument and four-argument WindowStrategy.sliding factories (requirement_docs L230/L238) with WindowStrategy.EVENT_TIME (L197), the public OneInputWindowStreamProcessFunction.onLateRecord lifecycle callback, OneInputWindowContext.getStartTime/getAllRecords, and event-time watermarks. It never calls getAllowedLateness(), never casts to SlidingTimeWindowStrategy, and references no WindowUtils or org.apache.flink.datastream.impl.* symbol."
+      },
+      "coverage_target": "solution.patch sliding allowed-lateness default and runtime lateness-read paths (SlidingTimeWindowStrategy constructor + WindowUtils sliding getAllowedLateness)",
+      "rationale": "Two event-time jobs pin the FLIP lateness contract for sliding windows through the public late-record callback. Job A (two-argument default, zero lateness) requires an out-of-order record whose window has already closed to reach onLateRecord; a constructor that substitutes the slide interval for the default lateness keeps the window open and reports no late record. Job B (four-argument factory, three seconds lateness) requires the same record to remain inside its still-open window; a runtime that reads the configured lateness as zero expires the window early and reports the record as late instead."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTumblingDefaultLatenessZeroRoutesLateRecordToLateCallback",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling(Duration) one-argument default through BuiltinFuncs.window; OneInputWindowStreamProcessFunction.onLateRecord; event-time watermarks.",
+      "kills_mutants": [
+        "mutant_005_tumbling_default_lateness_uses_size"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "TumblingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses only the documented WindowStrategy.tumbling(Duration) default factory (requirement_docs L215), BuiltinFuncs.window, the public OneInputWindowStreamProcessFunction.onLateRecord/onTrigger callbacks, event-time watermarks, and file-local helpers (getSource, ValueWithTimestamp, CollectingProcessFunction, WrappedSink, DiscardingSink). No getAllowedLateness, no TumblingTimeWindowStrategy cast/getter, no WindowUtils or org.apache.flink.datastream.impl.* symbol."
+      },
+      "coverage_target": "solution.patch tumbling/sliding allowed-lateness runtime paths reached only by event-time late-record jobs",
+      "rationale": "The one-argument tumbling default must set allowed lateness to zero; a ts=4000 record in the single window [0, 5000) becomes late once the ts=5500 watermark closes it and must reach onLateRecord exactly once. A constructor that substitutes the window size for the default lateness keeps the window open and reports no late record."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTumblingExplicitLatenessHonoredKeepsRecordInsideWindow",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling(Duration, TimeType, Duration) explicit-lateness factory through BuiltinFuncs.window; OneInputWindowStreamProcessFunction.onLateRecord; OneInputWindowContext.getStartTime/getAllRecords; event-time watermarks.",
+      "kills_mutants": [
+        "mutant_028_allowed_lateness_tumbling_zero",
+        "mutant_038_builtin_one_input_drops_lateness"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "TumblingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses the documented three-argument WindowStrategy.tumbling(Duration, TimeType, Duration) factory (requirement_docs L223) with WindowStrategy.EVENT_TIME (L197), BuiltinFuncs.window, OneInputWindowStreamProcessFunction.onLateRecord/onTrigger, OneInputWindowContext.getStartTime/getAllRecords, and file-local helpers. It never calls getAllowedLateness, never casts to TumblingTimeWindowStrategy, and references no WindowUtils or impl.* symbol."
+      },
+      "coverage_target": "solution.patch tumbling/sliding allowed-lateness runtime paths reached only by event-time late-record jobs",
+      "rationale": "A tumbling window configured with three seconds of allowed lateness keeps [0, 5000) open at watermark 5500, so the ts=4000 record stays in-window (record count == 1) and is never late (late count == 0). A runtime that reads the tumbling lateness as zero, or a one-input BuiltinFuncs wrapper that forwards zero, expires the window early and reports the record as late."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTumblingLatenessBoundaryIsInclusiveForWindowAndElement",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling(Duration) through BuiltinFuncs.window; OneInputWindowStreamProcessFunction.onLateRecord; event-time watermarks at the exact cleanup boundary.",
+      "kills_mutants": [
+        "mutant_030_window_late_boundary_exclusive",
+        "mutant_031_element_late_boundary_exclusive"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "TumblingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses only WindowStrategy.tumbling(Duration) (requirement_docs L215), BuiltinFuncs.window, OneInputWindowStreamProcessFunction.onLateRecord/onTrigger, event-time watermarks, and file-local helpers. The boundary contract (window/element late when cleanupTime <= watermark) is documented at requirement_docs L430. No WindowUtils.isWindowLate/isElementLate reference, no getAllowedLateness, no impl.* symbol."
+      },
+      "coverage_target": "solution.patch tumbling/sliding allowed-lateness runtime paths reached only by event-time late-record jobs",
+      "rationale": "With zero lateness the [0, 5000) window cleans up at maxTimestamp 4999. A second ts=4999 record arrives exactly at watermark 4999 (cleanupTime == watermark, timestamp == watermark). The inclusive (<=) window-late and element-late contract routes it to onLateRecord exactly once; a strict (<) boundary for either predicate accepts the record and emits no late record."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoInputExplicitLatenessHonoredKeepsRecordsInsideWindow",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling(Duration, TimeType, Duration) through the two-input BuiltinFuncs.window wrapper; TwoInputNonBroadcastWindowStreamProcessFunction.onLateRecord1/onLateRecord2/onTrigger; TwoInputWindowContext.getStartTime; event-time watermarks.",
+      "kills_mutants": [
+        "mutant_039_builtin_two_input_drops_lateness"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "TumblingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses the documented WindowStrategy.tumbling(Duration, TimeType, Duration) factory (L223) and EVENT_TIME (L197), the two-input BuiltinFuncs.window wrapper, TwoInputNonBroadcastWindowStreamProcessFunction.onLateRecord1/onLateRecord2/onTrigger, TwoInputWindowContext.getStartTime, connectAndProcess, and file-local helpers. No getAllowedLateness, no WindowUtils, no impl.* symbol."
+      },
+      "coverage_target": "solution.patch tumbling/sliding allowed-lateness runtime paths reached only by event-time late-record jobs",
+      "rationale": "A two-input tumbling join with three seconds of allowed lateness keeps [0, 5000) open at watermark 5500 on both sides, so the ts=4000 records stay in-window (the window fires) and neither side reports a late record. A two-input BuiltinFuncs wrapper that forwards zero allowed lateness expires the window early and routes those records to onLateRecord1 / onLateRecord2."
+    },
+    {
+      "id": "org.apache.flink.test.streaming.api.datastream.extension.window.WindowRuntimeAugITCase#testTwoOutputExplicitLatenessHonoredKeepsRecordInsideWindow",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes > Declare Window",
+        "Proposed Changes > Define `WindowProcessFunction` > Lifecycle Methods",
+        "Proposed Changes > Define `WindowProcessFunction` > Store and access all records of a window",
+        "Proposed Changes > Build a ProcessFunction"
+      ],
+      "public_surface": "WindowStrategy.tumbling(Duration, TimeType, Duration) through the two-output BuiltinFuncs.window wrapper; TwoOutputWindowStreamProcessFunction.onLateRecord/onTrigger; OneInputWindowContext.getStartTime/getAllRecords; event-time watermarks.",
+      "kills_mutants": [
+        "mutant_040_builtin_two_output_drops_lateness"
+      ],
+      "internal_symbol_check": {
+        "scanned_symbols": [
+          "getTimeType",
+          "getAllowedLateness",
+          "SlidingTimeWindowStrategy",
+          "TumblingTimeWindowStrategy",
+          "WindowUtils",
+          "getAssigner",
+          "InternalOneInputWindowStreamProcessFunction"
+        ],
+        "violations": [],
+        "result": "clean",
+        "notes": "Selected body uses the documented WindowStrategy.tumbling(Duration, TimeType, Duration) factory (L223) and EVENT_TIME (L197), the two-output BuiltinFuncs.window wrapper, TwoOutputWindowStreamProcessFunction.onLateRecord/onTrigger, OneInputWindowContext.getStartTime/getAllRecords, and file-local helpers. No getAllowedLateness, no WindowUtils, no impl.* symbol."
+      },
+      "coverage_target": "solution.patch tumbling/sliding allowed-lateness runtime paths reached only by event-time late-record jobs",
+      "rationale": "A two-output tumbling window with three seconds of allowed lateness keeps [0, 5000) open at watermark 5500, so the ts=4000 record stays in-window (record count == 1) and is never late. A two-output BuiltinFuncs wrapper that forwards zero allowed lateness expires the window early and routes the record to onLateRecord."
+    },
+    {
+      "id": "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip501AugTest#testSleepTimeUsesConfiguredCapAfterOverflow",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "ExponentialWaitStrategy.sleepTime(long) in flink-clients.",
+      "rationale": "Pins an unrelated flink-clients public retry utility outside the window modules."
+    },
+    {
+      "id": "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip501AugTest#testNegativeAttemptIsRejected",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "ExponentialWaitStrategy.sleepTime(long) validation in flink-clients.",
+      "rationale": "Pins unchanged flink-clients behavior independent of DataStream window extension code."
+    }
+  ]
+}

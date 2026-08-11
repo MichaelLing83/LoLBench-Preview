@@ -1,0 +1,11 @@
+# Overlay over the prebuilt eval image. Re-ships only the augmented sidecar
+# files (updated eval_tests_aug.patch + f2p_aug.txt + spec.json) so we do NOT
+# rebuild the base/source/maven cache. Used for test-augmentation validation
+# (3-state gate + full mutant sweep) of the FLIP-501 sliding runtime tests.
+ARG BASE_IMAGE=lolbench/apache-flink-flip-501-pr-26001:1
+FROM ${BASE_IMAGE}
+
+# p2p.txt is included because the host bundle expanded it (50 selectors) after
+# the eval image was baked (which still carries the older 3-selector p2p.txt);
+# run_tests.sh validates spec.json.pass_to_pass == p2p.txt, so they must agree.
+COPY eval_tests_aug.patch f2p_aug.txt spec.json p2p.txt /opt/lolbench/private/

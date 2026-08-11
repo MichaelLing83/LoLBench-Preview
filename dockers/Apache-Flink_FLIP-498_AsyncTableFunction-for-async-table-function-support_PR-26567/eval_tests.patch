@@ -1,0 +1,3047 @@
+diff --git a/flink-core/src/test/java/org/apache/flink/api/java/typeutils/TypeExtractionUtilsTest.java b/flink-core/src/test/java/org/apache/flink/api/java/typeutils/TypeExtractionUtilsTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-core/src/test/java/org/apache/flink/api/java/typeutils/TypeExtractionUtilsTest.java
+@@ -0,0 +1,74 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.api.java.typeutils;
++
++import org.junit.jupiter.api.Test;
++
++import java.lang.reflect.Method;
++import java.lang.reflect.ParameterizedType;
++import java.lang.reflect.Type;
++import java.util.List;
++import java.util.Optional;
++
++import static org.apache.flink.api.java.typeutils.TypeExtractionUtils.getAllDeclaredMethods;
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Tests for {@link TypeExtractionUtils}. */
++@SuppressWarnings("rawtypes")
++public class TypeExtractionUtilsTest {
++
++    @Test
++    void testIsGeneric() throws Exception {
++        Method method = getMethod(IsGeneric.class, "m1");
++        Type firstParam = method.getGenericParameterTypes()[0];
++        assertThat(TypeExtractionUtils.isGenericOfClass(List.class, firstParam)).isTrue();
++
++        method = getMethod(IsGeneric.class, "m2");
++        firstParam = method.getGenericParameterTypes()[0];
++        assertThat(TypeExtractionUtils.isGenericOfClass(List.class, firstParam)).isTrue();
++    }
++
++    @Test
++    void testGetParameterizedType() throws Exception {
++        Method method = getMethod(IsGeneric.class, "m1");
++        Type firstParam = method.getGenericParameterTypes()[0];
++        Optional<ParameterizedType> parameterizedType =
++                TypeExtractionUtils.getParameterizedType(firstParam);
++        assertThat(parameterizedType).isPresent();
++        assertThat(parameterizedType.get().getRawType()).isEqualTo(List.class);
++        assertThat(parameterizedType.get().getActualTypeArguments()[0]).isEqualTo(Integer.class);
++
++        method = getMethod(IsGeneric.class, "m2");
++        firstParam = method.getGenericParameterTypes()[0];
++        assertThat(TypeExtractionUtils.getParameterizedType(firstParam)).isEmpty();
++    }
++
++    private Method getMethod(Class<?> clazz, String name) throws Exception {
++        return getAllDeclaredMethods(clazz).stream()
++                .filter(m -> m.getName().equals(name))
++                .findFirst()
++                .orElseThrow();
++    }
++
++    public static class IsGeneric {
++        public void m1(List<Integer> list) {}
++
++        public void m2(List list) {}
++    }
++}
+diff --git a/flink-table/flink-table-common/src/test/java/org/apache/flink/table/functions/UserDefinedFunctionHelperTest.java b/flink-table/flink-table-common/src/test/java/org/apache/flink/table/functions/UserDefinedFunctionHelperTest.java
+--- a/flink-table/flink-table-common/src/test/java/org/apache/flink/table/functions/UserDefinedFunctionHelperTest.java
++++ b/flink-table/flink-table-common/src/test/java/org/apache/flink/table/functions/UserDefinedFunctionHelperTest.java
+@@ -32,6 +32,7 @@
+ import javax.annotation.Nullable;
+ 
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.Optional;
+@@ -135,32 +136,63 @@ private static List<TestSpec> testSpecs() {
+                                         + PrivateMethodScalarFunction.class.getName()
+                                         + "' is not public."),
+                 TestSpec.forClass(ValidAsyncScalarFunction.class).expectSuccess(),
++                TestSpec.forClass(ValidAsyncTableFunction.class).expectSuccess(),
+                 TestSpec.forInstance(new ValidAsyncScalarFunction()).expectSuccess(),
+                 TestSpec.forClass(PrivateAsyncScalarFunction.class)
+                         .expectErrorMessage(
+                                 "Function class '"
+                                         + PrivateAsyncScalarFunction.class.getName()
+                                         + "' is not public."),
++                TestSpec.forClass(PrivateAsyncTableFunction.class)
++                        .expectErrorMessage(
++                                "Function class '"
++                                        + PrivateAsyncTableFunction.class.getName()
++                                        + "' is not public."),
+                 TestSpec.forClass(MissingImplementationAsyncScalarFunction.class)
+                         .expectErrorMessage(
+                                 "Function class '"
+                                         + MissingImplementationAsyncScalarFunction.class.getName()
+                                         + "' does not implement a method named 'eval'."),
++                TestSpec.forClass(MissingImplementationAsyncTableFunction.class)
++                        .expectErrorMessage(
++                                "Function class '"
++                                        + MissingImplementationAsyncTableFunction.class.getName()
++                                        + "' does not implement a method named 'eval'."),
+                 TestSpec.forClass(PrivateMethodAsyncScalarFunction.class)
+                         .expectErrorMessage(
+                                 "Method 'eval' of function class '"
+                                         + PrivateMethodAsyncScalarFunction.class.getName()
+                                         + "' is not public."),
++                TestSpec.forClass(PrivateMethodAsyncTableFunction.class)
++                        .expectErrorMessage(
++                                "Method 'eval' of function class '"
++                                        + PrivateMethodAsyncTableFunction.class.getName()
++                                        + "' is not public."),
+                 TestSpec.forClass(NonVoidAsyncScalarFunction.class)
+                         .expectErrorMessage(
+                                 "Method 'eval' of function class '"
+                                         + NonVoidAsyncScalarFunction.class.getName()
+                                         + "' must be void."),
++                TestSpec.forClass(NonVoidAsyncTableFunction.class)
++                        .expectErrorMessage(
++                                "Method 'eval' of function class '"
++                                        + NonVoidAsyncTableFunction.class.getName()
++                                        + "' must be void."),
+                 TestSpec.forClass(NoFutureAsyncScalarFunction.class)
+                         .expectErrorMessage(
+                                 "Method 'eval' of function class '"
+                                         + NoFutureAsyncScalarFunction.class.getName()
+                                         + "' must have a first argument of type java.util.concurrent.CompletableFuture."),
++                TestSpec.forClass(NoFutureAsyncTableFunction.class)
++                        .expectErrorMessage(
++                                "Method 'eval' of function class '"
++                                        + NoFutureAsyncTableFunction.class.getName()
++                                        + "' must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>."),
++                TestSpec.forClass(NoFutureAsyncTableFunction2.class)
++                        .expectErrorMessage(
++                                "Method 'eval' of function class '"
++                                        + NoFutureAsyncTableFunction2.class.getName()
++                                        + "' must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>."),
+                 TestSpec.forInstance(new ValidTableAggregateFunction()).expectSuccess(),
+                 TestSpec.forInstance(new MissingEmitTableAggregateFunction())
+                         .expectErrorMessage(
+@@ -295,20 +327,40 @@ public static class ValidAsyncScalarFunction extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Integer> future, int i) {}
+     }
+ 
++    /** Valid table function. */
++    public static class ValidAsyncTableFunction extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Integer>> future, int i) {}
++    }
++
+     private static class PrivateAsyncScalarFunction extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Integer> future, int i) {}
+     }
+ 
++    private static class PrivateAsyncTableFunction extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Integer>> future, int i) {}
++    }
++
+     /** No implementation method. */
+     public static class MissingImplementationAsyncScalarFunction extends AsyncScalarFunction {
+         // nothing to do
+     }
+ 
++    /** No implementation method. */
++    public static class MissingImplementationAsyncTableFunction
++            extends AsyncTableFunction<Integer> {
++        // nothing to do
++    }
++
+     /** Implementation method is private. */
+     public static class PrivateMethodAsyncScalarFunction extends AsyncScalarFunction {
+         private void eval(CompletableFuture<Integer> future, int i) {}
+     }
+ 
++    /** Implementation method is private. */
++    public static class PrivateMethodAsyncTableFunction extends AsyncTableFunction<Integer> {
++        private void eval(CompletableFuture<Collection<Integer>> future, int i) {}
++    }
++
+     /** Implementation method isn't void. */
+     public static class NonVoidAsyncScalarFunction extends AsyncScalarFunction {
+         public String eval(CompletableFuture<Integer> future, int i) {
+@@ -317,10 +369,27 @@ public String eval(CompletableFuture<Integer> future, int i) {
+     }
+ 
+     /** Implementation method isn't void. */
++    public static class NonVoidAsyncTableFunction extends AsyncScalarFunction {
++        public String eval(CompletableFuture<Collection<Integer>> future, int i) {
++            return "";
++        }
++    }
++
++    /** First param isn't a future. */
+     public static class NoFutureAsyncScalarFunction extends AsyncScalarFunction {
+         public void eval(int i) {}
+     }
+ 
++    /** First param isn't a future. */
++    public static class NoFutureAsyncTableFunction extends AsyncTableFunction<Integer> {
++        public void eval(int i) {}
++    }
++
++    /** First param is a future, but with the wrong contained type. */
++    public static class NoFutureAsyncTableFunction2 extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Optional<Integer>> future, int i) {}
++    }
++
+     /** Valid table aggregate function. */
+     public static class ValidTableAggregateFunction extends TableAggregateFunction<String, String> {
+ 
+diff --git a/flink-table/flink-table-common/src/test/java/org/apache/flink/table/types/extraction/TypeInferenceExtractorTest.java b/flink-table/flink-table-common/src/test/java/org/apache/flink/table/types/extraction/TypeInferenceExtractorTest.java
+--- a/flink-table/flink-table-common/src/test/java/org/apache/flink/table/types/extraction/TypeInferenceExtractorTest.java
++++ b/flink-table/flink-table-common/src/test/java/org/apache/flink/table/types/extraction/TypeInferenceExtractorTest.java
+@@ -31,6 +31,7 @@
+ import org.apache.flink.table.data.RowData;
+ import org.apache.flink.table.functions.AggregateFunction;
+ import org.apache.flink.table.functions.AsyncScalarFunction;
++import org.apache.flink.table.functions.AsyncTableFunction;
+ import org.apache.flink.table.functions.ProcessTableFunction;
+ import org.apache.flink.table.functions.ScalarFunction;
+ import org.apache.flink.table.functions.TableAggregateFunction;
+@@ -58,6 +59,7 @@
+ import java.time.Duration;
+ import java.util.ArrayList;
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.EnumSet;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+@@ -179,6 +181,11 @@ private static Stream<TestSpec> functionSpecs() {
+                         .expectEmptyStaticArguments()
+                         .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
+                 // ---
++                // no arguments async table
++                TestSpec.forAsyncTableFunction(ZeroArgFunctionAsyncTable.class)
++                        .expectEmptyStaticArguments()
++                        .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
++                // ---
+                 // test primitive arguments extraction
+                 TestSpec.forScalarFunction(MixedArgFunction.class)
+                         .expectStaticArgument(
+@@ -195,6 +202,14 @@ private static Stream<TestSpec> functionSpecs() {
+                         .expectStaticArgument(StaticArgument.scalar("d", DataTypes.DOUBLE(), false))
+                         .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
+                 // ---
++                // test primitive arguments extraction async table
++                TestSpec.forAsyncTableFunction(MixedArgFunctionAsyncTable.class)
++                        .expectStaticArgument(
++                                StaticArgument.scalar(
++                                        "i", DataTypes.INT().notNull().bridgedTo(int.class), false))
++                        .expectStaticArgument(StaticArgument.scalar("d", DataTypes.DOUBLE(), false))
++                        .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
++                // ---
+                 // test overloaded arguments extraction
+                 TestSpec.forScalarFunction(OverloadedFunction.class)
+                         .expectOutputMapping(
+@@ -234,6 +249,25 @@ private static Stream<TestSpec> functionSpecs() {
+                                         }),
+                                 TypeStrategies.explicit(DataTypes.BIGINT())),
+                 // ---
++                // test overloaded arguments extraction async
++                TestSpec.forAsyncTableFunction(OverloadedFunctionAsyncTable.class)
++                        .expectOutputMapping(
++                                InputTypeStrategies.sequence(
++                                        new String[] {"i", "d"},
++                                        new ArgumentTypeStrategy[] {
++                                            InputTypeStrategies.explicit(
++                                                    DataTypes.INT().notNull().bridgedTo(int.class)),
++                                            InputTypeStrategies.explicit(DataTypes.DOUBLE())
++                                        }),
++                                TypeStrategies.explicit(DataTypes.INT()))
++                        .expectOutputMapping(
++                                InputTypeStrategies.sequence(
++                                        new String[] {"s"},
++                                        new ArgumentTypeStrategy[] {
++                                            InputTypeStrategies.explicit(DataTypes.STRING())
++                                        }),
++                                TypeStrategies.explicit(DataTypes.INT())),
++                // ---
+                 // test varying arguments extraction
+                 TestSpec.forScalarFunction(VarArgFunction.class)
+                         .expectOutputMapping(
+@@ -260,6 +294,19 @@ private static Stream<TestSpec> functionSpecs() {
+                                         }),
+                                 TypeStrategies.explicit(DataTypes.STRING())),
+                 // ---
++                // test varying arguments extraction async table
++                TestSpec.forAsyncTableFunction(VarArgFunctionAsyncTable.class)
++                        .expectOutputMapping(
++                                InputTypeStrategies.varyingSequence(
++                                        new String[] {"i", "more"},
++                                        new ArgumentTypeStrategy[] {
++                                            InputTypeStrategies.explicit(
++                                                    DataTypes.INT().notNull().bridgedTo(int.class)),
++                                            InputTypeStrategies.explicit(
++                                                    DataTypes.INT().notNull().bridgedTo(int.class))
++                                        }),
++                                TypeStrategies.explicit(DataTypes.STRING())),
++                // ---
+                 // test varying arguments extraction with byte
+                 TestSpec.forScalarFunction(VarArgWithByteFunction.class)
+                         .expectOutputMapping(
+@@ -286,6 +333,19 @@ private static Stream<TestSpec> functionSpecs() {
+                                         }),
+                                 TypeStrategies.explicit(DataTypes.STRING())),
+                 // ---
++                // test varying arguments extraction with byte async
++                TestSpec.forAsyncTableFunction(VarArgWithByteFunctionAsyncTable.class)
++                        .expectOutputMapping(
++                                InputTypeStrategies.varyingSequence(
++                                        new String[] {"bytes"},
++                                        new ArgumentTypeStrategy[] {
++                                            InputTypeStrategies.explicit(
++                                                    DataTypes.TINYINT()
++                                                            .notNull()
++                                                            .bridgedTo(byte.class))
++                                        }),
++                                TypeStrategies.explicit(DataTypes.STRING())),
++                // ---
+                 // output hint with input extraction
+                 TestSpec.forScalarFunction(ExtractWithOutputHintFunction.class)
+                         .expectStaticArgument(StaticArgument.scalar("i", DataTypes.INT(), false))
+@@ -296,6 +356,11 @@ private static Stream<TestSpec> functionSpecs() {
+                         .expectStaticArgument(StaticArgument.scalar("i", DataTypes.INT(), false))
+                         .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
+                 // ---
++                // output hint with input extraction
++                TestSpec.forAsyncTableFunction(ExtractWithOutputHintFunctionAsyncTable.class)
++                        .expectStaticArgument(StaticArgument.scalar("i", DataTypes.INT(), false))
++                        .expectOutput(TypeStrategies.explicit(DataTypes.INT())),
++                // ---
+                 // output extraction with input hints
+                 TestSpec.forScalarFunction(ExtractWithInputHintFunction.class)
+                         .expectStaticArgument(StaticArgument.scalar("i", DataTypes.INT(), false))
+@@ -395,6 +460,25 @@ private static Stream<TestSpec> functionSpecs() {
+                                 "Considering all hints, the method should comply with the signature:\n"
+                                         + "eval(java.util.concurrent.CompletableFuture, int[])"),
+                 // ---
++                // mismatch between hints and implementation regarding return type
++                TestSpec.forAsyncTableFunction(InvalidMethodTableFunctionAsync.class)
++                        .expectErrorMessage(
++                                "Considering all hints, the method should comply with the signature:\n"
++                                        + "eval(java.util.concurrent.CompletableFuture, int[])"),
++                // ---
++                TestSpec.forAsyncTableFunction(InvalidMethodTableFunctionMissingCollection.class)
++                        .expectErrorMessage(
++                                "The method 'eval' expects nested generic type CompletableFuture<Collection> for the 0 arg."),
++                // ---
++                TestSpec.forAsyncTableFunction(InvalidMethodTableFunctionWrongGeneric.class)
++                        .expectErrorMessage(
++                                "The method 'eval' expects nested generic type CompletableFuture<Collection> for the 0 arg."),
++                // ---
++                TestSpec.forAsyncTableFunction(ConflictingReturnTypesAsyncTable.class)
++                        .expectErrorMessage(
++                                "Considering all hints, the method should comply with the signature:\n"
++                                        + "eval(java.util.concurrent.CompletableFuture, int)"),
++                // ---
+                 // mismatch between hints and implementation regarding accumulator
+                 TestSpec.forAggregateFunction(InvalidMethodAggregateFunction.class)
+                         .expectErrorMessage(
+@@ -514,6 +598,15 @@ private static Stream<TestSpec> functionSpecs() {
+                                         DataTypes.ROW(DataTypes.FIELD("i", DataTypes.INT()))
+                                                 .bridgedTo(RowData.class))),
+                 // ---
++                TestSpec.forAsyncTableFunction(
++                                "A data type hint on the method is used for enriching (not a function output hint)",
++                                DataTypeHintOnTableFunctionAsync.class)
++                        .expectEmptyStaticArguments()
++                        .expectOutput(
++                                TypeStrategies.explicit(
++                                        DataTypes.ROW(DataTypes.FIELD("i", DataTypes.INT()))
++                                                .bridgedTo(RowData.class))),
++                // ---
+                 TestSpec.forScalarFunction(
+                                 "Scalar function with arguments hints",
+                                 ArgumentHintScalarFunction.class)
+@@ -1203,6 +1296,21 @@ static TestSpec forAsyncScalarFunction(
+                                     new DataTypeFactoryMock(), function));
+         }
+ 
++        @SuppressWarnings("rawtypes")
++        static TestSpec forAsyncTableFunction(Class<? extends AsyncTableFunction<?>> function) {
++            return forAsyncTableFunction(null, function);
++        }
++
++        @SuppressWarnings("rawtypes")
++        static TestSpec forAsyncTableFunction(
++                String description, Class<? extends AsyncTableFunction<?>> function) {
++            return new TestSpec(
++                    description == null ? function.getSimpleName() : description,
++                    () ->
++                            TypeInferenceExtractor.forAsyncTableFunction(
++                                    new DataTypeFactoryMock(), function));
++        }
++
+         static TestSpec forAggregateFunction(Class<? extends AggregateFunction<?, ?>> function) {
+             return new TestSpec(
+                     function.getSimpleName(),
+@@ -2046,38 +2154,89 @@ private static class ZeroArgFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Integer> f) {}
+     }
+ 
++    private static class ZeroArgFunctionAsyncTable extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Integer>> f) {}
++    }
++
+     private static class MixedArgFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Integer> f, int i, Double d) {}
+     }
+ 
++    private static class MixedArgFunctionAsyncTable extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Integer>> f, int i, Double d) {}
++    }
++
+     private static class OverloadedFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Integer> f, int i, Double d) {}
+ 
+         public void eval(CompletableFuture<Long> f, String s) {}
+     }
+ 
++    private static class OverloadedFunctionAsyncTable extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Integer>> f, int i, Double d) {}
++
++        public void eval(CompletableFuture<Collection<Integer>> f, String s) {}
++    }
++
++    private static class ConflictingReturnTypesAsyncTable extends AsyncTableFunction<Integer> {
++        public void eval(CompletableFuture<Collection<Long>> f, int i) {}
++    }
++
+     private static class VarArgFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<String> f, int i, int... more) {}
+     }
+ 
++    private static class VarArgFunctionAsyncTable extends AsyncTableFunction<String> {
++        public void eval(CompletableFuture<Collection<String>> f, int i, int... more) {}
++    }
++
+     private static class VarArgWithByteFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<String> f, byte... bytes) {}
+     }
+ 
++    private static class VarArgWithByteFunctionAsyncTable extends AsyncTableFunction<String> {
++        public void eval(CompletableFuture<Collection<String>> f, byte... bytes) {}
++    }
++
+     @FunctionHint(output = @DataTypeHint("INT"))
+     private static class ExtractWithOutputHintFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Object> f, Integer i) {}
+     }
+ 
++    @FunctionHint(output = @DataTypeHint("INT"))
++    private static class ExtractWithOutputHintFunctionAsyncTable
++            extends AsyncTableFunction<Object> {
++        public void eval(CompletableFuture<Collection<Object>> f, Integer i) {}
++    }
++
+     @FunctionHint(output = @DataTypeHint("STRING"))
+     private static class InvalidMethodScalarFunctionAsync extends AsyncScalarFunction {
+         public void eval(CompletableFuture<Long> f, int[] i) {}
+     }
+ 
++    @FunctionHint(output = @DataTypeHint("STRING"))
++    private static class InvalidMethodTableFunctionAsync extends AsyncTableFunction<Long> {
++        public void eval(CompletableFuture<Collection<Long>> f, int[] i) {}
++    }
++
++    private static class InvalidMethodTableFunctionMissingCollection
++            extends AsyncTableFunction<Long> {
++        public void eval(CompletableFuture<Long> f, int[] i) {}
++    }
++
++    private static class InvalidMethodTableFunctionWrongGeneric extends AsyncTableFunction<Long> {
++        public void eval(CompletableFuture<Optional<Long>> f, int[] i) {}
++    }
++
+     private static class DataTypeHintOnScalarFunctionAsync extends AsyncScalarFunction {
+         public void eval(@DataTypeHint("ROW<i INT>") CompletableFuture<RowData> f) {}
+     }
+ 
++    private static class DataTypeHintOnTableFunctionAsync extends AsyncTableFunction<String> {
++        @DataTypeHint(value = "ROW<i INT>", bridgedTo = RowData.class)
++        public void eval(CompletableFuture<Collection<RowData>> f) {}
++    }
++
+     private static class ArgumentHintScalarFunction extends ScalarFunction {
+         @FunctionHint(
+                 arguments = {
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorTest.java
+@@ -0,0 +1,298 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.codegen;
++
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.streaming.api.functions.async.AsyncFunction;
++import org.apache.flink.streaming.api.functions.async.CollectionSupplier;
++import org.apache.flink.streaming.api.functions.async.ResultFuture;
++import org.apache.flink.table.annotation.DataTypeHint;
++import org.apache.flink.table.annotation.FunctionHint;
++import org.apache.flink.table.data.GenericRowData;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.data.StringData;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.planner.calcite.SqlToRexConverter;
++import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
++import org.apache.flink.table.planner.utils.PlannerMocks;
++import org.apache.flink.table.planner.utils.ShortcutUtils;
++import org.apache.flink.table.runtime.generated.GeneratedFunction;
++import org.apache.flink.table.types.logical.BigIntType;
++import org.apache.flink.table.types.logical.IntType;
++import org.apache.flink.table.types.logical.RowType;
++import org.apache.flink.table.types.logical.VarCharType;
++import org.apache.flink.types.Row;
++
++import org.apache.calcite.rel.type.RelDataType;
++import org.apache.calcite.rex.RexCall;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** Test for {@link AsyncCorrelateCodeGenerator}. */
++public class AsyncCorrelateCodeGeneratorTest {
++
++    private static final RowType INPUT_TYPE =
++            RowType.of(new IntType(), new BigIntType(), new VarCharType());
++
++    private PlannerMocks plannerMocks;
++    private SqlToRexConverter converter;
++
++    private RelDataType tableRowType;
++
++    @BeforeEach
++    public void before() {
++        plannerMocks = PlannerMocks.create();
++        tableRowType =
++                plannerMocks
++                        .getPlannerContext()
++                        .getTypeFactory()
++                        .buildRelNodeRowType(
++                                JavaScalaConversionUtil.toScala(Arrays.asList("f1", "f2", "f3")),
++                                JavaScalaConversionUtil.toScala(
++                                        Arrays.asList(
++                                                new IntType(),
++                                                new BigIntType(),
++                                                new VarCharType())));
++        ShortcutUtils.unwrapContext(plannerMocks.getPlanner().createToRelContext().getCluster());
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("myfunc", new AsyncFunc(), false);
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("myfunc2", new AsyncRowFunc(), false);
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("myfunc3", new AsyncRowDataFunc(), false);
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("myfunc_error", new AsyncFuncError(), false);
++
++        converter =
++                ShortcutUtils.unwrapContext(
++                                plannerMocks.getPlanner().createToRelContext().getCluster())
++                        .getRexFactory()
++                        .createSqlToRexConverter(
++                                tableRowType,
++                                plannerMocks
++                                        .getPlannerContext()
++                                        .getTypeFactory()
++                                        .createFieldTypeFromLogicalType(
++                                                RowType.of(VarCharType.STRING_TYPE)));
++    }
++
++    @Test
++    public void testStringReturnType() throws Exception {
++        List<Object> objects =
++                execute(
++                        "myFunc(f1, f2, f3)",
++                        RowType.of(VarCharType.STRING_TYPE),
++                        GenericRowData.of(2, 3L, StringData.fromString("foo")));
++        assertThat(objects)
++                .containsExactly(Row.of("complete1 foo 4 6"), Row.of("complete2 foo 4 6"));
++    }
++
++    @Test
++    public void testRowReturnType() throws Exception {
++        RowType type = RowType.of(new IntType(), new BigIntType(), VarCharType.STRING_TYPE);
++        List<Object> objects =
++                execute(
++                        "myFunc2(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(2, 3L, StringData.fromString("foo")));
++        assertThat(objects)
++                .containsExactly(Row.of(2, 30L, "complete1 foo"), Row.of(2, 60L, "complete2 foo"));
++
++        objects =
++                execute(
++                        "myFunc2(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(0, 3L, StringData.fromString("foo")));
++        assertThat(objects).containsExactly();
++
++        objects =
++                execute(
++                        "myFunc2(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(1, 3L, StringData.fromString("foo")));
++        assertThat(objects).containsExactly(Row.of(1, 30L, "complete foo"));
++    }
++
++    @Test
++    public void testRowDataReturnType() throws Exception {
++        RowType type = RowType.of(new IntType(), new BigIntType(), VarCharType.STRING_TYPE);
++        List<Object> objects =
++                execute(
++                        "myFunc3(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(2, 3L, StringData.fromString("foo")));
++        assertThat(objects)
++                .containsExactly(
++                        GenericRowData.of(2, 30L, "complete1 foo"),
++                        GenericRowData.of(2, 60L, "complete2 foo"));
++
++        objects =
++                execute(
++                        "myFunc3(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(0, 3L, StringData.fromString("foo")));
++        assertThat(objects).containsExactly();
++
++        objects =
++                execute(
++                        "myFunc3(f1, f2, f3)",
++                        type,
++                        GenericRowData.of(1, 3L, StringData.fromString("foo")));
++        assertThat(objects).containsExactly(GenericRowData.of(1, 30L, "complete foo"));
++    }
++
++    @Test
++    public void testError() throws Exception {
++        CompletableFuture<Collection<Object>> future =
++                executeFuture(
++                        "myFunc_error(f1, f2, f3)",
++                        RowType.of(VarCharType.STRING_TYPE),
++                        GenericRowData.of(2, 3L, StringData.fromString("foo")));
++        assertThat(future).isCompletedExceptionally();
++        assertThatThrownBy(future::get).cause().hasMessage("Error!");
++    }
++
++    private List<Object> execute(String sqlExpression, RowType resultType, RowData input)
++            throws Exception {
++        Collection<Object> result = executeFuture(sqlExpression, resultType, input).get();
++        return new ArrayList<>(result);
++    }
++
++    private CompletableFuture<Collection<Object>> executeFuture(
++            String sqlExpression, RowType resultType, RowData input) throws Exception {
++        RelDataType type =
++                plannerMocks.getPlannerContext().getTypeFactory().buildRelNodeRowType(resultType);
++
++        RexCall node = (RexCall) converter.convertToRexNode(sqlExpression);
++        node = node.clone(type, node.getOperands());
++
++        GeneratedFunction<AsyncFunction<RowData, Object>> function =
++                AsyncCorrelateCodeGenerator.generateFunction(
++                        "name",
++                        INPUT_TYPE,
++                        resultType,
++                        node,
++                        new Configuration(),
++                        Thread.currentThread().getContextClassLoader());
++        AsyncFunction<RowData, Object> asyncFunction =
++                function.newInstance(Thread.currentThread().getContextClassLoader());
++        TestResultFuture resultFuture = new TestResultFuture();
++        asyncFunction.asyncInvoke(input, resultFuture);
++        return resultFuture.getResult();
++    }
++
++    /** Test function. */
++    public static final class AsyncFunc extends AsyncTableFunction<String> {
++        public void eval(CompletableFuture<Collection<String>> f, Integer i, Long l, String s) {
++            f.complete(
++                    Arrays.asList(
++                            "complete1 " + s + " " + (i * i) + " " + (2 * l),
++                            "complete2 " + s + " " + (i * i) + " " + (2 * l)));
++        }
++    }
++
++    /** Test function. */
++    @FunctionHint(output = @DataTypeHint("ROW<i INT, b BIGINT, s STRING>"))
++    public static final class AsyncRowFunc extends AsyncTableFunction<Row> {
++        public void eval(CompletableFuture<Collection<Row>> f, Integer i, Long l, String s) {
++            if (i == 0) {
++                f.complete(Collections.emptyList());
++            } else if (i == 1) {
++                f.complete(Collections.singletonList(Row.of(i, l * 10, "complete " + s)));
++            } else {
++                f.complete(
++                        Arrays.asList(
++                                Row.of(i, l * 10, "complete1 " + s),
++                                Row.of(i, l * 20, "complete2 " + s)));
++            }
++        }
++    }
++
++    /** Test function. */
++    @FunctionHint(
++            output =
++                    @DataTypeHint(
++                            value = "ROW<i INT, b BIGINT, s STRING>",
++                            bridgedTo = RowData.class))
++    public static final class AsyncRowDataFunc extends AsyncTableFunction<RowData> {
++        public void eval(CompletableFuture<Collection<RowData>> f, Integer i, Long l, String s) {
++            if (i == 0) {
++                f.complete(Collections.emptyList());
++            } else if (i == 1) {
++                f.complete(
++                        Collections.singletonList(GenericRowData.of(i, l * 10, "complete " + s)));
++            } else {
++                f.complete(
++                        Arrays.asList(
++                                GenericRowData.of(i, l * 10, "complete1 " + s),
++                                GenericRowData.of(i, l * 20, "complete2 " + s)));
++            }
++        }
++    }
++
++    /** Test function. */
++    public static final class AsyncFuncError extends AsyncTableFunction<String> {
++        public void eval(CompletableFuture<Collection<String>> f, Integer i, Long l, String s) {
++            f.completeExceptionally(new RuntimeException("Error!"));
++        }
++    }
++
++    /** Test result future. */
++    public static final class TestResultFuture implements ResultFuture<Object> {
++
++        CompletableFuture<Collection<Object>> data = new CompletableFuture<>();
++
++        @Override
++        public void complete(Collection<Object> result) {
++            data.complete(result);
++        }
++
++        @Override
++        public void completeExceptionally(Throwable error) {
++            data.completeExceptionally(error);
++        }
++
++        public CompletableFuture<Collection<Object>> getResult() {
++            return data;
++        }
++
++        @Override
++        public void complete(CollectionSupplier<Object> supplier) {
++            try {
++                data.complete(supplier.get());
++            } catch (Exception e) {
++                throw new RuntimeException(e);
++            }
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateRestoreTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateRestoreTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateRestoreTest.java
+@@ -0,0 +1,43 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.nodes.exec.stream;
++
++import org.apache.flink.table.planner.plan.nodes.exec.testutils.RestoreTestBase;
++import org.apache.flink.table.test.program.TableTestProgram;
++
++import java.util.Arrays;
++import java.util.List;
++
++/** Restore tests for {@link StreamExecAsyncCorrelate}. */
++public class AsyncCorrelateRestoreTest extends RestoreTestBase {
++
++    public AsyncCorrelateRestoreTest() {
++        super(StreamExecCorrelate.class);
++    }
++
++    @Override
++    public List<TableTestProgram> programs() {
++        return Arrays.asList(
++                AsyncCorrelateTestPrograms.CORRELATE_CATALOG_FUNC,
++                AsyncCorrelateTestPrograms.CORRELATE_SYSTEM_FUNC,
++                AsyncCorrelateTestPrograms.CORRELATE_JOIN_FILTER,
++                AsyncCorrelateTestPrograms.CORRELATE_LEFT_JOIN,
++                AsyncCorrelateTestPrograms.CORRELATE_UDF_EXCEPTION);
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateTestPrograms.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateTestPrograms.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/nodes/exec/stream/AsyncCorrelateTestPrograms.java
+@@ -0,0 +1,238 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.nodes.exec.stream;
++
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.planner.runtime.utils.JavaUserDefinedTableFunctions.AsyncStringSplit;
++import org.apache.flink.table.test.program.SinkTestStep;
++import org.apache.flink.table.test.program.SourceTestStep;
++import org.apache.flink.table.test.program.TableTestProgram;
++import org.apache.flink.types.Row;
++
++import java.time.Duration;
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.stream.Collectors;
++
++import static org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS;
++import static org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES;
++import static org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY;
++
++/** {@link TableTestProgram} definitions for testing {@link StreamExecAsyncCorrelate}. */
++public class AsyncCorrelateTestPrograms {
++    static final Row[] BEFORE_DATA = {Row.of(1L, 1, "hi#there"), Row.of(2L, 2, "hello#world")};
++
++    static final Row[] AFTER_DATA = {
++        Row.of(4L, 4, "foo#bar"), Row.of(3L, 3, "bar#fiz"),
++    };
++
++    static final String[] SOURCE_SCHEMA = {"a BIGINT", "b INT NOT NULL", "c VARCHAR"};
++
++    public static final TableTestProgram CORRELATE_CATALOG_FUNC =
++            TableTestProgram.of(
++                            "async-correlate-catalog-func",
++                            "validate correlate with temporary catalog function")
++                    .setupTemporaryCatalogFunction("func1", TableFunc1.class)
++                    .setupTableSource(
++                            SourceTestStep.newBuilder("source_t")
++                                    .addSchema(SOURCE_SCHEMA)
++                                    .producedBeforeRestore(BEFORE_DATA)
++                                    .producedAfterRestore(AFTER_DATA)
++                                    .build())
++                    .setupTableSink(
++                            SinkTestStep.newBuilder("sink_t")
++                                    .addSchema("a VARCHAR", "b VARCHAR")
++                                    .consumedBeforeRestore(
++                                            "+I[hi#there, $hi]",
++                                            "+I[hi#there, $there]",
++                                            "+I[hello#world, $hello]",
++                                            "+I[hello#world, $world]")
++                                    .consumedAfterRestore(
++                                            "+I[foo#bar, $foo]",
++                                            "+I[foo#bar, $bar]",
++                                            "+I[bar#fiz, $bar]",
++                                            "+I[bar#fiz, $fiz]")
++                                    .build())
++                    .runSql(
++                            "INSERT INTO sink_t SELECT c, s FROM source_t, LATERAL TABLE(func1(c, '$')) AS T(s)")
++                    .build();
++
++    public static final TableTestProgram CORRELATE_SYSTEM_FUNC =
++            TableTestProgram.of(
++                            "async-correlate-system-func",
++                            "validate correlate with temporary system function")
++                    .setupTemporarySystemFunction("STRING_SPLIT", AsyncStringSplit.class)
++                    .setupTableSource(
++                            SourceTestStep.newBuilder("source_t")
++                                    .addSchema(SOURCE_SCHEMA)
++                                    .producedBeforeRestore(BEFORE_DATA)
++                                    .producedAfterRestore(AFTER_DATA)
++                                    .build())
++                    .setupTableSink(
++                            SinkTestStep.newBuilder("sink_t")
++                                    .addSchema("a VARCHAR", "b VARCHAR")
++                                    .consumedBeforeRestore(
++                                            "+I[hi#there, hi]",
++                                            "+I[hi#there, there]",
++                                            "+I[hello#world, hello]",
++                                            "+I[hello#world, world]")
++                                    .consumedAfterRestore(
++                                            "+I[foo#bar, foo]",
++                                            "+I[foo#bar, bar]",
++                                            "+I[bar#fiz, bar]",
++                                            "+I[bar#fiz, fiz]")
++                                    .build())
++                    .runSql(
++                            "INSERT INTO sink_t SELECT c, s FROM source_t, LATERAL TABLE(STRING_SPLIT(c, '#')) AS T(s)")
++                    .build();
++
++    public static final TableTestProgram CORRELATE_JOIN_FILTER =
++            TableTestProgram.of(
++                            "async-correlate-join-filter",
++                            "validate correlate with join and filter")
++                    .setupTemporaryCatalogFunction("func1", TableFunc1.class)
++                    .setupTableSource(
++                            SourceTestStep.newBuilder("source_t")
++                                    .addSchema(SOURCE_SCHEMA)
++                                    .producedBeforeRestore(BEFORE_DATA)
++                                    .producedAfterRestore(AFTER_DATA)
++                                    .build())
++                    .setupTableSink(
++                            SinkTestStep.newBuilder("sink_t")
++                                    .addSchema("a VARCHAR", "b VARCHAR")
++                                    .consumedBeforeRestore(
++                                            "+I[hello#world, hello]", "+I[hello#world, world]")
++                                    .consumedAfterRestore("+I[bar#fiz, bar]", "+I[bar#fiz, fiz]")
++                                    .build())
++                    .runSql(
++                            "INSERT INTO sink_t SELECT * FROM (SELECT c, s FROM source_t, LATERAL TABLE(func1(c)) AS T(s)) AS T2 WHERE c LIKE '%hello%' OR c LIKE '%fiz%'")
++                    .build();
++
++    public static final TableTestProgram CORRELATE_LEFT_JOIN =
++            TableTestProgram.of("async-correlate-left-join", "validate correlate with left join")
++                    .setupTemporaryCatalogFunction("func1", TableFunc1.class)
++                    .setupTableSource(
++                            SourceTestStep.newBuilder("source_t")
++                                    .addSchema(SOURCE_SCHEMA)
++                                    .producedBeforeRestore(BEFORE_DATA)
++                                    .producedAfterRestore(AFTER_DATA)
++                                    .build())
++                    .setupTableSink(
++                            SinkTestStep.newBuilder("sink_t")
++                                    .addSchema("a VARCHAR", "b VARCHAR")
++                                    .consumedBeforeRestore(
++                                            "+I[hi#there, hi]",
++                                            "+I[hi#there, there]",
++                                            "+I[hello#world, hello]",
++                                            "+I[hello#world, world]")
++                                    .consumedAfterRestore(
++                                            "+I[foo#bar, foo]",
++                                            "+I[foo#bar, bar]",
++                                            "+I[bar#fiz, bar]",
++                                            "+I[bar#fiz, fiz]")
++                                    .build())
++                    .runSql(
++                            "INSERT INTO sink_t SELECT c, s FROM source_t LEFT JOIN LATERAL TABLE(func1(c)) AS T(s) ON TRUE")
++                    .build();
++
++    public static final TableTestProgram CORRELATE_UDF_EXCEPTION =
++            TableTestProgram.of(
++                            "async-correlate-exception",
++                            "validates async calc node that fails some number of times and then recovers after restore")
++                    .setupConfig(TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY, Duration.ofMillis(3000))
++                    .setupConfig(TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES, 3)
++                    .setupConfig(TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 5)
++                    .setupTemporaryCatalogFunction("func1", FailureThenSucceedSplit.class)
++                    .setupTableSource(
++                            SourceTestStep.newBuilder("source_t")
++                                    .addSchema(SOURCE_SCHEMA)
++                                    // Errors on "hello#world"
++                                    .producedBeforeRestore(BEFORE_DATA)
++                                    .producedAfterRestore(AFTER_DATA)
++                                    .build())
++                    .setupTableSink(
++                            SinkTestStep.newBuilder("sink_t")
++                                    .addSchema("a VARCHAR", "b VARCHAR")
++                                    .consumedBeforeRestore(
++                                            "+I[hi#there, $hi]", "+I[hi#there, $there]")
++                                    .consumedAfterRestore(
++                                            "+I[hello#world, $hello]",
++                                            "+I[hello#world, $world]",
++                                            "+I[foo#bar, $foo]",
++                                            "+I[foo#bar, $bar]",
++                                            "+I[bar#fiz, $bar]",
++                                            "+I[bar#fiz, $fiz]")
++                                    .build())
++                    .runSql(
++                            "INSERT INTO sink_t SELECT c, s FROM source_t, LATERAL TABLE(func1(c, '$')) AS T(s)")
++                    .build();
++
++    /** Splitter functions. */
++    public static class TableFunc1 extends AsyncTableFunction<String> {
++
++        private static final long serialVersionUID = -7888476374311468525L;
++
++        public void eval(CompletableFuture<Collection<String>> future, String str) {
++            if (str.contains("#")) {
++                List<String> result = Arrays.stream(str.split("#")).collect(Collectors.toList());
++                future.complete(result);
++            } else {
++                future.complete(Collections.emptyList());
++            }
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, String str, String prefix) {
++            if (str.contains("#")) {
++                List<String> result =
++                        Arrays.stream(str.split("#"))
++                                .map(s -> prefix + s)
++                                .collect(Collectors.toList());
++                future.complete(result);
++            } else {
++                future.complete(Collections.emptyList());
++            }
++        }
++    }
++
++    /** Fails then succeeds to test succeeding after restore. */
++    public static class FailureThenSucceedSplit extends AsyncTableFunction<String> {
++        private static final int TOTAL_FAILURES = 1;
++
++        private final AtomicInteger calls = new AtomicInteger(0);
++
++        public void eval(CompletableFuture<Collection<String>> future, String str, String prefix) {
++            if (!str.equals("hello#world") || calls.incrementAndGet() > TOTAL_FAILURES) {
++                if (str.contains("#")) {
++                    List<String> result =
++                            Arrays.stream(str.split("#"))
++                                    .map(s -> prefix + s)
++                                    .collect(Collectors.toList());
++                    future.complete(result);
++                } else {
++                    future.complete(Collections.emptyList());
++                }
++            }
++            throw new RuntimeException("Failure " + calls.get());
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.java
+--- a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.java
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.java
+@@ -140,6 +140,12 @@ public void testJustCall() {
+         util.verifyRelPlan(sqlQuery);
+     }
+ 
++    @Test
++    public void testNestedSystemCall() {
++        String sqlQuery = "SELECT func1(ABS(1))";
++        util.verifyRelPlan(sqlQuery);
++    }
++
+     @Test
+     public void testWhereCondition() {
+         String sqlQuery = "SELECT a from MyTable where REGEXP(func2(a), 'string (2|3)')";
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.java
+--- a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.java
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.java
+@@ -20,6 +20,8 @@
+ 
+ import org.apache.flink.table.api.TableConfig;
+ import org.apache.flink.table.api.TableEnvironment;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.functions.ScalarFunction;
+ import org.apache.flink.table.planner.plan.optimize.program.FlinkChainedProgram;
+ import org.apache.flink.table.planner.plan.optimize.program.FlinkHepRuleSetProgramBuilder;
+ import org.apache.flink.table.planner.plan.optimize.program.HEP_RULES_EXECUTION_TYPE;
+@@ -34,6 +36,10 @@
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.Test;
+ 
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.concurrent.CompletableFuture;
++
+ /** Test for {@link AsyncCorrelateSplitRule}. */
+ public class AsyncCorrelateSplitRuleTest extends TableTestBase {
+ 
+@@ -63,6 +69,8 @@ public void setup() {
+ 
+         util.addTemporarySystemFunction("func1", new Func1());
+         util.addTemporarySystemFunction("tableFunc", new RandomTableFunction());
++        util.addTemporarySystemFunction("scalar", new ScalarFunc());
++        util.addTemporarySystemFunction("asyncTableFunc", new AsyncFunc());
+     }
+ 
+     @Test
+@@ -82,4 +90,38 @@ public void testCorrelateIndirectOtherWay() {
+         String sqlQuery = "select * FROM MyTable, LATERAL TABLE(tableFunc(func1(ABS(a))))";
+         util.verifyRelPlan(sqlQuery);
+     }
++
++    @Test
++    public void testCorrelateWithSystem() {
++        String sqlQuery = "select * FROM MyTable, LATERAL TABLE(asyncTableFunc(ABS(a)))";
++        util.verifyRelPlan(sqlQuery);
++    }
++
++    @Test
++    public void testCorrelateWithScalar() {
++        String sqlQuery = "select * FROM MyTable, LATERAL TABLE(asyncTableFunc(scalar(a)))";
++        util.verifyRelPlan(sqlQuery);
++    }
++
++    @Test
++    public void testCorrelateWithCast() {
++        String sqlQuery =
++                "select * FROM MyTable, LATERAL TABLE(asyncTableFunc(cast(cast(a as int) as int)))";
++        util.verifyRelPlan(sqlQuery);
++    }
++
++    /** Test function. */
++    public static class AsyncFunc extends AsyncTableFunction<String> {
++
++        public void eval(CompletableFuture<Collection<String>> c, Integer i) {
++            c.complete(Arrays.asList("blah " + i, "foo " + i));
++        }
++    }
++
++    /** Test function. */
++    public static class ScalarFunc extends ScalarFunction {
++        public Integer eval(Integer param) {
++            return param + 10;
++        }
++    }
+ }
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/utils/AsyncUtilTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/utils/AsyncUtilTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/plan/utils/AsyncUtilTest.java
+@@ -0,0 +1,163 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.utils;
++
++import org.apache.flink.table.functions.AsyncScalarFunction;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.functions.FunctionKind;
++import org.apache.flink.table.functions.ScalarFunction;
++import org.apache.flink.table.functions.TableFunction;
++import org.apache.flink.table.planner.calcite.SqlToRexConverter;
++import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
++import org.apache.flink.table.planner.utils.PlannerMocks;
++import org.apache.flink.table.planner.utils.ShortcutUtils;
++import org.apache.flink.table.types.logical.BigIntType;
++import org.apache.flink.table.types.logical.IntType;
++import org.apache.flink.table.types.logical.VarCharType;
++
++import org.apache.calcite.rel.type.RelDataType;
++import org.apache.calcite.rex.RexNode;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.concurrent.CompletableFuture;
++
++import static org.apache.flink.table.planner.plan.utils.AsyncUtil.containsAsyncCall;
++import static org.apache.flink.table.planner.plan.utils.AsyncUtil.containsNonAsyncCall;
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Test for {@link AsyncUtil}. */
++public class AsyncUtilTest {
++
++    private PlannerMocks plannerMocks;
++    private SqlToRexConverter converter;
++
++    private RelDataType tableRowType;
++
++    @BeforeEach
++    public void before() {
++        plannerMocks = PlannerMocks.create();
++
++        tableRowType =
++                plannerMocks
++                        .getPlannerContext()
++                        .getTypeFactory()
++                        .buildRelNodeRowType(
++                                JavaScalaConversionUtil.toScala(Arrays.asList("f1", "f2", "f3")),
++                                JavaScalaConversionUtil.toScala(
++                                        Arrays.asList(
++                                                new IntType(),
++                                                new BigIntType(),
++                                                new VarCharType())));
++
++        converter =
++                ShortcutUtils.unwrapContext(
++                                plannerMocks.getPlanner().createToRelContext().getCluster())
++                        .getRexFactory()
++                        .createSqlToRexConverter(tableRowType, null);
++
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("asyncScalarFn", new AsyncFunc(), false);
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("asyncTableFn", new AsyncTableFunc(), false);
++
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("scalarFn", new ScalarFunc(), false);
++        plannerMocks
++                .getFunctionCatalog()
++                .registerTemporarySystemFunction("tableFn", new TableFunc(), false);
++    }
++
++    @Test
++    void testFindScalar() {
++        assertThat(containsAsyncCall(convert("asyncScalarFn(1, 2, 'test')"))).isTrue();
++        assertThat(containsNonAsyncCall(convert("asyncScalarFn(1, 2, 'test')"))).isFalse();
++        assertThat(containsNonAsyncCall(convert("scalarFn(1, 2, 'test')"))).isTrue();
++        assertThat(
++                        containsAsyncCall(
++                                convert("asyncScalarFn(1, 2, 'test')"), FunctionKind.ASYNC_SCALAR))
++                .isTrue();
++        assertThat(
++                        containsAsyncCall(
++                                convert("asyncScalarFn(1, 2, 'test')"), FunctionKind.ASYNC_TABLE))
++                .isFalse();
++        assertThat(containsAsyncCall(convert("scalarFn(1, 2, 'test')"), FunctionKind.ASYNC_SCALAR))
++                .isFalse();
++        assertThat(
++                        containsAsyncCall(
++                                convert("scalarFn(1, 2, asyncScalarFn(1, 2, 'test'))"),
++                                FunctionKind.ASYNC_SCALAR))
++                .isTrue();
++        assertThat(containsNonAsyncCall(convert("scalarFn(1, 2, asyncScalarFn(1, 2, 'test'))")))
++                .isTrue();
++        assertThat(containsNonAsyncCall(convert("asyncScalarFn(1, 2, scalarFn(1, 2, 'test'))")))
++                .isTrue();
++        assertThat(containsAsyncCall(convert("CONCAT('a', asyncScalarFn(1, 2, 'test'))"))).isTrue();
++    }
++
++    @Test
++    void testFindTable() {
++        assertThat(containsAsyncCall(convert("asyncTableFn(1, 2, 'test')"))).isTrue();
++        assertThat(containsNonAsyncCall(convert("asyncTableFn(1, 2, 'test')"))).isFalse();
++        assertThat(containsNonAsyncCall(convert("tableFn(1, 2, 'test')"))).isTrue();
++        assertThat(
++                        containsAsyncCall(
++                                convert("asyncTableFn(1, 2, 'test')"), FunctionKind.ASYNC_TABLE))
++                .isTrue();
++        assertThat(
++                        containsAsyncCall(
++                                convert("asyncTableFn(1, 2, 'test')"), FunctionKind.ASYNC_SCALAR))
++                .isFalse();
++        assertThat(containsAsyncCall(convert("tableFn(1, 2, 'test')"), FunctionKind.ASYNC_TABLE))
++                .isFalse();
++    }
++
++    private RexNode convert(String sqlExpression) {
++        return converter.convertToRexNode(sqlExpression);
++    }
++
++    /** Test function. */
++    public static final class AsyncFunc extends AsyncScalarFunction {
++        public void eval(CompletableFuture<String> f, Integer i, Long l, String s) {}
++    }
++
++    /** Test function. */
++    public static final class AsyncTableFunc extends AsyncTableFunction<String> {
++        public void eval(CompletableFuture<Collection<String>> f, Integer i, Long l, String s) {}
++    }
++
++    /** Test function. */
++    public static final class ScalarFunc extends ScalarFunction {
++        public String eval(Integer i, Long l, String s) {
++            return null;
++        }
++    }
++
++    /** Test function. */
++    public static final class TableFunc extends TableFunction<String> {
++        public String eval(Integer i, Long l, String s) {
++            return null;
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateITCase.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateITCase.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateITCase.java
+@@ -0,0 +1,384 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.runtime.stream.table;
++
++import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
++import org.apache.flink.table.api.EnvironmentSettings;
++import org.apache.flink.table.api.Table;
++import org.apache.flink.table.api.TableEnvironment;
++import org.apache.flink.table.api.TableResult;
++import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
++import org.apache.flink.table.api.config.ExecutionConfigOptions;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.functions.FunctionContext;
++import org.apache.flink.table.planner.runtime.utils.JavaUserDefinedTableFunctions.AsyncSumScalarFunction;
++import org.apache.flink.table.planner.runtime.utils.JavaUserDefinedTableFunctions.AsyncTestTableFunction;
++import org.apache.flink.table.planner.runtime.utils.JavaUserDefinedTableFunctions.SumScalarFunction;
++import org.apache.flink.table.planner.runtime.utils.StreamingTestBase;
++import org.apache.flink.types.Row;
++import org.apache.flink.util.CloseableIterator;
++
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++
++import java.time.Duration;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.atomic.AtomicInteger;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** IT Case tests for correlate queries using {@link AsyncTableFunction}. */
++public class AsyncCorrelateITCase extends StreamingTestBase {
++
++    private TableEnvironment tEnv;
++
++    @BeforeEach
++    public void before() throws Exception {
++        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
++        env.setParallelism(1);
++        tEnv = StreamTableEnvironment.create(env, EnvironmentSettings.inStreamingMode());
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 1);
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_TIMEOUT, Duration.ofMinutes(1));
++    }
++
++    @Test
++    public void testConstantTableFunc() {
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        final List<Row> results = executeSql("SELECT * FROM func(1);");
++        final List<Row> expectedRows = Arrays.asList(Row.of("blah 1"), Row.of("foo 1"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testConstantTableFuncNoArg() {
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        final List<Row> results = executeSql("SELECT * FROM func();");
++        final List<Row> expectedRows = Arrays.asList(Row.of("blah"), Row.of("foo"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testConstantTableFuncWithLateral() {
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        final List<Row> results = executeSql("SELECT * FROM LATERAL TABLE(func(1));");
++        final List<Row> expectedRows = Arrays.asList(Row.of("blah 1"), Row.of("foo 1"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFunc() {
++        Table t1 = tEnv.fromValues(1, 2, 3).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        final List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(func(f1))");
++        final List<Row> expectedRows =
++                Arrays.asList(
++                        Row.of(1, "blah 1"),
++                        Row.of(1, "foo 1"),
++                        Row.of(2, "blah 2"),
++                        Row.of(2, "foo 2"),
++                        Row.of(3, "blah 3"),
++                        Row.of(3, "foo 3"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFuncRowTypeWithHints() {
++        Table t1 = tEnv.fromValues(1, 2, 3).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new AsyncTestTableFunction());
++        final List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(func(f1))");
++        final List<Row> expectedRows =
++                Arrays.asList(
++                        Row.of(1, "blah 1"),
++                        Row.of(1, "foo 1"),
++                        Row.of(2, "blah 2"),
++                        Row.of(2, "foo 2"),
++                        Row.of(3, "blah 3"),
++                        Row.of(3, "foo 3"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFuncWithCalc() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new AsyncTestTableFunction());
++        tEnv.createTemporarySystemFunction("mySum", new SumScalarFunction());
++        final List<Row> results =
++                executeSql("select * FROM t1, LATERAL TABLE(func(mySum(f1, 10)))");
++        final List<Row> expectedRows =
++                Arrays.asList(
++                        Row.of(1, "blah 11"),
++                        Row.of(1, "foo 11"),
++                        Row.of(2, "blah 12"),
++                        Row.of(2, "foo 12"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFuncWithAsyncCalc() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new AsyncTestTableFunction());
++        tEnv.createTemporarySystemFunction("mySum", new AsyncSumScalarFunction());
++        final List<Row> results =
++                executeSql("select * FROM t1, LATERAL TABLE(func(mySum(ABS(f1), 10)))");
++        final List<Row> expectedRows =
++                Arrays.asList(
++                        Row.of(1, "blah 11"),
++                        Row.of(1, "foo 11"),
++                        Row.of(2, "blah 12"),
++                        Row.of(2, "foo 12"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFuncWithRightCalcSelectStar() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        final List<Row> results =
++                executeSql("select * FROM t1, LATERAL (SELECT * FROM TABLE(func(f1)) as T(foo))");
++        final List<Row> expectedRows =
++                Arrays.asList(
++                        Row.of(1, "blah 1"),
++                        Row.of(1, "foo 1"),
++                        Row.of(2, "blah 2"),
++                        Row.of(2, "foo 2"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testTableFuncWithRightCalcWithSelect() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new TestTableFunction());
++        tEnv.createTemporarySystemFunction("mySum", new AsyncSumScalarFunction());
++        assertThatThrownBy(
++                        () ->
++                                executeSql(
++                                        "select * FROM t1, LATERAL (SELECT CONCAT(foo, 'abc') "
++                                                + "FROM TABLE(func(f1)) as T(foo))"))
++                .hasMessageContaining(
++                        "Currently Async correlate does not support "
++                                + "projections or conditions");
++    }
++
++    @Test
++    public void testTableFuncWithRightCalcWithConditions() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", new AsyncTestTableFunction());
++        assertThatThrownBy(
++                        () ->
++                                executeSql(
++                                        "select * FROM t1, LATERAL (SELECT * "
++                                                + "FROM TABLE(func(f1)) as T(foo) WHERE CHAR_LENGTH(foo) > 0)"))
++                .hasMessageContaining(
++                        "Currently Async correlate does not support "
++                                + "projections or conditions");
++    }
++
++    @Test
++    public void testRecoverableFailures() {
++        // If there is a failure after hitting the end of the input, then it doesn't retry. Having
++        // the buffer = 1 triggers the end input only after completion.
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 1);
++        Table t1 = tEnv.fromValues(1).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        AsyncErrorFunction func = new AsyncErrorFunction(2);
++        tEnv.createTemporarySystemFunction("func", func);
++        final List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(func(f1))");
++        final List<Row> expectedRows = Collections.singletonList(Row.of(1, "3"));
++        assertThat(results).containsSequence(expectedRows);
++    }
++
++    @Test
++    public void testConcurrentOperations() {
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 3);
++        Table t1 = tEnv.fromValues(1, 2, 3, 4, 5).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("func", CountConcurrents.class);
++        final TableResult result = tEnv.executeSql("select * FROM t1, LATERAL TABLE(func(f1))");
++        CountConcurrents.setNextToFinish(2);
++        CountConcurrents.setNextToFinish(1);
++        CloseableIterator<Row> iterator = result.collect();
++        List<Row> results = collect(iterator, 2);
++        assertThat(results).containsSequence(Row.of(1, "1"), Row.of(2, "2"));
++        CountConcurrents.setNextToFinish(3);
++        results = collect(iterator, 1);
++        assertThat(results).containsSequence(Row.of(3, "3"));
++        CountConcurrents.setNextToFinish(4);
++        CountConcurrents.setNextToFinish(5);
++        results = collect(iterator, 2);
++        assertThat(results).containsSequence(Row.of(4, "4"), Row.of(5, "5"));
++        assertThat(iterator).isExhausted();
++        assertThat(CountConcurrents.getMaxConcurrent()).isEqualTo(3);
++    }
++
++    @Test
++    public void testRetries() {
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 1);
++        tEnv.getConfig().set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES, 8);
++        tEnv.getConfig()
++                .set(
++                        ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY,
++                        Duration.ofMillis(1));
++        Table t1 = tEnv.fromValues(1).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++
++        AsyncErrorFunction func = new AsyncErrorFunction(8);
++        tEnv.createTemporarySystemFunction("func", func);
++        final List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(func(f1))");
++        final List<Row> expectedRows = Collections.singletonList(Row.of(1, "9"));
++        assertThat(results).containsSequence(expectedRows);
++
++        AsyncErrorFunction func2 = new AsyncErrorFunction(9);
++        tEnv.createTemporarySystemFunction("func2", func2);
++        assertThatThrownBy(() -> executeSql("select * FROM t1, LATERAL TABLE(func2(f1))"))
++                .hasRootCauseMessage("Error 9");
++    }
++
++    private List<Row> executeSql(String sql) {
++        TableResult result = tEnv.executeSql(sql);
++        final List<Row> rows = new ArrayList<>();
++        result.collect().forEachRemaining(rows::add);
++        return rows;
++    }
++
++    private List<Row> collect(CloseableIterator<Row> iterator, int numRows) {
++        final List<Row> rows = new ArrayList<>();
++        while (rows.size() < numRows && iterator.hasNext()) {
++            rows.add(iterator.next());
++        }
++        return rows;
++    }
++
++    /** A table function. */
++    public static class TestTableFunction extends AsyncTableFunction<String> {
++
++        public void eval(CompletableFuture<Collection<String>> result, Integer i) {
++            result.complete(Arrays.asList("blah " + i, "foo " + i));
++        }
++
++        public void eval(CompletableFuture<Collection<String>> result) {
++            result.complete(Arrays.asList("blah", "foo"));
++        }
++    }
++
++    /** A error function. */
++    public static class AsyncErrorFunction extends AsyncTableFunction<String> {
++
++        private final int numFailures;
++        private final AtomicInteger failures = new AtomicInteger(0);
++
++        public AsyncErrorFunction(int numFailures) {
++            this.numFailures = numFailures;
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, int ignored) {
++            if (failures.getAndIncrement() < numFailures) {
++                future.completeExceptionally(new RuntimeException("Error " + failures.get()));
++                return;
++            }
++            future.complete(Collections.singletonList("" + failures.get()));
++        }
++    }
++
++    /** A error function. */
++    public static class CountConcurrents extends AsyncTableFunction<String> {
++
++        static int nextToFinish = -1;
++        static int maxConcurrent = 0;
++        static int concurrent = 0;
++        static final Object LOCK = new Object();
++
++        static ExecutorService executorService;
++
++        @Override
++        public void open(FunctionContext context) throws Exception {
++            executorService = Executors.newFixedThreadPool(10);
++        }
++
++        @Override
++        public void close() throws Exception {
++            executorService.shutdownNow();
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, int param) {
++            executorService.submit(
++                    () -> {
++                        try {
++                            synchronized (LOCK) {
++                                concurrent++;
++                                if (concurrent > maxConcurrent) {
++                                    maxConcurrent = concurrent;
++                                }
++                                while (nextToFinish != param) {
++                                    LOCK.wait();
++                                }
++                                future.complete(Collections.singletonList("" + param));
++                                nextToFinish = -1;
++                                LOCK.notifyAll();
++                                concurrent--;
++                            }
++                        } catch (InterruptedException e) {
++                            Thread.currentThread().interrupt();
++                            future.completeExceptionally(e);
++                        }
++                    });
++        }
++
++        public static void setNextToFinish(int next) {
++            synchronized (LOCK) {
++                while (nextToFinish != -1) {
++                    try {
++                        LOCK.wait();
++                    } catch (InterruptedException e) {
++                        Thread.currentThread().interrupt();
++                        throw new RuntimeException(
++                                "Interrupted while waiting for next to finish", e);
++                    }
++                }
++                nextToFinish = next;
++                LOCK.notifyAll();
++            }
++        }
++
++        public static int getMaxConcurrent() {
++            synchronized (LOCK) {
++                return maxConcurrent;
++            }
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/utils/JavaUserDefinedTableFunctions.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/utils/JavaUserDefinedTableFunctions.java
+--- a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/utils/JavaUserDefinedTableFunctions.java
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/utils/JavaUserDefinedTableFunctions.java
+@@ -22,13 +22,23 @@
+ import org.apache.flink.api.common.typeinfo.Types;
+ import org.apache.flink.api.java.tuple.Tuple12;
+ import org.apache.flink.table.annotation.DataTypeHint;
++import org.apache.flink.table.annotation.FunctionHint;
+ import org.apache.flink.table.data.TimestampData;
++import org.apache.flink.table.functions.AsyncScalarFunction;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.functions.ScalarFunction;
+ import org.apache.flink.table.functions.TableFunction;
++import org.apache.flink.types.Row;
+ 
+ import org.apache.commons.lang3.StringUtils;
+ 
+ import java.nio.charset.StandardCharsets;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.List;
+ import java.util.Random;
++import java.util.concurrent.CompletableFuture;
+ 
+ /** Test functions. */
+ public class JavaUserDefinedTableFunctions {
+@@ -115,6 +125,73 @@ public TypeInformation<String> getResultType() {
+         }
+     }
+ 
++    /** String split table function. */
++    public static class AsyncStringSplit extends AsyncTableFunction<String> {
++
++        public void eval(CompletableFuture<Collection<String>> future) {
++            String[] strs = {"a", "b", "c"};
++            for (String str : strs) {
++                eval(future, str);
++            }
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, String str) {
++            this.eval(future, str, ",");
++        }
++
++        public void eval(
++                CompletableFuture<Collection<String>> future, String str, String separatorChars) {
++            this.eval(future, str, separatorChars, 0);
++        }
++
++        public void eval(
++                CompletableFuture<Collection<String>> future,
++                String str,
++                String separatorChars,
++                int startIndex) {
++            if (str != null) {
++                String[] strs = StringUtils.split(str, separatorChars);
++                if (startIndex < 0) {
++                    startIndex = 0;
++                }
++                List<String> result =
++                        new ArrayList<>(Arrays.asList(strs).subList(startIndex, strs.length));
++                future.complete(result);
++            }
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, byte[] varbinary) {
++            if (varbinary != null) {
++                this.eval(future, new String(varbinary, StandardCharsets.UTF_8));
++            }
++        }
++    }
++
++    /** A table function. */
++    @FunctionHint(output = @DataTypeHint("ROW<s STRING >"))
++    public static class AsyncTestTableFunction extends AsyncTableFunction<Row> {
++
++        public void eval(CompletableFuture<Collection<Row>> result, Integer i) {
++            result.complete(Arrays.asList(Row.of("blah " + i), Row.of("foo " + i)));
++        }
++    }
++
++    /** A sum function. */
++    public static class SumScalarFunction extends ScalarFunction {
++
++        public int eval(int a, int b) {
++            return a + b;
++        }
++    }
++
++    /** A sum function. */
++    public static class AsyncSumScalarFunction extends AsyncScalarFunction {
++
++        public void eval(CompletableFuture<Integer> result, int a, int b) {
++            result.complete(a + b);
++        }
++    }
++
+     /** Non-deterministic table function. */
+     public static class NonDeterministicTableFunc extends TableFunction<String> {
+ 
+diff --git a/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.xml b/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.xml
+--- a/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.xml
++++ b/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRuleTest.xml
+@@ -179,6 +179,24 @@ LogicalProject(EXPR$0=[func1(1)])
+ 			<![CDATA[
+ AsyncCalc(select=[func1(1) AS EXPR$0])
+ +- Values(tuples=[[{ 0 }]])
++]]>
++		</Resource>
++	</TestCase>
++	<TestCase name="testNestedSystemCall">
++		<Resource name="sql">
++			<![CDATA[SELECT func1(ABS(1))]]>
++		</Resource>
++		<Resource name="ast">
++			<![CDATA[
++LogicalProject(EXPR$0=[func1(ABS(1))])
+++- LogicalValues(tuples=[[{ 0 }]])
++]]>
++		</Resource>
++		<Resource name="optimized rel plan">
++			<![CDATA[
++AsyncCalc(select=[func1(f0) AS EXPR$0])
+++- Calc(select=[ABS(1) AS f0])
++   +- Values(tuples=[[{ 0 }]])
+ ]]>
+ 		</Resource>
+ 	</TestCase>
+diff --git a/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.xml b/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.xml
+--- a/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.xml
++++ b/flink-table/flink-table-planner/src/test/resources/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRuleTest.xml
+@@ -76,7 +76,74 @@ LogicalProject(a=[$0], b=[$1], c=[$2], d=[$3], EXPR$0=[$4])
+ 			<![CDATA[
+ Calc(select=[a, b, c, d, EXPR$0])
+ +- Correlate(invocation=[tableFunc($4)], correlate=[table(tableFunc(f0))], select=[a,b,c,d,f0,EXPR$0], rowType=[RecordType(INTEGER a, BIGINT b, VARCHAR(2147483647) c, INTEGER ARRAY d, INTEGER f0, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])
+-   +- AsyncCalc(select=[a, b, c, d, func1(ABS(a)) AS f0])
++   +- AsyncCalc(select=[a, b, c, d, func1(f0) AS f0])
++      +- Calc(select=[a, b, c, d, ABS(a) AS f0])
++         +- TableSourceScan(table=[[default_catalog, default_database, MyTable]], fields=[a, b, c, d])
++]]>
++		</Resource>
++	</TestCase>
++
++	<TestCase name="testCorrelateWithSystem">
++		<Resource name="sql">
++			<![CDATA[select * FROM MyTable, LATERAL TABLE(asyncTableFunc(ABS(a)))]]>
++		</Resource>
++		<Resource name="ast">
++			<![CDATA[
++LogicalProject(a=[$0], b=[$1], c=[$2], d=[$3], EXPR$0=[$4])
+++- LogicalCorrelate(correlation=[$cor0], joinType=[inner], requiredColumns=[{0}])
++   :- LogicalTableScan(table=[[default_catalog, default_database, MyTable]])
++   +- LogicalTableFunctionScan(invocation=[asyncTableFunc(ABS($cor0.a))], rowType=[RecordType(VARCHAR(2147483647) EXPR$0)])
++]]>
++		</Resource>
++		<Resource name="optimized rel plan">
++			<![CDATA[
++Calc(select=[a, b, c, d, EXPR$0])
+++- AsyncCorrelate(invocation=[asyncTableFunc($4)], correlate=[table(asyncTableFunc(f0))], select=[a,b,c,d,f0,EXPR$0], rowType=[RecordType(INTEGER a, BIGINT b, VARCHAR(2147483647) c, INTEGER ARRAY d, INTEGER f0, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])
++   +- Calc(select=[a, b, c, d, ABS(a) AS f0])
++      +- TableSourceScan(table=[[default_catalog, default_database, MyTable]], fields=[a, b, c, d])
++]]>
++		</Resource>
++	</TestCase>
++
++	<TestCase name="testCorrelateWithScalar">
++		<Resource name="sql">
++			<![CDATA[select * FROM MyTable, LATERAL TABLE(asyncTableFunc(scalar(a)))]]>
++		</Resource>
++		<Resource name="ast">
++			<![CDATA[
++LogicalProject(a=[$0], b=[$1], c=[$2], d=[$3], EXPR$0=[$4])
+++- LogicalCorrelate(correlation=[$cor0], joinType=[inner], requiredColumns=[{0}])
++   :- LogicalTableScan(table=[[default_catalog, default_database, MyTable]])
++   +- LogicalTableFunctionScan(invocation=[asyncTableFunc(scalar($cor0.a))], rowType=[RecordType(VARCHAR(2147483647) EXPR$0)])
++]]>
++		</Resource>
++		<Resource name="optimized rel plan">
++			<![CDATA[
++Calc(select=[a, b, c, d, EXPR$0])
+++- AsyncCorrelate(invocation=[asyncTableFunc($4)], correlate=[table(asyncTableFunc(f0))], select=[a,b,c,d,f0,EXPR$0], rowType=[RecordType(INTEGER a, BIGINT b, VARCHAR(2147483647) c, INTEGER ARRAY d, INTEGER f0, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])
++   +- Calc(select=[a, b, c, d, scalar(a) AS f0])
++      +- TableSourceScan(table=[[default_catalog, default_database, MyTable]], fields=[a, b, c, d])
++]]>
++		</Resource>
++	</TestCase>
++
++	<TestCase name="testCorrelateWithCast">
++		<Resource name="sql">
++			<![CDATA[select * FROM MyTable, LATERAL TABLE(asyncTableFunc(cast(cast(a as int) as int)))]]>
++		</Resource>
++		<Resource name="ast">
++			<![CDATA[
++LogicalProject(a=[$0], b=[$1], c=[$2], d=[$3], EXPR$0=[$4])
+++- LogicalCorrelate(correlation=[$cor0], joinType=[inner], requiredColumns=[{0}])
++   :- LogicalTableScan(table=[[default_catalog, default_database, MyTable]])
++   +- LogicalTableFunctionScan(invocation=[asyncTableFunc(CAST(CAST($cor0.a):INTEGER):INTEGER)], rowType=[RecordType(VARCHAR(2147483647) EXPR$0)])
++]]>
++		</Resource>
++		<Resource name="optimized rel plan">
++			<![CDATA[
++Calc(select=[a, b, c, d, EXPR$0])
+++- AsyncCorrelate(invocation=[asyncTableFunc($4)], correlate=[table(asyncTableFunc(f0))], select=[a,b,c,d,f0,EXPR$0], rowType=[RecordType(INTEGER a, BIGINT b, VARCHAR(2147483647) c, INTEGER ARRAY d, INTEGER f0, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])
++   +- Calc(select=[a, b, c, d, a AS f0])
+       +- TableSourceScan(table=[[default_catalog, default_database, MyTable]], fields=[a, b, c, d])
+ ]]>
+ 		</Resource>
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/plan/async-correlate-catalog-func.json b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/plan/async-correlate-catalog-func.json
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/plan/async-correlate-catalog-func.json
+@@ -0,0 +1,140 @@
++{
++  "flinkVersion" : "1.19",
++  "nodes" : [ {
++    "id" : 1,
++    "type" : "stream-exec-table-source-scan_1",
++    "scanTableSource" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`source_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "BIGINT"
++            }, {
++              "name" : "b",
++              "dataType" : "INT NOT NULL"
++            }, {
++              "name" : "c",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "TableSourceScan(table=[[default_catalog, default_database, source_t]], fields=[a, b, c])",
++    "inputProperties" : [ ]
++  }, {
++    "id" : 2,
++    "type" : "stream-exec-async-correlate_1",
++    "joinType" : "INNER",
++    "functionCall" : {
++      "kind" : "CALL",
++      "catalogName" : "`default_catalog`.`default_database`.`func1`",
++      "operands" : [ {
++        "kind" : "INPUT_REF",
++        "inputIndex" : 2,
++        "type" : "VARCHAR(2147483647)"
++      }, {
++        "kind" : "LITERAL",
++        "value" : "$",
++        "type" : "CHAR(1) NOT NULL"
++      } ],
++      "type" : "ROW<`EXPR$0` VARCHAR(2147483647)> NOT NULL"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647), `EXPR$0` VARCHAR(2147483647)>",
++    "description" : "AsyncCorrelate(invocation=[func1($2, _UTF-16LE'$')], correlate=[table(func1(c,'$'))], select=[a,b,c,EXPR$0], rowType=[RecordType(BIGINT a, INTEGER b, VARCHAR(2147483647) c, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])"
++  }, {
++    "id" : 3,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 3,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : null,
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[c, EXPR$0 AS s])"
++  }, {
++    "id" : 4,
++    "type" : "stream-exec-sink_1",
++    "configuration" : {
++      "table.exec.sink.keyed-shuffle" : "AUTO",
++      "table.exec.sink.not-null-enforcer" : "ERROR",
++      "table.exec.sink.rowtime-inserter" : "ENABLED",
++      "table.exec.sink.type-length-enforcer" : "IGNORE",
++      "table.exec.sink.upsert-materialize" : "AUTO"
++    },
++    "dynamicTableSink" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`sink_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "VARCHAR(2147483647)"
++            }, {
++              "name" : "b",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "inputChangelogMode" : [ "INSERT" ],
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Sink(table=[default_catalog.default_database.sink_t], fields=[c, s])"
++  } ],
++  "edges" : [ {
++    "source" : 1,
++    "target" : 2,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 2,
++    "target" : 3,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 3,
++    "target" : 4,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  } ]
++}
+\ No newline at end of file
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/savepoint/_metadata b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/savepoint/_metadata
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-catalog-func/savepoint/_metadata
+
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/plan/async-correlate-exception.json b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/plan/async-correlate-exception.json
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/plan/async-correlate-exception.json
+@@ -0,0 +1,140 @@
++{
++  "flinkVersion" : "1.19",
++  "nodes" : [ {
++    "id" : 18,
++    "type" : "stream-exec-table-source-scan_1",
++    "scanTableSource" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`source_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "BIGINT"
++            }, {
++              "name" : "b",
++              "dataType" : "INT NOT NULL"
++            }, {
++              "name" : "c",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "TableSourceScan(table=[[default_catalog, default_database, source_t]], fields=[a, b, c])",
++    "inputProperties" : [ ]
++  }, {
++    "id" : 19,
++    "type" : "stream-exec-async-correlate_1",
++    "joinType" : "INNER",
++    "functionCall" : {
++      "kind" : "CALL",
++      "catalogName" : "`default_catalog`.`default_database`.`func1`",
++      "operands" : [ {
++        "kind" : "INPUT_REF",
++        "inputIndex" : 2,
++        "type" : "VARCHAR(2147483647)"
++      }, {
++        "kind" : "LITERAL",
++        "value" : "$",
++        "type" : "CHAR(1) NOT NULL"
++      } ],
++      "type" : "ROW<`EXPR$0` VARCHAR(2147483647)> NOT NULL"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647), `EXPR$0` VARCHAR(2147483647)>",
++    "description" : "AsyncCorrelate(invocation=[func1($2, _UTF-16LE'$')], correlate=[table(func1(c,'$'))], select=[a,b,c,EXPR$0], rowType=[RecordType(BIGINT a, INTEGER b, VARCHAR(2147483647) c, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])"
++  }, {
++    "id" : 20,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 3,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : null,
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[c, EXPR$0 AS s])"
++  }, {
++    "id" : 21,
++    "type" : "stream-exec-sink_1",
++    "configuration" : {
++      "table.exec.sink.keyed-shuffle" : "AUTO",
++      "table.exec.sink.not-null-enforcer" : "ERROR",
++      "table.exec.sink.rowtime-inserter" : "ENABLED",
++      "table.exec.sink.type-length-enforcer" : "IGNORE",
++      "table.exec.sink.upsert-materialize" : "AUTO"
++    },
++    "dynamicTableSink" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`sink_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "VARCHAR(2147483647)"
++            }, {
++              "name" : "b",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "inputChangelogMode" : [ "INSERT" ],
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Sink(table=[default_catalog.default_database.sink_t], fields=[c, s])"
++  } ],
++  "edges" : [ {
++    "source" : 18,
++    "target" : 19,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 19,
++    "target" : 20,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 20,
++    "target" : 21,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  } ]
++}
+\ No newline at end of file
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/savepoint/_metadata b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/savepoint/_metadata
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-exception/savepoint/_metadata
+
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/plan/async-correlate-join-filter.json b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/plan/async-correlate-join-filter.json
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/plan/async-correlate-join-filter.json
+@@ -0,0 +1,207 @@
++{
++  "flinkVersion" : "1.19",
++  "nodes" : [ {
++    "id" : 9,
++    "type" : "stream-exec-table-source-scan_1",
++    "scanTableSource" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`source_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "BIGINT"
++            }, {
++              "name" : "b",
++              "dataType" : "INT NOT NULL"
++            }, {
++              "name" : "c",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      },
++      "abilities" : [ {
++        "type" : "FilterPushDown",
++        "predicates" : [ ]
++      } ]
++    },
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "TableSourceScan(table=[[default_catalog, default_database, source_t, filter=[]]], fields=[a, b, c])",
++    "inputProperties" : [ ]
++  }, {
++    "id" : 10,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 0,
++      "type" : "BIGINT"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 1,
++      "type" : "INT NOT NULL"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : {
++      "kind" : "CALL",
++      "syntax" : "BINARY",
++      "internalName" : "$OR$1",
++      "operands" : [ {
++        "kind" : "CALL",
++        "syntax" : "SPECIAL",
++        "internalName" : "$LIKE$1",
++        "operands" : [ {
++          "kind" : "INPUT_REF",
++          "inputIndex" : 2,
++          "type" : "VARCHAR(2147483647)"
++        }, {
++          "kind" : "LITERAL",
++          "value" : "%hello%",
++          "type" : "CHAR(7) NOT NULL"
++        } ],
++        "type" : "BOOLEAN"
++      }, {
++        "kind" : "CALL",
++        "syntax" : "SPECIAL",
++        "internalName" : "$LIKE$1",
++        "operands" : [ {
++          "kind" : "INPUT_REF",
++          "inputIndex" : 2,
++          "type" : "VARCHAR(2147483647)"
++        }, {
++          "kind" : "LITERAL",
++          "value" : "%fiz%",
++          "type" : "CHAR(5) NOT NULL"
++        } ],
++        "type" : "BOOLEAN"
++      } ],
++      "type" : "BOOLEAN"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[a, b, c], where=[(LIKE(c, '%hello%') OR LIKE(c, '%fiz%'))])"
++  }, {
++    "id" : 11,
++    "type" : "stream-exec-async-correlate_1",
++    "joinType" : "INNER",
++    "functionCall" : {
++      "kind" : "CALL",
++      "catalogName" : "`default_catalog`.`default_database`.`func1`",
++      "operands" : [ {
++        "kind" : "INPUT_REF",
++        "inputIndex" : 2,
++        "type" : "VARCHAR(2147483647)"
++      } ],
++      "type" : "ROW<`EXPR$0` VARCHAR(2147483647)> NOT NULL"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647), `EXPR$0` VARCHAR(2147483647)>",
++    "description" : "AsyncCorrelate(invocation=[func1($2)], correlate=[table(func1(c))], select=[a,b,c,EXPR$0], rowType=[RecordType(BIGINT a, INTEGER b, VARCHAR(2147483647) c, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])"
++  }, {
++    "id" : 12,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 3,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : null,
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[c, EXPR$0 AS s])"
++  }, {
++    "id" : 13,
++    "type" : "stream-exec-sink_1",
++    "configuration" : {
++      "table.exec.sink.keyed-shuffle" : "AUTO",
++      "table.exec.sink.not-null-enforcer" : "ERROR",
++      "table.exec.sink.rowtime-inserter" : "ENABLED",
++      "table.exec.sink.type-length-enforcer" : "IGNORE",
++      "table.exec.sink.upsert-materialize" : "AUTO"
++    },
++    "dynamicTableSink" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`sink_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "VARCHAR(2147483647)"
++            }, {
++              "name" : "b",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "inputChangelogMode" : [ "INSERT" ],
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Sink(table=[default_catalog.default_database.sink_t], fields=[c, s])"
++  } ],
++  "edges" : [ {
++    "source" : 9,
++    "target" : 10,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 10,
++    "target" : 11,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 11,
++    "target" : 12,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 12,
++    "target" : 13,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  } ]
++}
+\ No newline at end of file
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/savepoint/_metadata b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/savepoint/_metadata
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-join-filter/savepoint/_metadata
+
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/plan/async-correlate-left-join.json b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/plan/async-correlate-left-join.json
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/plan/async-correlate-left-join.json
+@@ -0,0 +1,136 @@
++{
++  "flinkVersion" : "1.19",
++  "nodes" : [ {
++    "id" : 14,
++    "type" : "stream-exec-table-source-scan_1",
++    "scanTableSource" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`source_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "BIGINT"
++            }, {
++              "name" : "b",
++              "dataType" : "INT NOT NULL"
++            }, {
++              "name" : "c",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "TableSourceScan(table=[[default_catalog, default_database, source_t]], fields=[a, b, c])",
++    "inputProperties" : [ ]
++  }, {
++    "id" : 15,
++    "type" : "stream-exec-async-correlate_1",
++    "joinType" : "LEFT",
++    "functionCall" : {
++      "kind" : "CALL",
++      "catalogName" : "`default_catalog`.`default_database`.`func1`",
++      "operands" : [ {
++        "kind" : "INPUT_REF",
++        "inputIndex" : 2,
++        "type" : "VARCHAR(2147483647)"
++      } ],
++      "type" : "ROW<`EXPR$0` VARCHAR(2147483647)> NOT NULL"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647), `EXPR$0` VARCHAR(2147483647)>",
++    "description" : "AsyncCorrelate(invocation=[func1($2)], correlate=[table(func1(c))], select=[a,b,c,EXPR$0], rowType=[RecordType(BIGINT a, INTEGER b, VARCHAR(2147483647) c, VARCHAR(2147483647) EXPR$0)], joinType=[LEFT])"
++  }, {
++    "id" : 16,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 3,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : null,
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[c, EXPR$0 AS s])"
++  }, {
++    "id" : 17,
++    "type" : "stream-exec-sink_1",
++    "configuration" : {
++      "table.exec.sink.keyed-shuffle" : "AUTO",
++      "table.exec.sink.not-null-enforcer" : "ERROR",
++      "table.exec.sink.rowtime-inserter" : "ENABLED",
++      "table.exec.sink.type-length-enforcer" : "IGNORE",
++      "table.exec.sink.upsert-materialize" : "AUTO"
++    },
++    "dynamicTableSink" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`sink_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "VARCHAR(2147483647)"
++            }, {
++              "name" : "b",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "inputChangelogMode" : [ "INSERT" ],
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Sink(table=[default_catalog.default_database.sink_t], fields=[c, s])"
++  } ],
++  "edges" : [ {
++    "source" : 14,
++    "target" : 15,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 15,
++    "target" : 16,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 16,
++    "target" : 17,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  } ]
++}
+\ No newline at end of file
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/savepoint/_metadata b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/savepoint/_metadata
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-left-join/savepoint/_metadata
+
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/plan/async-correlate-system-func.json b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/plan/async-correlate-system-func.json
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/plan/async-correlate-system-func.json
+@@ -0,0 +1,140 @@
++{
++  "flinkVersion" : "1.19",
++  "nodes" : [ {
++    "id" : 5,
++    "type" : "stream-exec-table-source-scan_1",
++    "scanTableSource" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`source_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "BIGINT"
++            }, {
++              "name" : "b",
++              "dataType" : "INT NOT NULL"
++            }, {
++              "name" : "c",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647)>",
++    "description" : "TableSourceScan(table=[[default_catalog, default_database, source_t]], fields=[a, b, c])",
++    "inputProperties" : [ ]
++  }, {
++    "id" : 6,
++    "type" : "stream-exec-async-correlate_1",
++    "joinType" : "INNER",
++    "functionCall" : {
++      "kind" : "CALL",
++      "systemName" : "STRING_SPLIT",
++      "operands" : [ {
++        "kind" : "INPUT_REF",
++        "inputIndex" : 2,
++        "type" : "VARCHAR(2147483647)"
++      }, {
++        "kind" : "LITERAL",
++        "value" : "#",
++        "type" : "CHAR(1) NOT NULL"
++      } ],
++      "type" : "ROW<`EXPR$0` VARCHAR(2147483647)> NOT NULL"
++    },
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`a` BIGINT, `b` INT NOT NULL, `c` VARCHAR(2147483647), `EXPR$0` VARCHAR(2147483647)>",
++    "description" : "AsyncCorrelate(invocation=[STRING_SPLIT($2, _UTF-16LE'#')], correlate=[table(STRING_SPLIT(c,'#'))], select=[a,b,c,EXPR$0], rowType=[RecordType(BIGINT a, INTEGER b, VARCHAR(2147483647) c, VARCHAR(2147483647) EXPR$0)], joinType=[INNER])"
++  }, {
++    "id" : 7,
++    "type" : "stream-exec-calc_1",
++    "projection" : [ {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 2,
++      "type" : "VARCHAR(2147483647)"
++    }, {
++      "kind" : "INPUT_REF",
++      "inputIndex" : 3,
++      "type" : "VARCHAR(2147483647)"
++    } ],
++    "condition" : null,
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Calc(select=[c, EXPR$0 AS s])"
++  }, {
++    "id" : 8,
++    "type" : "stream-exec-sink_1",
++    "configuration" : {
++      "table.exec.sink.keyed-shuffle" : "AUTO",
++      "table.exec.sink.not-null-enforcer" : "ERROR",
++      "table.exec.sink.rowtime-inserter" : "ENABLED",
++      "table.exec.sink.type-length-enforcer" : "IGNORE",
++      "table.exec.sink.upsert-materialize" : "AUTO"
++    },
++    "dynamicTableSink" : {
++      "table" : {
++        "identifier" : "`default_catalog`.`default_database`.`sink_t`",
++        "resolvedTable" : {
++          "schema" : {
++            "columns" : [ {
++              "name" : "a",
++              "dataType" : "VARCHAR(2147483647)"
++            }, {
++              "name" : "b",
++              "dataType" : "VARCHAR(2147483647)"
++            } ],
++            "watermarkSpecs" : [ ]
++          },
++          "partitionKeys" : [ ]
++        }
++      }
++    },
++    "inputChangelogMode" : [ "INSERT" ],
++    "inputProperties" : [ {
++      "requiredDistribution" : {
++        "type" : "UNKNOWN"
++      },
++      "damBehavior" : "PIPELINED",
++      "priority" : 0
++    } ],
++    "outputType" : "ROW<`c` VARCHAR(2147483647), `s` VARCHAR(2147483647)>",
++    "description" : "Sink(table=[default_catalog.default_database.sink_t], fields=[c, s])"
++  } ],
++  "edges" : [ {
++    "source" : 5,
++    "target" : 6,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 6,
++    "target" : 7,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  }, {
++    "source" : 7,
++    "target" : 8,
++    "shuffle" : {
++      "type" : "FORWARD"
++    },
++    "shuffleMode" : "PIPELINED"
++  } ]
++}
+\ No newline at end of file
+diff --git a/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/savepoint/_metadata b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/savepoint/_metadata
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/resources/restore-tests/stream-exec-correlate_1/async-correlate-system-func/savepoint/_metadata
+
+diff --git a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/stream/sql/join/LookupJoinTest.scala b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/stream/sql/join/LookupJoinTest.scala
+--- a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/stream/sql/join/LookupJoinTest.scala
++++ b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/stream/sql/join/LookupJoinTest.scala
+@@ -271,25 +271,19 @@ class LookupJoinTest extends TableTestBase with Serializable {
+     expectExceptionThrown(
+       "SELECT * FROM T JOIN LookupTable7 " +
+         "FOR SYSTEM_TIME AS OF T.proctime AS D ON T.a = D.id AND T.b = D.name AND T.ts = D.ts",
+-      "Could not find an implementation method 'eval' in class " +
++      "Method 'eval' of function class " +
+         "'org.apache.flink.table.planner.plan.utils.InvalidAsyncTableFunctionEvalSignature1' " +
+-        "for function 'default_catalog.default_database.LookupTable7' that matches the " +
+-        "following signature:\n" +
+-        "void eval(java.util.concurrent.CompletableFuture, java.lang.Integer, " +
+-        "org.apache.flink.table.data.StringData, org.apache.flink.table.data.TimestampData)",
++        "must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.",
+       classOf[ValidationException]
+     )
+ 
+     createLookupTable("LookupTable8", new InvalidAsyncTableFunctionEvalSignature2)
+     expectExceptionThrown(
+       "SELECT * FROM T JOIN LookupTable8 " +
+         "FOR SYSTEM_TIME AS OF T.proctime AS D ON T.a = D.id AND T.b = D.name AND T.ts = D.ts",
+-      "Could not find an implementation method 'eval' in class " +
++      "Method 'eval' of function class " +
+         "'org.apache.flink.table.planner.plan.utils.InvalidAsyncTableFunctionEvalSignature2' " +
+-        "for function 'default_catalog.default_database.LookupTable8' that matches the " +
+-        "following signature:\nvoid eval(java.util.concurrent.CompletableFuture, " +
+-        "java.lang.Integer, java.lang.String, " +
+-        "java.time.LocalDateTime)",
++        "must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.",
+       classOf[ValidationException]
+     )
+ 
+@@ -303,12 +297,19 @@ class LookupJoinTest extends TableTestBase with Serializable {
+     expectExceptionThrown(
+       "SELECT * FROM T JOIN LookupTable10 " +
+         "FOR SYSTEM_TIME AS OF T.proctime AS D ON T.a = D.id AND T.b = D.name AND T.ts = D.ts",
+-      "Could not find an implementation method 'eval' in class " +
++      "Method 'eval' of function class " +
+         "'org.apache.flink.table.planner.plan.utils.InvalidAsyncTableFunctionEvalSignature3' " +
+-        "for function 'default_catalog.default_database.LookupTable10' that matches the " +
+-        "following signature:\n" +
+-        "void eval(java.util.concurrent.CompletableFuture, java.lang.Integer, " +
+-        "org.apache.flink.table.data.StringData, org.apache.flink.table.data.TimestampData)",
++        "must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.",
++      classOf[ValidationException]
++    )
++
++    createLookupTable("LookupTable11", new InvalidAsyncTableFunctionType)
++    expectExceptionThrown(
++      "SELECT * FROM T JOIN LookupTable11 " +
++        "FOR SYSTEM_TIME AS OF T.proctime AS D ON T.a = D.id AND T.b = D.name AND T.ts = D.ts",
++      "Method 'eval' of function class " +
++        "'org.apache.flink.table.planner.plan.utils.InvalidAsyncTableFunctionType' " +
++        "must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.",
+       classOf[ValidationException]
+     )
+   }
+diff --git a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/utils/lookupFunctions.scala b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/utils/lookupFunctions.scala
+--- a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/utils/lookupFunctions.scala
++++ b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/plan/utils/lookupFunctions.scala
+@@ -66,6 +66,11 @@ class InvalidAsyncTableFunctionEvalSignature3 extends AsyncTableFunction[RowData
+   def eval(resultFuture: ResultFuture[RowData], a: Integer, b: StringData, c: JLong): Unit = {}
+ }
+ 
++@SerialVersionUID(1L)
++class InvalidAsyncTableFunctionType extends AsyncTableFunction[String] {
++  def eval(resultFuture: ResultFuture[String], a: Integer, b: StringData, c: JLong): Unit = {}
++}
++
+ @SerialVersionUID(1L)
+ class AsyncTableFunctionWithRowData extends AsyncTableFunction[RowData] {
+   def eval(
+@@ -84,7 +89,7 @@ class AsyncTableFunctionWithRowDataVarArg extends AsyncTableFunction[RowData] {
+ @SerialVersionUID(1L)
+ class AsyncTableFunctionWithRow extends AsyncTableFunction[Row] {
+   @varargs
+-  def eval(obj: AnyRef*): Unit = {}
++  def eval(resultFuture: CompletableFuture[JCollection[Row]], obj: AnyRef*): Unit = {}
+ }
+ 
+ @SerialVersionUID(1L)
+diff --git a/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/aggregate/correlate/AsyncCorrelateRunnerTest.java b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/aggregate/correlate/AsyncCorrelateRunnerTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/aggregate/correlate/AsyncCorrelateRunnerTest.java
+@@ -0,0 +1,195 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.runtime.operators.aggregate.correlate;
++
++import org.apache.flink.api.common.ExecutionConfig;
++import org.apache.flink.api.common.TaskInfoImpl;
++import org.apache.flink.api.common.functions.OpenContext;
++import org.apache.flink.api.common.functions.RuntimeContext;
++import org.apache.flink.api.common.functions.util.RuntimeUDFContext;
++import org.apache.flink.metrics.groups.UnregisteredMetricsGroup;
++import org.apache.flink.streaming.api.functions.async.AsyncFunction;
++import org.apache.flink.streaming.api.functions.async.CollectionSupplier;
++import org.apache.flink.streaming.api.functions.async.ResultFuture;
++import org.apache.flink.table.data.GenericRowData;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.data.conversion.DataStructureConverter;
++import org.apache.flink.table.data.conversion.DataStructureConverters;
++import org.apache.flink.table.data.utils.JoinedRowData;
++import org.apache.flink.table.runtime.generated.GeneratedFunctionWrapper;
++import org.apache.flink.table.runtime.operators.correlate.async.AsyncCorrelateRunner;
++import org.apache.flink.table.types.logical.IntType;
++import org.apache.flink.table.types.logical.LogicalType;
++import org.apache.flink.table.types.logical.RowType;
++import org.apache.flink.table.types.utils.TypeConversions;
++import org.apache.flink.types.Row;
++
++import org.junit.Test;
++
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutionException;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** Tests {@link AsyncCorrelateRunner}. */
++public class AsyncCorrelateRunnerTest {
++
++    @Test
++    public void testRows() throws Exception {
++        TestResultFuture resultFuture = new TestResultFuture();
++        AsyncCorrelateRunner runner =
++                new AsyncCorrelateRunner(
++                        new GeneratedFunctionWrapper<>(new ImmediateCallbackFunction()),
++                        createConverter(RowType.of(new IntType())));
++        runner.setRuntimeContext(createRuntimeContext());
++        runner.open((OpenContext) null);
++        runner.asyncInvoke(GenericRowData.of(0), resultFuture);
++        Collection<RowData> rows = resultFuture.getResult().get();
++        assertThat(rows).containsExactly();
++
++        resultFuture = new TestResultFuture();
++        runner.asyncInvoke(GenericRowData.of(1), resultFuture);
++        rows = resultFuture.getResult().get();
++        assertThat(rows)
++                .containsExactly(new JoinedRowData(GenericRowData.of(1), GenericRowData.of(1)));
++
++        resultFuture = new TestResultFuture();
++        runner.asyncInvoke(GenericRowData.of(2), resultFuture);
++        rows = resultFuture.getResult().get();
++        assertThat(rows)
++                .containsExactly(
++                        new JoinedRowData(GenericRowData.of(2), GenericRowData.of(10)),
++                        new JoinedRowData(GenericRowData.of(2), GenericRowData.of(20)));
++    }
++
++    @Test
++    public void testException() throws Exception {
++        TestResultFuture resultFuture = new TestResultFuture();
++        AsyncCorrelateRunner runner =
++                new AsyncCorrelateRunner(
++                        new GeneratedFunctionWrapper<>(new ExceptionFunction()),
++                        createConverter(RowType.of(new IntType())));
++        runner.setRuntimeContext(createRuntimeContext());
++        runner.open((OpenContext) null);
++        runner.asyncInvoke(GenericRowData.of(0), resultFuture);
++
++        assertThatThrownBy(() -> resultFuture.getResult().get())
++                .isInstanceOf(ExecutionException.class)
++                .cause()
++                .isInstanceOf(RuntimeException.class)
++                .hasMessageContaining("Error!!!");
++
++        TestResultFuture otherResultFuture = new TestResultFuture();
++        runner.asyncInvoke(GenericRowData.of(1), otherResultFuture);
++        assertThatThrownBy(() -> otherResultFuture.getResult().get())
++                .isInstanceOf(ExecutionException.class)
++                .cause()
++                .isInstanceOf(RuntimeException.class)
++                .hasMessageContaining("Other Error!");
++    }
++
++    private RuntimeContext createRuntimeContext() {
++        return new RuntimeUDFContext(
++                new TaskInfoImpl("", 1, 0, 1, 0),
++                getClass().getClassLoader(),
++                new ExecutionConfig(),
++                new HashMap<>(),
++                new HashMap<>(),
++                UnregisteredMetricsGroup.createOperatorMetricGroup());
++    }
++
++    private DataStructureConverter<RowData, Object> createConverter(LogicalType logicalType) {
++        return cast(
++                DataStructureConverters.getConverter(
++                        TypeConversions.fromLogicalToDataType(logicalType)));
++    }
++
++    @SuppressWarnings("unchecked")
++    private DataStructureConverter<RowData, Object> cast(
++            DataStructureConverter<Object, Object> converter) {
++        return (DataStructureConverter<RowData, Object>) (Object) converter;
++    }
++
++    /** Test Function. */
++    public static class ImmediateCallbackFunction implements AsyncFunction<RowData, Object> {
++        public ImmediateCallbackFunction() {}
++
++        @Override
++        public void asyncInvoke(RowData input, ResultFuture<Object> resultFuture) throws Exception {
++            List<Object> result = new ArrayList<>();
++            int val = input.getInt(0);
++            if (val == 1) {
++                result.add(Row.of(1));
++            } else if (val > 1) {
++                result.add(Row.of(10));
++                result.add(Row.of(20));
++            }
++            resultFuture.complete(result);
++        }
++    }
++
++    /** Error Function. */
++    public static class ExceptionFunction implements AsyncFunction<RowData, Object> {
++
++        @Override
++        public void asyncInvoke(RowData input, ResultFuture<Object> resultFuture) throws Exception {
++            int val = input.getInt(0);
++
++            if (val == 0) {
++                throw new RuntimeException("Error!!!!");
++            } else {
++                resultFuture.completeExceptionally(new RuntimeException("Other Error!"));
++            }
++        }
++    }
++
++    /** Test result future. */
++    public static final class TestResultFuture implements ResultFuture<RowData> {
++
++        CompletableFuture<Collection<RowData>> data = new CompletableFuture<>();
++
++        @Override
++        public void complete(Collection<RowData> result) {
++            data.complete(result);
++        }
++
++        @Override
++        public void completeExceptionally(Throwable error) {
++            data.completeExceptionally(error);
++        }
++
++        public CompletableFuture<Collection<RowData>> getResult() {
++            return data;
++        }
++
++        @Override
++        public void complete(CollectionSupplier<RowData> supplier) {
++            try {
++                data.complete(supplier.get());
++            } catch (Exception e) {
++                throw new RuntimeException(e);
++            }
++        }
++    }
++}

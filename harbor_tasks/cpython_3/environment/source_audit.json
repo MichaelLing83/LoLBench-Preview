@@ -1,0 +1,7 @@
+{
+  "source_policy": "dockerfile_fetch_pruned_ancestor_history",
+  "local_reference_policy": "released_python_replaced_with_feature_predating_baseline",
+  "base_commit": "cc02b4f2e810ab524d845daa18bc94df5b092dd8",
+  "repo": "python/cpython",
+  "note": "The Dockerfile fetches only the declared base history, prunes unreachable objects, installs the feature-predating 3.10.0a5 task baseline as host python3, and removes Ubuntu's released 3.10.12 runtime and stdlib so neither finished PEP 634 sources nor a compiled oracle remain."
+}

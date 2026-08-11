@@ -1,0 +1,7 @@
+diff --git a/Misc/NEWS.d/next/Core and Builtins/2022-01-20-16-48-09.bpo-43224.WDihrT.rst b/Misc/NEWS.d/next/Core and Builtins/2022-01-20-16-48-09.bpo-43224.WDihrT.rst
+new file mode 100644
+index 00000000000..55affb26c19
+--- /dev/null
++++ b/Misc/NEWS.d/next/Core and Builtins/2022-01-20-16-48-09.bpo-43224.WDihrT.rst	
+@@ -0,0 +1 @@
++Make grammar changes required for PEP 646.

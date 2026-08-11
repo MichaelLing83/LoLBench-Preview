@@ -1,0 +1,153 @@
+{
+  "instance_id": "Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572",
+  "files": {
+    "connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java": {
+      "kind": "java",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java": {
+      "kind": "java",
+      "lines_in_patch": 43,
+      "executable_lines_in_patch": 23,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/Herder.java": {
+      "kind": "java",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/PredicatedTransformation.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java": {
+      "kind": "java",
+      "lines_in_patch": 31,
+      "executable_lines_in_patch": 16,
+      "f2p_covered": 12,
+      "p2p_covered": 0,
+      "union_covered": 12,
+      "f2p_pct": 75.0,
+      "p2p_pct": 0.0,
+      "union_pct": 75.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginScanResult.java": {
+      "kind": "java",
+      "lines_in_patch": 15,
+      "executable_lines_in_patch": 5,
+      "f2p_covered": 5,
+      "p2p_covered": 0,
+      "union_covered": 5,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/PluginType.java": {
+      "kind": "java",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 2,
+      "p2p_covered": 0,
+      "union_covered": 2,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/isolation/Plugins.java": {
+      "kind": "java",
+      "lines_in_patch": 24,
+      "executable_lines_in_patch": 11,
+      "f2p_covered": 2,
+      "p2p_covered": 0,
+      "union_covered": 2,
+      "f2p_pct": 18.2,
+      "p2p_pct": 0.0,
+      "union_pct": 18.2
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/PluginInfo.java": {
+      "kind": "java",
+      "lines_in_patch": 31,
+      "executable_lines_in_patch": 9,
+      "f2p_covered": 7,
+      "p2p_covered": 0,
+      "union_covered": 7,
+      "f2p_pct": 77.8,
+      "p2p_pct": 0.0,
+      "union_pct": 77.8
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java": {
+      "kind": "java",
+      "lines_in_patch": 56,
+      "executable_lines_in_patch": 22,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "connect/runtime/src/main/java/org/apache/kafka/connect/tools/VerifiableSinkConnector.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "gradle/spotbugs-exclude.xml": {
+      "kind": "resource",
+      "lines_in_patch": 8,
+      "note": "skipped: not a measurable source file"
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 225,
+    "executable_lines_in_patch": 90,
+    "f2p_covered": 29,
+    "p2p_covered": 0,
+    "union_covered": 29,
+    "f2p_pct": 32.2,
+    "p2p_pct": 0.0,
+    "union_pct": 32.2,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

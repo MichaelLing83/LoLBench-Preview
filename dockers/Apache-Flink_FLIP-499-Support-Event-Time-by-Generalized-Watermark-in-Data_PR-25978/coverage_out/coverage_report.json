@@ -1,0 +1,379 @@
+{
+  "instance_id": "Apache-Flink_FLIP-486-Introduce-A-New-DeltaJoin_PR-27099",
+  "files": {
+    "flink-core/src/main/java/org/apache/flink/api/common/eventtime/WatermarksWithIdleness.java": {
+      "kind": "java",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/EventTimeExtension.java": {
+      "kind": "java",
+      "lines_in_patch": 273,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/EventTimeProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 40,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/OneInputEventTimeStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 47,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputBroadcastEventTimeStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 47,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputNonBroadcastEventTimeStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 47,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoOutputEventTimeStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 54,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeExtractor.java": {
+      "kind": "java",
+      "lines_in_patch": 31,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkGeneratorBuilder.java": {
+      "kind": "java",
+      "lines_in_patch": 125,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkStrategy.java": {
+      "kind": "java",
+      "lines_in_patch": 98,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/timer/EventTimeManager.java": {
+      "kind": "java",
+      "lines_in_patch": 53,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/EventTimeExtensionImpl.java": {
+      "kind": "java",
+      "lines_in_patch": 83,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedOneInputStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 143,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputBroadcastStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 180,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 179,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoOutputStreamProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 156,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/ExtractEventTimeProcessFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 194,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/timer/DefaultEventTimeManager.java": {
+      "kind": "java",
+      "lines_in_patch": 72,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputBroadcastProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputNonBroadcastProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 17,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 20,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/ProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 45,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputBroadcastProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 42,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputNonBroadcastProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 47,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperator.java": {
+      "kind": "java",
+      "lines_in_patch": 34,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/stream/BroadcastStreamImpl.java": {
+      "kind": "java",
+      "lines_in_patch": 15,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-datastream/src/main/java/org/apache/flink/datastream/impl/utils/StreamUtils.java": {
+      "kind": "java",
+      "lines_in_patch": 31,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/runtime/io/AbstractStreamTaskNetworkInput.java": {
+      "kind": "java",
+      "lines_in_patch": 7,
+      "executable_lines_in_patch": 4,
+      "f2p_covered": 4,
+      "p2p_covered": 0,
+      "union_covered": 4,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkCombiner.java": {
+      "kind": "java",
+      "lines_in_patch": 117,
+      "executable_lines_in_patch": 28,
+      "f2p_covered": 15,
+      "p2p_covered": 0,
+      "union_covered": 15,
+      "f2p_pct": 53.6,
+      "p2p_pct": 0.0,
+      "union_pct": 53.6
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkHandler.java": {
+      "kind": "java",
+      "lines_in_patch": 220,
+      "executable_lines_in_patch": 75,
+      "f2p_covered": 74,
+      "p2p_covered": 0,
+      "union_covered": 74,
+      "f2p_pct": 98.7,
+      "p2p_pct": 0.0,
+      "union_pct": 98.7
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/util/watermark/WatermarkUtils.java": {
+      "kind": "java",
+      "lines_in_patch": 26,
+      "executable_lines_in_patch": 10,
+      "f2p_covered": 10,
+      "p2p_covered": 0,
+      "union_covered": 10,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 2479,
+    "executable_lines_in_patch": 117,
+    "f2p_covered": 103,
+    "p2p_covered": 0,
+    "union_covered": 103,
+    "f2p_pct": 88.0,
+    "p2p_pct": 0.0,
+    "union_pct": 88.0,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

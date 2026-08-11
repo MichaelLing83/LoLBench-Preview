@@ -1,0 +1,166 @@
+{
+  "instance_id": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "augmentation_pass": "lolbench-aug-2026-05-21",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "summary": {
+    "new_f2p_count": 4,
+    "new_p2p_count": 3,
+    "baseline_union_coverage_pct": 85.5,
+    "coverage_floor_pct": 80.0,
+    "surviving_mutants_targeted": [
+      "mutant_001_list_metadata_always_false",
+      "mutant_002_duration_type_registered_as_string",
+      "mutant_003_memory_type_registered_as_string",
+      "mutant_004_map_type_registered_as_string",
+      "mutant_005_list_string_uses_comma_delimiter",
+      "mutant_006_boolean_type_registered_as_string",
+      "mutant_007_int_type_registered_as_long",
+      "mutant_008_typed_get_ignores_default_value",
+      "mutant_009_typed_set_writes_wrong_key",
+      "mutant_011_map_entries_split_on_semicolon",
+      "mutant_012_map_pairs_split_on_equals",
+      "mutant_013_boolean_parser_accepts_anything_false",
+      "mutant_014_splitter_drops_empty_middle_tokens",
+      "mutant_015_splitter_allows_illegal_quote_suffix"
+    ],
+    "mutants_not_treated_as_surviving": {
+      "mutant_010_optional_ignores_fallback_keys": "Docker metadata marks the mutant as rejected_p2p_failed; the fallback-key F2P still targets the behavior, but validate.sh skips it in the mutant-arm P2P-clean invariant."
+    },
+    "no_modification_clauses_pinned": [
+      "Compatibility plan: all existing config options are still valid and have no changed behavior",
+      "Pre-existing string-key primitive Configuration accessors preserve defaults and stored values",
+      "Pre-existing Configuration copy/addAll, byte-array, and class-name accessors remain compatible"
+    ]
+  },
+  "tests": [
+    {
+      "test_id": "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testListParsingUsesSemicolonEscapingAndPreservesEmptyElements",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "kills_mutants": [
+        "mutant_001_list_metadata_always_false",
+        "mutant_005_list_string_uses_comma_delimiter",
+        "mutant_014_splitter_drops_empty_middle_tokens"
+      ],
+      "public_surface": "ConfigOptions.key(...).stringType().asList(); Configuration.setString; Configuration.get(ConfigOption)",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "splitEscaped"
+      ],
+      "target_requirement_section": "Section 10: List Options",
+      "oracle_kind": "requirement-driven",
+      "distinguishing_logic": "Semicolon-delimited list parsing must preserve empty middle tokens and quoted semicolons through the public typed Configuration API."
+    },
+    {
+      "test_id": "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMalformedQuotedListValueIsRejectedThroughConfiguration",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "kills_mutants": [
+        "mutant_015_splitter_allows_illegal_quote_suffix"
+      ],
+      "public_surface": "ConfigOptions.key(...).stringType().asList(); Configuration.setString; Configuration.get(ConfigOption)",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "splitEscaped"
+      ],
+      "target_requirement_section": "Section 10: List Options",
+      "oracle_kind": "requirement-driven",
+      "distinguishing_logic": "A quoted token immediately followed by unquoted text is malformed and must be rejected through Configuration.get."
+    },
+    {
+      "test_id": "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testMapParsingUsesCommaEntriesAndColonPairs",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "kills_mutants": [
+        "mutant_004_map_type_registered_as_string",
+        "mutant_011_map_entries_split_on_semicolon",
+        "mutant_012_map_pairs_split_on_equals"
+      ],
+      "public_surface": "ConfigOptions.key(...).mapType(); Configuration.setString; Configuration.get(ConfigOption)",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "splitEscaped"
+      ],
+      "target_requirement_section": "Section 15: Map Options",
+      "oracle_kind": "requirement-driven",
+      "distinguishing_logic": "Map option strings must parse comma-separated entries and colon-separated key/value pairs."
+    },
+    {
+      "test_id": "org.apache.flink.configuration.ConfigurationTypedOptionsAugTest#testTypedSetDefaultAndFallbackKeySemantics",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "kills_mutants": [
+        "mutant_008_typed_get_ignores_default_value",
+        "mutant_009_typed_set_writes_wrong_key",
+        "mutant_010_optional_ignores_fallback_keys"
+      ],
+      "public_surface": "ConfigOptions.key(...).intType(); ConfigOption.withFallbackKeys; Configuration.set/get/getOptional",
+      "internal_symbol_check": [
+        "getRawValueFromOption",
+        "confData"
+      ],
+      "target_requirement_section": "Section 8: Proposed changes to Configuration",
+      "oracle_kind": "requirement-driven",
+      "distinguishing_logic": "Typed get returns defaults, typed set round-trips values under the option key, and getOptional consults fallback keys."
+    },
+    {
+      "test_id": "org.apache.flink.client.ConfigurationCompatibilityAugTest#testLegacyPrimitiveAccessorsAndDefaultsRemainUnchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "public_surface": "Configuration string-key primitive getters/setters",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "ReadableConfig",
+        "WritableConfig"
+      ],
+      "no_modification_clause": "All existing config options are still valid and have no changed behavior",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false
+    },
+    {
+      "test_id": "org.apache.flink.client.ConfigurationCompatibilityAugTest#testCopyConstructorAndPrefixedAddAllKeepExistingEntries",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "public_surface": "Configuration copy constructor and addAll",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "ReadableConfig",
+        "WritableConfig"
+      ],
+      "no_modification_clause": "All existing config options are still valid and have no changed behavior",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false
+    },
+    {
+      "test_id": "org.apache.flink.client.ConfigurationCompatibilityAugTest#testByteArrayAndClassAccessorsRemainCompatible",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "public_surface": "Configuration byte-array and class-name accessors",
+      "internal_symbol_check": [
+        "StructuredOptionsSplitter",
+        "ReadableConfig",
+        "WritableConfig"
+      ],
+      "no_modification_clause": "All existing config options are still valid and have no changed behavior",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false
+    }
+  ]
+}

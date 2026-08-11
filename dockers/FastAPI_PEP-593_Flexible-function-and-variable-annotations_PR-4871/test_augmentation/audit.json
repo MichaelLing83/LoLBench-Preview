@@ -1,0 +1,66 @@
+{
+  "instance_id": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "suite_support": {
+    "env": "LOLBENCH_SUITE",
+    "modes": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "default": "orig"
+  },
+  "sidecar_patch": "eval_tests_aug.patch",
+  "sidecar_patch_sha256": "04e368ed517bf460fe3f72f61307ab166ef057c33642f6666bef84ccd9654da3",
+  "new_file_rule": "All augmented selectors live in new pytest file tests/test_annotated_aug.py via eval_tests_aug.patch.",
+  "tests": {
+    "tests/test_annotated_aug.py::test_annotated_form_without_positional_default": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Specification > Syntax"
+      ],
+      "public_surface": "FastAPI route decorator plus TestClient form request using Annotated[str, fastapi.params.Form()].",
+      "kills_mutants": [
+        "mutant_011_form_file_annotated_defaults_required"
+      ],
+      "coverage_goal": "Exercises the Annotated branch that accepts the Form metadata class without requiring a duplicate positional default.",
+      "internal_symbol_check": "No FastAPI internals imported; test uses fastapi.FastAPI, fastapi.params.Form, and TestClient."
+    },
+    "tests/test_annotated_aug.py::test_annotated_file_without_positional_default": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Specification > Syntax"
+      ],
+      "public_surface": "FastAPI route decorator plus TestClient multipart request using Annotated[bytes, fastapi.params.File()].",
+      "kills_mutants": [
+        "mutant_011_form_file_annotated_defaults_required"
+      ],
+      "coverage_goal": "Exercises the Annotated branch that accepts the File metadata class without requiring a duplicate positional default.",
+      "internal_symbol_check": "No FastAPI internals imported; test uses fastapi.FastAPI, fastapi.params.File, and TestClient."
+    },
+    "tests/test_annotated_aug.py::test_plain_query_parameter_default_still_works": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Specification > Consuming annotations"
+      ],
+      "public_surface": "FastAPI route decorator plus TestClient GET requests for ordinary query-parameter defaults.",
+      "stability_goal": "Guards non-Annotated default query parameter behavior while Annotated metadata consumption is added.",
+      "internal_symbol_check": "No FastAPI internals imported; test uses fastapi.FastAPI and TestClient."
+    }
+  },
+  "coverage_validation": {
+    "status": "passed",
+    "required_minimum_percent": 80,
+    "reports": {
+      "baseline": "coverage_out/coverage_report_orig.json",
+      "augmented_only": "coverage_out/coverage_report_aug.json",
+      "union": "coverage_out/coverage_report_union.json"
+    },
+    "measurement_note": "Coverage measured with coverage.py over solution.patch Python lines; union mode runs original plus augmented F2P/P2P selectors.",
+    "baseline_union_line_coverage_percent": 84.8,
+    "augmented_only_union_line_coverage_percent": 56.5,
+    "union_line_coverage_percent": 84.8,
+    "executable_lines_in_patch": 92,
+    "union_covered_lines": 78,
+    "coverage_complete": true
+  }
+}

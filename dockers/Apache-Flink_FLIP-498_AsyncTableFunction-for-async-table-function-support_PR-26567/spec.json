@@ -1,0 +1,418 @@
+{
+  "instance_id": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "project": "Apache Flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-498",
+  "pr_link": "https://github.com/apache/flink/pull/26567",
+  "pr_merge_date": "2025-07-20",
+  "language": "Java",
+  "build_system": "Maven",
+  "scope": {
+    "touched_modules": [
+      "flink-table-planner",
+      "flink-table-runtime",
+      "flink-table-api-java"
+    ],
+    "f2p_module": "flink-table/flink-table-planner",
+    "p2p_module": "flink-clients",
+    "total_files_changed": 67
+  },
+  "base_commit": "7309fe832cb303c9adf6bfb441790e3d293908fe",
+  "base_commit_note": "Squash-merge. Patches use gh API (with previous_filename for renamed RemoteCalcCallFinder\u2192RemoteCallFinder + DelegatingResultFuture\u2192DelegatingAsyncTableResultFuture).",
+  "merge_commit_sha": "b1fd0b8f1f666f7c4186585ea5be31111efbbc4e",
+  "diff_source": "gh_pulls_files_api",
+  "solution_patch_sha256": "3d00511e4933b15491e457fc851f07ba6b0de2f279a991955e2a2118d6cc6058",
+  "eval_tests_patch_sha256": "dbb1e14c62bd09f0141f5be0df80fc5d71efb838b958f3abaf3cdd597ac73f4f",
+  "omitted_patch_sha256": "481a3e0923644b967f305ec780694f69744d8dc393f03494c02c98303bc2d0f3",
+  "toolchain": {
+    "java": "17",
+    "maven": "3.x",
+    "junit": "5",
+    "flink_version_at_base": "2.2-SNAPSHOT"
+  },
+  "build_modules": [
+    "flink-table/flink-table-planner",
+    "flink-clients"
+  ],
+  "test_framework": "junit-maven",
+  "test_level": "system",
+  "fail_to_pass": [
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFunc",
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFuncWithLateral",
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFunc",
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithCalc",
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testRecoverableFailures",
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testRetries"
+  ],
+  "pass_to_pass": [
+    "org.apache.flink.client.cli.ClientOptionsTest",
+    "org.apache.flink.client.program.PackagedProgramUtilsTest",
+    "org.apache.flink.client.program.rest.RestClusterClientConfigurationTest",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassNoEntry",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassAssemblerClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassMainClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassAssemblerClassAndMainClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassWithTestJobJar",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassEmptyArgument",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassSingleJarWithNoManifest",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassSingleJar",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassMultipleJarsWithMultipleManifestEntries",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassMultipleJarsWithSingleManifestEntry",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindFirstManifestAttributeWithNoAttribute",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindFirstManifestAttributeWithAttributes",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testCustomJarFile",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testMissingJar",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testMissingJobClassName",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testEitherJobClassNameOrJarHasToBeSet",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testPolling",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testHappyPath",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testFailedJobResult",
+    "org.apache.flink.client.program.PackagedProgramTest#testExtractContainedLibraries",
+    "org.apache.flink.client.program.PackagedProgramTest#testNotThrowExceptionWhenJarFileIsNull",
+    "org.apache.flink.client.program.PackagedProgramTest#testBuilderThrowExceptionIfjarFileAndEntryPointClassNameAreBothNull",
+    "org.apache.flink.client.program.PackagedProgramUtilsPipelineTest#testConfigurationForwarding",
+    "org.apache.flink.client.program.PackagedProgramUtilsPipelineTest#testUserClassloaderForConfiguration",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithParentFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithDefaultChildFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithChildFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithClientTimeoutAndDefaultParallelism",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testSecurityConfigWithDynamicProperties",
+    "org.apache.flink.client.cli.DefaultCLITest#testCommandLineMaterialization",
+    "org.apache.flink.client.cli.DefaultCLITest#testDynamicPropertyMaterialization",
+    "org.apache.flink.client.cli.GenericCLITest#isActiveWhenTargetOnlyInConfig",
+    "org.apache.flink.client.cli.GenericCLITest#testWithPreexistingConfigurationInConstructor",
+    "org.apache.flink.client.cli.GenericCLITest#testIsActiveLong",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testMissingOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlan",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlanWithCliOptionParallelism",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlanWithDynamicPropertiesParallelism",
+    "org.apache.flink.client.cli.CliFrontendListTest#testListOptions",
+    "org.apache.flink.client.cli.CliFrontendListTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendListTest#testList",
+    "org.apache.flink.client.cli.CliFrontendListTest#testSorting",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testStandaloneClusterClientFactoryDiscovery",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testFactoryDiscovery",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testMoreThanOneCompatibleFactoriesException",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testNoFactoriesFound"
+  ],
+  "augmented": {
+    "eval_tests_aug_patch_sha256": "9b072042c4732f2589628c4f4ac30ed2a9cdfe9d7c6ee9690d2012b481c85d55",
+    "f2p_aug_sha256": "c625e2a1e671a711ececd477a622bcc9cf9ba54818b9168378de6d516d41e2bd",
+    "p2p_aug_sha256": "76ddaf5312b65b0509906ab793972923aa48d03abd4dd6ed6c627e13dfc4f81c",
+    "fail_to_pass": [
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableOptionKeysAreDistinctFromScalarOptions",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableTimeoutUsesAsyncTableTimeoutOption",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableCorrelateKeepsOrderedOutputMode",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInvalidAsyncTableFutureTypeRejectedThroughSql",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testProjectedOperandKeepsHintedRowTypeInAsyncTableSplit",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInternalAtomicAsyncTableOutputIsRowWrapped",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAtomicAsyncTableOutputCanBeProjectedAfterCorrelate",
+      "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithScalar",
+      "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithCast",
+      "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testStringReturnType",
+      "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowReturnType",
+      "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowDataReturnType",
+      "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorAugTest#testAtomicAsyncTableGeneratedExpressionKeepsLogicalRowType",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFuncNoArg",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncRowTypeWithHints",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithAsyncCalc",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcSelectStar",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithSelect",
+      "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithConditions"
+    ],
+    "pass_to_pass": [
+      "org.apache.flink.client.cli.ClientCliAugTest#testRunOptionsPreserveAttachedShutdownAndProgramArgs",
+      "org.apache.flink.client.cli.ClientCliAugTest#testDetachedRunOptionKeepsShutdownFlagIndependent"
+    ],
+    "triage": {
+      "test_level_policy": "All augmented F2P selectors drive AsyncTableFunction through TableEnvironment or SQL correlate execution in flink-table-planner IT cases. The augmented P2P selectors exercise unchanged flink-clients CLI parsing and ProgramOptions-to-Configuration behavior. No augmented selector calls a production private helper; local fixture functions are test-only public UDFs.",
+      "fail_to_pass": {
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableOptionKeysAreDistinctFromScalarOptions": {
+          "requirement_sections": [
+            "Public Interfaces"
+          ],
+          "public_surface": "ExecutionConfigOptions public table.exec.async-table.* configuration keys.",
+          "mutants_targeted": [
+            "mutant_001",
+            "mutant_002",
+            "mutant_003",
+            "mutant_004",
+            "mutant_005"
+          ],
+          "rationale": "Pins the public async-table option names and verifies they are distinct from the async-scalar option family described by FLIP-498."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableTimeoutUsesAsyncTableTimeoutOption": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "TableEnvironment configuration plus SQL LATERAL TABLE execution of an AsyncTableFunction.",
+          "mutants_targeted": [
+            "mutant_002",
+            "mutant_024"
+          ],
+          "rationale": "Distinguishes async-table timeout handling from async-scalar timeout handling by running a table function that completes after the scalar timeout but before the async-table timeout."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableCorrelateKeepsOrderedOutputMode": {
+          "requirement_sections": [
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "SQL LATERAL TABLE execution of an AsyncTableFunction with concurrent async results that complete out of input order.",
+          "mutants_targeted": [
+            "mutant_022"
+          ],
+          "rationale": "Pins FLIP-498's ordered async correlate behavior by making the second async result complete first and requiring SQL output to preserve input order."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInvalidAsyncTableFutureTypeRejectedThroughSql": {
+          "requirement_sections": [
+            "Public Interfaces"
+          ],
+          "public_surface": "Temporary system function registration validation for AsyncTableFunction eval signatures.",
+          "mutants_targeted": [
+            "mutant_006",
+            "mutant_007",
+            "mutant_008"
+          ],
+          "rationale": "Verifies the public validation contract that AsyncTableFunction eval methods must use a CompletableFuture of a collection result."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testProjectedOperandKeepsHintedRowTypeInAsyncTableSplit": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Split Rules",
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "TableEnvironment EXPLAIN plus SQL execution of an AsyncTableFunction with a hinted multi-field Row output and a projected input operand.",
+          "mutants_targeted": [
+            "mutant_013"
+          ],
+          "rationale": "Forces the remote correlate split path to preserve the original async table call type while planner utilities detect the async-table kind through a public SQL query."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInternalAtomicAsyncTableOutputIsRowWrapped": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes > Runtime Changes > Code Generation",
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "SQL LATERAL TABLE execution of an AsyncTableFunction whose atomic STRING output is bridged to Flink's internal StringData representation.",
+          "mutants_targeted": [
+            "mutant_028",
+            "mutant_031",
+            "mutant_032",
+            "mutant_033",
+            "mutant_034"
+          ],
+          "rationale": "Pins the documented implicit row wrapping behavior for non-Row async table outputs, including the internal representation path used by generated async correlate code."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAtomicAsyncTableOutputCanBeProjectedAfterCorrelate": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "SQL projection over the column produced by an AsyncTableFunction with internally bridged atomic STRING output.",
+          "mutants_targeted": [
+            "mutant_033",
+            "mutant_034"
+          ],
+          "rationale": "Checks that generated async correlate code exposes atomic table outputs as logical one-field rows so downstream public SQL projections can use the produced column."
+        },
+        "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithScalar": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Split Rules",
+            "Test Plan"
+          ],
+          "public_surface": "Planner SQL query verification for an AsyncTableFunction correlate whose operand contains a scalar function.",
+          "mutants_targeted": [
+            "mutant_013"
+          ],
+          "rationale": "Uses the PR's SQL plan test surface to verify async-table split rules detect async table calls and preserve call typing when operands are projected."
+        },
+        "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithCast": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Split Rules",
+            "Test Plan"
+          ],
+          "public_surface": "Planner SQL query verification for an AsyncTableFunction correlate whose operand contains nested casts.",
+          "mutants_targeted": [
+            "mutant_013"
+          ],
+          "rationale": "Exercises the same split-rule path with a system-expression operand so call type preservation is required across a rebuilt RexCall."
+        },
+        "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testStringReturnType": {
+          "requirement_sections": [
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "Generated async correlate function invoked from a SQL expression over public AsyncTableFunction inputs.",
+          "mutants_targeted": [
+            "mutant_028",
+            "mutant_031",
+            "mutant_033",
+            "mutant_034"
+          ],
+          "rationale": "Verifies non-Row async table outputs are wrapped as one-field rows by generated async correlate code instead of being forwarded as raw atomic values."
+        },
+        "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowReturnType": {
+          "requirement_sections": [
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "Generated async correlate function invoked from a SQL expression with an explicit Row output hint.",
+          "mutants_targeted": [
+            "mutant_013",
+            "mutant_030"
+          ],
+          "rationale": "Pins logical Row return typing through generated async table calls so hinted multi-field rows are not treated as atomic outputs."
+        },
+        "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowDataReturnType": {
+          "requirement_sections": [
+            "Proposed Changes > Runtime Changes > Code Generation",
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "Generated async correlate function invoked from a SQL expression with an internal RowData output bridge.",
+          "mutants_targeted": [
+            "mutant_028",
+            "mutant_032"
+          ],
+          "rationale": "Verifies generated async correlate code preserves internal RowData results and does not replace wrapped internal values with null."
+        },
+        "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorAugTest#testAtomicAsyncTableGeneratedExpressionKeepsLogicalRowType": {
+          "requirement_sections": [
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "Generated async table function call for a public AsyncTableFunction signature with internal STRING bridging.",
+          "mutants_targeted": [
+            "mutant_034"
+          ],
+          "rationale": "Directly asserts the generated expression retains the logical one-field Row return type required by async table scans instead of exposing the physical atomic output type."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFuncNoArg": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "SQL LATERAL TABLE invocation of a zero-argument AsyncTableFunction.",
+          "mutants_targeted": [
+            "mutant_010",
+            "mutant_011",
+            "mutant_028",
+            "mutant_031",
+            "mutant_033",
+            "mutant_034"
+          ],
+          "rationale": "Covers the public async table function catalog path and generated correlate output wrapping for a constant table function without input arguments."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncRowTypeWithHints": {
+          "requirement_sections": [
+            "Public Interfaces",
+            "Proposed Changes > Runtime Changes > Code Generation"
+          ],
+          "public_surface": "SQL LATERAL TABLE invocation of an AsyncTableFunction with explicit Row output type hints.",
+          "mutants_targeted": [
+            "mutant_007",
+            "mutant_009",
+            "mutant_013",
+            "mutant_030"
+          ],
+          "rationale": "Exercises FLIP-498's documented type-hint path for Row outputs and verifies generated async table results preserve the hinted row shape."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithAsyncCalc": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Split Rules",
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "SQL query containing AsyncTableFunction correlate plus an async calc expression.",
+          "mutants_targeted": [
+            "mutant_012",
+            "mutant_017",
+            "mutant_021"
+          ],
+          "rationale": "Covers the planner split rules that isolate async calls around correlates and the runtime path for mixed async-table and async-calc execution."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcSelectStar": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Physical Rules",
+            "Proposed Changes > Runtime Changes > Operator"
+          ],
+          "public_surface": "SQL correlate with right-side calculation selected through the table planner and runtime operator.",
+          "mutants_targeted": [
+            "mutant_014",
+            "mutant_015",
+            "mutant_018",
+            "mutant_019",
+            "mutant_027"
+          ],
+          "rationale": "Ensures async table correlates match the physical async rule set and preserve joined row ordering when the right side is projected as a full row."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithSelect": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Physical Rules",
+            "Test Plan"
+          ],
+          "public_surface": "SQL validation/planning of an AsyncTableFunction correlate with unsupported right-side projection.",
+          "mutants_targeted": [
+            "mutant_016"
+          ],
+          "rationale": "Pins the documented limitation that async correlates reject projections on the right side instead of silently planning an unsupported shape."
+        },
+        "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithConditions": {
+          "requirement_sections": [
+            "Proposed Changes > Planner Changes > Physical Rules",
+            "Test Plan"
+          ],
+          "public_surface": "SQL validation/planning of an AsyncTableFunction correlate with unsupported right-side conditions.",
+          "mutants_targeted": [
+            "mutant_016"
+          ],
+          "rationale": "Pins the companion unsupported-condition path so physical async correlate planning cannot accept filters the runtime does not support."
+        }
+      },
+      "pass_to_pass": {
+        "org.apache.flink.client.cli.ClientCliAugTest#testRunOptionsPreserveAttachedShutdownAndProgramArgs": {
+          "requirement_sections": [
+            "Compatibility, Deprecation, and Migration Plan"
+          ],
+          "public_surface": "CliFrontendParser RUN_OPTIONS and ProgramOptions public option-to-Configuration flow.",
+          "rationale": "Pins unchanged flink-clients attached-run CLI semantics so async-table planner changes do not mask collateral regressions in a separate build module."
+        },
+        "org.apache.flink.client.cli.ClientCliAugTest#testDetachedRunOptionKeepsShutdownFlagIndependent": {
+          "requirement_sections": [
+            "Compatibility, Deprecation, and Migration Plan"
+          ],
+          "public_surface": "CliFrontendParser detached RUN_OPTIONS and ProgramOptions public option-to-Configuration flow.",
+          "rationale": "Pins detached execution and shutdown-on-attached-exit parsing as independent unchanged CLI behavior."
+        }
+      }
+    }
+  },
+  "synthetic_tests": [],
+  "triage": {
+    "fail_to_pass": {
+      "_summary": "6 AsyncCorrelateITCase tests driving AsyncTableFunction end-to-end via MiniCluster."
+    },
+    "pass_to_pass": {
+      "_summary": "50 untouched flink-clients selectors covering client options, packaged-program utilities, application entrypoint parsing, CLI dynamic properties, frontend info/list handling, and cluster-client service loading. They do not import or compile-depend on async-table planner/runtime classes, so they pass in both pre- and post-patch states."
+    },
+    "module_scope_rationale": "flink-table-planner hosts AsyncCorrelate + AsyncTableFunction. flink-clients is strict-\u00a77 P2P."
+  },
+  "f2p_entry_count": 6,
+  "p2p_entry_count": 50,
+  "timeout_s": 7200,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 8
+  },
+  "validated_at": "2026-06-15T00:00:00Z",
+  "repo": "apache/flink",
+  "image": "lolbench/apache-flink-flip-498-pr-26567:1",
+  "pr_head_sha": "86761e1e9bf7207b43275b66e8ca6dff1e573509",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --memory 8g --cpus 4 -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/apache-flink-flip-498-pr-26567:1"
+  },
+  "test_cmd_template": "./run_tests.sh <test_selector>",
+  "log_parser": "generic_log",
+  "coverage": {
+    "orig": 84.4,
+    "aug": 92.9,
+    "union": 93.5,
+    "denominator": "union_executable_lines"
+  }
+}

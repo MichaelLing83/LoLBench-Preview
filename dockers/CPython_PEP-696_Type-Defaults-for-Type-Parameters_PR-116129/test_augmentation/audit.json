@@ -1,0 +1,520 @@
+{
+  "instance_id": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "suite_support": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "sidecar_patch": "eval_tests_aug.patch",
+  "sidecar_patch_sha256": "0f5140e926e6b90ae9f33df4461a2eee9c74e9378d19baf527c0e24a1903200c",
+  "new_file_rule": {
+    "status": "passed",
+    "details": "eval_tests_aug.patch contains only new file hunks for Lib/test/test_pep696_aug.py and Lib/test/test_pep696_stability_aug.py."
+  },
+  "tests": [
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "The CPython source distribution shipped in the benchmark image, specifically Grammar/python.gram type_param productions.",
+      "kills_mutants": [
+        "mutant_001_typevar_syntax_drops_default_ast",
+        "mutant_002_paramspec_syntax_drops_default_ast",
+        "mutant_003_typevartuple_syntax_drops_default_ast",
+        "mutant_004_feature_version_allows_defaults_too_early"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The grammar-change section requires every type-parameter default production to pass its parsed default expression into the corresponding AST constructor and to retain the Python 3.13 feature-version guard. These source-level mutants leave generated parser tables intact, so the public source-distribution grammar is the observable benchmark surface that distinguishes them.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_source_keeps_default_aware_specialization_guard",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Default Ordering and Subscription Rules"
+      ],
+      "public_surface": "The CPython source distribution shipped in the benchmark image, specifically Lib/typing.py default-aware generic specialization logic.",
+      "kills_mutants": [
+        "mutant_018_check_generic_rejects_omitted_defaults"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The default-ordering section requires generic specialization to accept omitted trailing arguments when the omitted parameters have defaults. This source-level check pins the public typing.py guard that implements that rule and catches the mutant that disables the guard while other runtime paths still fill defaults.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_ast_nodes_preserve_all_type_parameter_defaults",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "ast.parse() over PEP 695 class syntax and public ast.TypeVar/ParamSpec/TypeVarTuple default_value fields.",
+      "kills_mutants": [],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The grammar-change section requires defaults to be represented in the AST for all three type parameter node kinds. The test parses public Python source and asserts each default expression is present on the public AST nodes, improving runtime AST coverage even when generated parser artifacts mask source-only grammar mutants.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_feature_version_and_unparse_keep_typevar_default_visible",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "ast.parse(feature_version=...), ast.parse(), and ast.unparse() on class type-parameter syntax.",
+      "kills_mutants": [
+        "mutant_005_ast_unparse_omits_typevar_default"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 696 defaults are a Python 3.13 grammar feature and must remain visible when AST nodes are unparsed. The runtime assertion pins current parsing/unparsing behavior; the source grammar selector separately pins the feature-version guard against generated-artifact masking.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation"
+      ],
+      "public_surface": "typing.NoDefault repr, __reduce__ name, constructor behavior, and call behavior through the public typing module.",
+      "kills_mutants": [
+        "mutant_006_nodefault_reduce_uses_missing_name",
+        "mutant_007_nodefault_repr_is_unqualified",
+        "mutant_008_nodefault_type_is_constructible"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The implementation section requires the public NoDefault sentinel. The test pins the reducer name used by the sentinel, the documented repr, and constructor/input validation behavior without relying on the environment-specific pickle round trip that the original instance marks out of scope.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation",
+        "Specification > ``ParamSpec`` Defaults",
+        "Specification > ``TypeVarTuple`` Defaults"
+      ],
+      "public_surface": "typing.TypeVar, typing.ParamSpec, typing.TypeVarTuple constructors, __default__ attributes, and has_default() methods.",
+      "kills_mutants": [
+        "mutant_009_typevar_has_default_always_false",
+        "mutant_010_paramspec_has_default_always_false",
+        "mutant_011_typevartuple_has_default_always_false",
+        "mutant_012_typevar_default_getter_ignores_direct_value",
+        "mutant_013_paramspec_default_getter_ignores_direct_value",
+        "mutant_014_typevartuple_default_getter_ignores_direct_value"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 696 exposes defaults through public constructor keywords, __default__, and has_default() for all type parameter classes. The test checks both supplied defaults and the NoDefault sentinel for omitted defaults.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Default Ordering and Subscription Rules",
+        "Specification > Defaults following ``TypeVarTuple``"
+      ],
+      "public_surface": "typing.Generic subscription with public TypeVar and TypeVarTuple objects.",
+      "kills_mutants": [
+        "mutant_015_typevar_substitution_does_not_use_default",
+        "mutant_019_collect_parameters_allows_nondefault_after_default",
+        "mutant_020_collect_parameters_allows_default_after_typevartuple"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The default-ordering section requires omitted trailing defaults to be accepted and non-defaults after defaults to be rejected. The TypeVarTuple section forbids a defaulted TypeVar after a TypeVarTuple. The test exercises those rules through Generic subscription.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > ``ParamSpec`` Defaults",
+        "Specification > ``TypeVarTuple`` Defaults"
+      ],
+      "public_surface": "typing.Generic subscription with public ParamSpec and TypeVarTuple defaults.",
+      "kills_mutants": [
+        "mutant_016_paramspec_substitution_does_not_use_default",
+        "mutant_017_typevartuple_substitution_does_not_use_default"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "ParamSpec and TypeVarTuple defaults must be consumed when a generic is specialized with omitted trailing parameters. The test asserts the public __args__ tuple contains the defaulted parameter shapes.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_runtime_defaults_are_lazily_attached",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Using Another Type Parameter as ``default``",
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "exec() of class type-parameter source and public __type_params__/__default__ attributes.",
+      "kills_mutants": [
+        "mutant_021_compiler_does_not_attach_typevar_default"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "Defaults from PEP 695 syntax are lazily attached by the compiler, including defaults that reference another type parameter. The test observes lazy NameError behavior, cache behavior after binding, and a cross-parameter default through public class metadata.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_starred_typevartuple_default_from_pep695_syntax_is_attached",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > ``TypeVarTuple`` Defaults",
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "exec() of starred TypeVarTuple default syntax and public __type_params__/__default__ attributes.",
+      "kills_mutants": [
+        "mutant_022_set_typeparam_default_ignores_typevartuple"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "TypeVarTuple defaults supplied by starred PEP 695 syntax must be attached through the same public runtime default machinery as TypeVar and ParamSpec defaults. The test checks the public TypeVarTuple default value after class creation.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_type_parameter_defaults",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "Public ast node constructors, ast.fix_missing_locations(), compile() of an AST object, and __type_params__ metadata on the executed class.",
+      "kills_mutants": [],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The grammar-change implementation adds default_value fields to TypeVar, ParamSpec, and TypeVarTuple AST nodes and the generated C obj2ast/validator path must accept those fields when user-created AST objects are compiled. This covers the public AST-to-code path that source parsing alone does not exercise.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_missing_default_attributes",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes"
+      ],
+      "public_surface": "Public ast node constructors with optional default_value attributes omitted, compile() of an AST object, and runtime __type_params__ metadata.",
+      "kills_mutants": [],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The generated AST conversion code treats default_value as optional for all type parameter nodes. Compiling manually-created nodes with the attribute removed verifies backward-compatible AST construction behavior and covers the no-default conversion path.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_defaults_on_functions_and_type_aliases",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Grammar changes",
+        "Specification > ``ParamSpec`` Defaults",
+        "Specification > ``TypeVarTuple`` Defaults"
+      ],
+      "public_surface": "exec() of PEP 695 function and type-alias syntax plus public __type_params__ default metadata.",
+      "kills_mutants": [],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 696 defaults apply across PEP 695 functions, classes, and type aliases. This selector drives parser, compiler, and runtime default attachment for function TypeVar defaults, ParamSpec defaults, and starred TypeVarTuple defaults outside the class-only cases.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Default Ordering and Subscription Rules",
+        "Specification > Defaults following ``TypeVarTuple``"
+      ],
+      "public_surface": "exec() of invalid PEP 695 class syntax and the public SyntaxError produced by the compiler.",
+      "kills_mutants": [
+        "mutant_019_collect_parameters_allows_nondefault_after_default",
+        "mutant_020_collect_parameters_allows_default_after_typevartuple"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The ordering sections require non-default type parameters to be rejected after defaulted parameters, including variadic and ParamSpec forms. The test exercises the compiler-side diagnostics for those public syntax errors.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Using Another Type Parameter as ``default``",
+        "Specification > ``ParamSpec`` Defaults",
+        "Specification > ``TypeVarTuple`` Defaults"
+      ],
+      "public_surface": "exec() of PEP 695 classes, nested class metadata, lazy __default__ evaluation, and NameError behavior for unresolved defaults.",
+      "kills_mutants": [
+        "mutant_021_compiler_does_not_attach_typevar_default",
+        "mutant_022_set_typeparam_default_ignores_typevartuple"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The default-value sections require defaults to be attached lazily and resolved in the correct annotation scope for TypeVar, ParamSpec, and TypeVarTuple. This selector covers nested class lookup plus delayed resolution for ParamSpec and starred TypeVarTuple defaults.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > Default Ordering and Subscription Rules"
+      ],
+      "public_surface": "typing.Generic subscription behavior, public TypeError messages, and typing module helper behavior reached through public TypeVar objects.",
+      "kills_mutants": [
+        "mutant_015_typevar_substitution_does_not_use_default",
+        "mutant_018_check_generic_rejects_omitted_defaults"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The subscription rules allow omitted trailing defaults but still reject too-few and too-many specializations. The test uses public generic classes and TypeVar instances to cover the accepted default path and the error branches that enforce arity.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords",
+      "lane": "fail_to_pass",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation",
+        "Specification > ``ParamSpec`` Defaults",
+        "Specification > ``TypeVarTuple`` Defaults"
+      ],
+      "public_surface": "typing.TypeVar, typing.ParamSpec, typing.TypeVarTuple, and typing.NoDefault public constructors and attributes.",
+      "kills_mutants": [
+        "mutant_006_nodefault_reduce_uses_missing_name",
+        "mutant_007_nodefault_repr_is_unqualified",
+        "mutant_012_typevar_default_getter_ignores_direct_value",
+        "mutant_013_paramspec_default_getter_ignores_direct_value",
+        "mutant_014_typevartuple_default_getter_ignores_direct_value"
+      ],
+      "covers_new_lines": "measured in coverage_out/coverage_report_union.json after coverage run",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The implementation section adds the default keyword and NoDefault sentinel to the runtime type-parameter API. This selector covers optional keyword parsing for TypeVar and ParamSpec, TypeVarTuple default handling, and the sentinel representation/reducer contract.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_string_template_substitution_and_formatter_are_stable",
+      "lane": "pass_to_pass",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "public_surface": "string.Template.substitute() and str.format() on ordinary strings.",
+      "no_modification_clause": "PEP 696 only extends type parameter defaults. Ordinary string templating and formatting are unrelated public-library behavior and should remain stable across base, golden, and mutants.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 696 only extends type parameter defaults. Ordinary string templating and formatting are unrelated public-library behavior and should remain stable across base, golden, and mutants.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable",
+      "lane": "pass_to_pass",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "public_surface": "int() parsing with underscores/base prefixes and float.fromhex()/float.hex().",
+      "no_modification_clause": "Numeric literal parsing and float hex round trips are outside the type-parameter default surface. This P2P guard detects collateral interpreter or stdlib regressions unrelated to the PEP 696 implementation.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "Numeric literal parsing and float hex round trips are outside the type-parameter default surface. This P2P guard detects collateral interpreter or stdlib regressions unrelated to the PEP 696 implementation.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_regular_function_and_class_execution_are_stable",
+      "lane": "pass_to_pass",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Rejected Alternatives > Allowing Type Parameters With Defaults To Be Used in Function Signatures"
+      ],
+      "public_surface": "Regular class construction, instance methods, and list comprehension execution without type-parameter defaults.",
+      "no_modification_clause": "PEP 696 rejects broadening defaults into ordinary function signature behavior. This test keeps normal class/method execution and comprehension results stable without exercising the new default syntax.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 696 rejects broadening defaults into ordinary function signature behavior. This test keeps normal class/method execution and comprehension results stable without exercising the new default syntax.",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable",
+      "lane": "pass_to_pass",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Implementation"
+      ],
+      "public_surface": "sys._getframe() metadata for a normal Python function call.",
+      "no_modification_clause": "The implementation changes are limited to type-parameter grammar, AST, compiler, and typing support. Regular frame metadata for ordinary function calls should remain unchanged.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The implementation changes are limited to type-parameter grammar, AST, compiler, and typing support. Regular frame metadata for ordinary function calls should remain unchanged.",
+      "internal_symbol_check": []
+    }
+  ],
+  "mutant_coverage": {
+    "mutant_001_typevar_syntax_drops_default_ast": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors"
+    ],
+    "mutant_002_paramspec_syntax_drops_default_ast": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors"
+    ],
+    "mutant_003_typevartuple_syntax_drops_default_ast": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors"
+    ],
+    "mutant_004_feature_version_allows_defaults_too_early": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors"
+    ],
+    "mutant_005_ast_unparse_omits_typevar_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_feature_version_and_unparse_keep_typevar_default_visible"
+    ],
+    "mutant_006_nodefault_reduce_uses_missing_name": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "mutant_007_nodefault_repr_is_unqualified": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "mutant_008_nodefault_type_is_constructible": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract"
+    ],
+    "mutant_009_typevar_has_default_always_false": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters"
+    ],
+    "mutant_010_paramspec_has_default_always_false": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters"
+    ],
+    "mutant_011_typevartuple_has_default_always_false": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters"
+    ],
+    "mutant_012_typevar_default_getter_ignores_direct_value": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "mutant_013_paramspec_default_getter_ignores_direct_value": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "mutant_014_typevartuple_default_getter_ignores_direct_value": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "mutant_015_typevar_substitution_does_not_use_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised"
+    ],
+    "mutant_016_paramspec_substitution_does_not_use_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription"
+    ],
+    "mutant_017_typevartuple_substitution_does_not_use_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription"
+    ],
+    "mutant_018_check_generic_rejects_omitted_defaults": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_source_keeps_default_aware_specialization_guard",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised"
+    ],
+    "mutant_019_collect_parameters_allows_nondefault_after_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec"
+    ],
+    "mutant_020_collect_parameters_allows_default_after_typevartuple": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec"
+    ],
+    "mutant_021_compiler_does_not_attach_typevar_default": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_runtime_defaults_are_lazily_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope"
+    ],
+    "mutant_022_set_typeparam_default_ignores_typevartuple": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_starred_typevartuple_default_from_pep695_syntax_is_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope"
+    ]
+  },
+  "coverage": {
+    "status": "passed",
+    "baseline_report": "coverage_out/coverage_report_orig.json",
+    "augmented_report": "coverage_out/coverage_report_aug.json",
+    "union_report": "coverage_out/coverage_report_union.json",
+    "baseline_union_line_coverage_percent": 72.7,
+    "augmented_line_coverage_percent": 82.1,
+    "union_line_coverage_percent": 85.3,
+    "executable_lines_in_patch": 436,
+    "union_covered_lines": 372,
+    "coverage_complete": true
+  },
+  "surface_gate": {
+    "status": "passed",
+    "internal_symbol_check": [],
+    "public_surface_policy": "Augmented F2P selectors exercise PEP 696 behavior through public ast, typing, pickle, exec(), class metadata, and Generic subscription surfaces; no project-defined internal symbols are referenced. Augmented P2P selectors exercise unrelated public stdlib/interpreter behavior that should pass at base, golden, and mutant states. Requirement section names exactly match the Section Classification Summary in requirement_pr_pairs/CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129.md."
+  }
+}

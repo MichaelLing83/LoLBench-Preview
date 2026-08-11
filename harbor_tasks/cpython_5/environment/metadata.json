@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_5",
+  "source_instance_id": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "source_slug": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "docker_slug": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "dockerhub_image": "smartdub26/lolbench:cpython_5-1.0.0",
+  "dockerhub_digest": "sha256:81c5d064616ed245b2680fe2b437f0d0264482c16734c5b76b2ad376c1ceea65",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0680/",
+  "pr_link": "https://github.com/python/cpython/pull/31498",
+  "base_commit": "0b5a573ce8e8e90daad4d24b215aabb7356f4fce",
+  "merge_commit": "591f6754b56cb7f6c31fce8c22528bdf0a99556c",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

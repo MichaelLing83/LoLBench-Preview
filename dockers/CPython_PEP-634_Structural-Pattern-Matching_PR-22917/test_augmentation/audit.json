@@ -1,0 +1,325 @@
+{
+  "instance_id": "CPython_PEP-634_Structural-Pattern-Matching_PR-22917",
+  "augmentation_pass": "lolbench-aug-2026-05-22",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "5b998718af34220c525f999b6686627d394d456158a6ce9264f351f37cd82f53",
+    "f2p_aug.txt": "8e2eb78b851b9c52ca60e44a91e3bc490dd5561cc212ba6a843abab95188928b",
+    "p2p_aug.txt": "9e4efd4e37d6c3d4bfdfca467c6d288603f7512aea9ed38d04890a2fcd5572f3"
+  },
+  "summary": {
+    "new_f2p_count": 8,
+    "new_p2p_count": 4,
+    "mutants_targeted": 20,
+    "surviving_mutants_targeted": [
+      "mutant_001_soft_keyword_match_omitted",
+      "mutant_002_namedtuple_match_args_empty",
+      "mutant_003_dataclass_match_args_includes_non_init",
+      "mutant_004_int_match_self_flag_omitted",
+      "mutant_005_match_self_not_inherited_by_subclasses",
+      "mutant_006_string_is_treated_as_sequence_pattern_subject",
+      "mutant_007_dict_fast_path_rejects_mappings",
+      "mutant_008_class_pattern_ignores_match_args",
+      "mutant_009_duplicate_class_keywords_allowed",
+      "mutant_010_singleton_literals_use_equality",
+      "mutant_011_guard_truthiness_inverted",
+      "mutant_012_nonfinal_irrefutable_case_allowed",
+      "mutant_013_as_pattern_does_not_bind_name",
+      "mutant_014_capture_pattern_does_not_bind_name",
+      "mutant_015_duplicate_capture_names_allowed",
+      "mutant_016_or_pattern_allows_different_bindings",
+      "mutant_017_mapping_pattern_rejects_extra_keys",
+      "mutant_018_sequence_pattern_accepts_extra_items",
+      "mutant_019_wildcard_enters_symbol_table",
+      "mutant_020_ast_validation_allows_empty_match_cases"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 91.4,
+      "augmented_line_coverage_percent": 76.3,
+      "union_line_coverage_percent": 91.9,
+      "executable_lines_in_patch": 754,
+      "union_covered_lines": 693,
+      "coverage_complete": true,
+      "measurement_note": "gcov-only hand-written C/H coverage. Generated Parser/parser.c and Python/Python-ast.c are recorded as raw generated patch lines but excluded from the executable denominator, matching the generated-artifact treatment for parser/AST outputs."
+    },
+    "no_modification_clauses_pinned": [
+      "PEP 634 uses soft keywords and standard-library metadata additions; existing identifier use, namedtuple behavior, dataclass behavior, and ordinary grammar compilation should remain stable."
+    ],
+    "validation_status": {
+      "status": "validated",
+      "validated_at": "2026-05-22",
+      "validate_sh": {
+        "status": "passed",
+        "output_dir": "validation_out",
+        "suites": {
+          "orig": {
+            "pre": {
+              "f2p": "0P/0F/285E/0S",
+              "p2p": "43P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "285P/0F/0E/0S",
+              "p2p": "43P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "aug": {
+            "pre": {
+              "f2p": "0P/0F/8E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "8P/0F/0E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "union": {
+            "pre": {
+              "f2p": "0P/0F/293E/0S",
+              "p2p": "47P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "293P/0F/0E/0S",
+              "p2p": "47P/0F/0E/0S",
+              "resolved": true
+            }
+          }
+        },
+        "mutants": {
+          "status": "passed",
+          "total": 20,
+          "killed_by_augmented_f2p": 20,
+          "p2p_clean": 20,
+          "suite": "union",
+          "runner_note": "Crash-isolating per-test fallback preserved P2P measurement for mutants that abort the aggregate interpreter."
+        }
+      },
+      "coverage": {
+        "status": "passed",
+        "orig_union_line_coverage_percent": 91.4,
+        "augmented_union_line_coverage_percent": 91.9,
+        "minimum_line_coverage_percent": 80,
+        "coverage_report": "coverage_out/coverage_report_union.json",
+        "coverage_complete": true
+      }
+    }
+  },
+  "tests": [
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_soft_keywords_and_standard_library_match_args",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Overview and Terminology",
+        "The Standard Library"
+      ],
+      "kills_mutants": [
+        "mutant_001_soft_keyword_match_omitted",
+        "mutant_002_namedtuple_match_args_empty",
+        "mutant_003_dataclass_match_args_includes_non_init"
+      ],
+      "public_surface": "keyword.issoftkeyword(), keyword.iskeyword(), collections.namedtuple.__match_args__, dataclasses.dataclass generated __match_args__, and match class-pattern use of those public attributes.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 634 introduced match/case/_ as soft keywords and required namedtuple/dataclass integration through __match_args__; the test observes those public APIs and verifies non-init dataclass fields do not become positional pattern arguments."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_builtin_and_subclass_self_match_patterns",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Patterns > Class Patterns"
+      ],
+      "kills_mutants": [
+        "mutant_004_int_match_self_flag_omitted",
+        "mutant_005_match_self_not_inherited_by_subclasses"
+      ],
+      "public_surface": "Class patterns against builtin int and a public int subclass.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The class-pattern contract permits single positional subpatterns for builtin self-matching types and subclasses that inherit the match-self flag; the test validates both without inspecting implementation flags."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_sequence_and_mapping_pattern_runtime_contracts",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Patterns > Sequence Patterns",
+        "Syntax and Semantics > Patterns > Mapping Patterns"
+      ],
+      "kills_mutants": [
+        "mutant_006_string_is_treated_as_sequence_pattern_subject",
+        "mutant_007_dict_fast_path_rejects_mappings",
+        "mutant_017_mapping_pattern_rejects_extra_keys",
+        "mutant_018_sequence_pattern_accepts_extra_items"
+      ],
+      "public_surface": "match statements over list, str, bytes, bytearray, and dict values.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 634 excludes string-like objects from sequence patterns, requires fixed-length sequence patterns to reject extra items, and requires mapping patterns to match dict and mapping subjects even when unrelated extra keys are present."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_class_pattern_match_args_and_duplicate_keywords",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Patterns > Class Patterns"
+      ],
+      "kills_mutants": [
+        "mutant_008_class_pattern_ignores_match_args",
+        "mutant_009_duplicate_class_keywords_allowed"
+      ],
+      "public_surface": "User-defined class __match_args__ and compile-time validation of duplicate keyword attributes in class patterns.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "Class patterns must translate positional subpatterns through __match_args__ and reject duplicate keyword attributes; both are documented class-pattern semantics visible through normal compile()/match behavior."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_literal_singletons_guards_and_bindings",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Patterns > Literal Patterns",
+        "Syntax and Semantics > The Match Statement > Guards",
+        "Syntax and Semantics > Patterns > AS Patterns",
+        "Syntax and Semantics > Patterns > Capture Patterns"
+      ],
+      "kills_mutants": [
+        "mutant_010_singleton_literals_use_equality",
+        "mutant_011_guard_truthiness_inverted",
+        "mutant_013_as_pattern_does_not_bind_name",
+        "mutant_014_capture_pattern_does_not_bind_name"
+      ],
+      "public_surface": "match statements using singleton literals, guards, AS patterns, and capture patterns.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The test pins identity matching for None, normal truthiness for guards, and the required name binding effects of AS and capture patterns through direct program results."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_static_pattern_validation_rules",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > The Match Statement > Irrefutable case blocks",
+        "Syntax and Semantics > Patterns > Capture Patterns",
+        "Syntax and Semantics > Patterns > OR Patterns",
+        "Syntax and Semantics > Patterns > Wildcard Pattern"
+      ],
+      "kills_mutants": [
+        "mutant_012_nonfinal_irrefutable_case_allowed",
+        "mutant_015_duplicate_capture_names_allowed",
+        "mutant_016_or_pattern_allows_different_bindings",
+        "mutant_019_wildcard_enters_symbol_table"
+      ],
+      "public_surface": "compile(), symtable.symtable(), and match statement syntax validation.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 634 makes non-final irrefutable cases illegal, forbids duplicate capture names and inconsistent OR-pattern bindings, and specifies that the wildcard does not bind a local name."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_ast_validation_rejects_match_without_cases",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > The Match Statement > Match Semantics"
+      ],
+      "kills_mutants": [
+        "mutant_020_ast_validation_allows_empty_match_cases"
+      ],
+      "public_surface": "ast.Match AST construction, ast.fix_missing_locations(), and compile() validation.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "An AST Match node without cases is not a valid match statement; compile() must reject it rather than accepting an impossible runtime form."
+    },
+    {
+      "test_id": "test.test_patma_aug.PatternMatchingAugmentedTests.test_parser_accepts_and_rejects_pattern_grammar_forms",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Patterns",
+        "Appendix A -- Full Grammar"
+      ],
+      "kills_mutants": [],
+      "public_surface": "compile() of valid and invalid match/case source snippets spanning literal, capture, wildcard, value, group, sequence, mapping, class, OR, AS, guard, and subject-expression grammar forms.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "This F2P coverage selector exercises the documented PEP 634 grammar through public source compilation only; it checks accepted forms compile and rejected forms raise SyntaxError without depending on parser internals."
+    },
+    {
+      "test_id": "test.test_patma_stability_aug.PatternMatchingStabilityAugmentedTests.test_soft_keyword_names_remain_ordinary_identifiers",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "Syntax and Semantics > Overview and Terminology"
+      ],
+      "public_surface": "keyword.iskeyword() and ordinary Python assignments using match, case, and _ as names.",
+      "oracle_kind": "compatibility-regression",
+      "rationale": "PEP 634 uses soft keywords, so unrelated programs must continue to use these words as ordinary identifiers outside pattern syntax."
+    },
+    {
+      "test_id": "test.test_patma_stability_aug.PatternMatchingStabilityAugmentedTests.test_namedtuple_existing_contracts_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "The Standard Library"
+      ],
+      "public_surface": "collections.namedtuple attribute, index, defaults, _asdict(), and _fields behavior outside pattern matching.",
+      "oracle_kind": "compatibility-regression",
+      "rationale": "The PEP adds pattern-matching metadata to namedtuple but should not change the established tuple-like and attribute behavior of namedtuple instances."
+    },
+    {
+      "test_id": "test.test_patma_stability_aug.PatternMatchingStabilityAugmentedTests.test_dataclass_existing_init_defaults_and_repr_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "The Standard Library"
+      ],
+      "public_surface": "dataclasses.dataclass generated __init__, defaults, init=False fields, repr, and constructor TypeError behavior outside pattern matching.",
+      "oracle_kind": "compatibility-regression",
+      "rationale": "The PEP adds dataclass __match_args__ support while preserving the existing dataclass initialization and representation contracts."
+    },
+    {
+      "test_id": "test.test_patma_stability_aug.PatternMatchingStabilityAugmentedTests.test_ast_compile_existing_control_flow_is_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "Appendix A -- Full Grammar"
+      ],
+      "public_surface": "ast.parse(), compile(), exec(), and ordinary if/for/function grammar.",
+      "oracle_kind": "compatibility-regression",
+      "rationale": "Adding match/case grammar must not perturb unrelated existing grammar or AST compilation paths."
+    }
+  ]
+}

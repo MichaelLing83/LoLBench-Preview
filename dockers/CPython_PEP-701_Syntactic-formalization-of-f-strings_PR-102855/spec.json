@@ -1,0 +1,2888 @@
+{
+  "instance_id": "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0701/",
+  "requirement_doc_title": "PEP 701 \u2014 Syntactic formalization of f-strings",
+  "pr_link": "https://github.com/python/cpython/pull/102855",
+  "pr_number": 102855,
+  "merge_commit": "1ef61cf71a218c71860ff6aecf0fd51edb8b65dc",
+  "base_commit": "a6b07b5a345f7f54ee9f6d75e81d2fb55971b35c",
+  "base_commit_note": "PR-102855 squash-merged 2023-04-19. Merge parent a6b07b5a... Same merge-parent pattern.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_fstring.TestCase.test__format__lookup",
+    "test.test_fstring.TestCase.test_ast",
+    "test.test_fstring.TestCase.test_ast_line_numbers",
+    "test.test_fstring.TestCase.test_ast_line_numbers_multiple_formattedvalues",
+    "test.test_fstring.TestCase.test_ast_line_numbers_nested",
+    "test.test_fstring.TestCase.test_ast_line_numbers_duplicate_expression",
+    "test.test_fstring.TestCase.test_ast_numbers_fstring_with_formatting",
+    "test.test_fstring.TestCase.test_ast_line_numbers_multiline_fstring",
+    "test.test_fstring.TestCase.test_ast_line_numbers_with_parentheses",
+    "test.test_fstring.TestCase.test_docstring",
+    "test.test_fstring.TestCase.test_literal_eval",
+    "test.test_fstring.TestCase.test_ast_compile_time_concat",
+    "test.test_fstring.TestCase.test_compile_time_concat_errors",
+    "test.test_fstring.TestCase.test_literal",
+    "test.test_fstring.TestCase.test_unterminated_string",
+    "test.test_fstring.TestCase.test_mismatched_parens",
+    "test.test_fstring.TestCase.test_fstring_nested_too_deeply",
+    "test.test_fstring.TestCase.test_double_braces",
+    "test.test_fstring.TestCase.test_compile_time_concat",
+    "test.test_fstring.TestCase.test_comments",
+    "test.test_fstring.TestCase.test_many_expressions",
+    "test.test_fstring.TestCase.test_format_specifier_expressions",
+    "test.test_fstring.TestCase.test_side_effect_order",
+    "test.test_fstring.TestCase.test_missing_expression",
+    "test.test_fstring.TestCase.test_parens_in_expressions",
+    "test.test_fstring.TestCase.test_newlines_before_syntax_error",
+    "test.test_fstring.TestCase.test_backslashes_in_string_part",
+    "test.test_fstring.TestCase.test_misformed_unicode_character_name",
+    "test.test_fstring.TestCase.test_backslashes_in_expression_part",
+    "test.test_fstring.TestCase.test_invalid_backslashes_inside_fstring_context",
+    "test.test_fstring.TestCase.test_no_escapes_for_braces",
+    "test.test_fstring.TestCase.test_newlines_in_expressions",
+    "test.test_fstring.TestCase.test_lambda",
+    "test.test_fstring.TestCase.test_valid_prefixes",
+    "test.test_fstring.TestCase.test_roundtrip_raw_quotes",
+    "test.test_fstring.TestCase.test_fstring_backslash_before_double_bracket",
+    "test.test_fstring.TestCase.test_fstring_backslash_prefix_raw",
+    "test.test_fstring.TestCase.test_fstring_format_spec_greedy_matching",
+    "test.test_fstring.TestCase.test_yield",
+    "test.test_fstring.TestCase.test_yield_send",
+    "test.test_fstring.TestCase.test_expressions_with_triple_quoted_strings",
+    "test.test_fstring.TestCase.test_multiple_vars",
+    "test.test_fstring.TestCase.test_closure",
+    "test.test_fstring.TestCase.test_arguments",
+    "test.test_fstring.TestCase.test_locals",
+    "test.test_fstring.TestCase.test_missing_variable",
+    "test.test_fstring.TestCase.test_missing_format_spec",
+    "test.test_fstring.TestCase.test_global",
+    "test.test_fstring.TestCase.test_shadowed_global",
+    "test.test_fstring.TestCase.test_call",
+    "test.test_fstring.TestCase.test_nested_fstrings",
+    "test.test_fstring.TestCase.test_invalid_string_prefixes",
+    "test.test_fstring.TestCase.test_leading_trailing_spaces",
+    "test.test_fstring.TestCase.test_not_equal",
+    "test.test_fstring.TestCase.test_equal_equal",
+    "test.test_fstring.TestCase.test_conversions",
+    "test.test_fstring.TestCase.test_assignment",
+    "test.test_fstring.TestCase.test_del",
+    "test.test_fstring.TestCase.test_mismatched_braces",
+    "test.test_fstring.TestCase.test_if_conditional",
+    "test.test_fstring.TestCase.test_empty_format_specifier",
+    "test.test_fstring.TestCase.test_str_format_differences",
+    "test.test_fstring.TestCase.test_errors",
+    "test.test_fstring.TestCase.test_filename_in_syntaxerror",
+    "test.test_fstring.TestCase.test_loop",
+    "test.test_fstring.TestCase.test_dict",
+    "test.test_fstring.TestCase.test_backslash_char",
+    "test.test_fstring.TestCase.test_debug_conversion",
+    "test.test_fstring.TestCase.test_walrus",
+    "test.test_fstring.TestCase.test_invalid_syntax_error_message",
+    "test.test_fstring.TestCase.test_with_two_commas_in_format_specifier",
+    "test.test_fstring.TestCase.test_with_two_underscore_in_format_specifier",
+    "test.test_fstring.TestCase.test_with_a_commas_and_an_underscore_in_format_specifier",
+    "test.test_fstring.TestCase.test_with_an_underscore_and_a_comma_in_format_specifier",
+    "test.test_fstring.TestCase.test_syntax_error_for_starred_expressions"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_int.IntTestCases.test_basic",
+    "test.test_int.IntTestCases.test_underscores",
+    "test.test_int.IntTestCases.test_small_ints",
+    "test.test_float.GeneralFloatCases.test_float",
+    "test.test_float.GeneralFloatCases.test_noargs",
+    "test.test_string.ModuleTest.test_attrs",
+    "test.test_string.ModuleTest.test_capwords",
+    "test.test_grammar.TokenTests.test_float_exponent_tokenization",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_bad_numerical_literals",
+    "test.test_grammar.TokenTests.test_end_of_numerical_literals",
+    "test.test_grammar.TokenTests.test_eof_error",
+    "test.test_grammar.GrammarTests.test_eval_input",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+    "test.test_grammar.GrammarTests.test_var_annot_basic_semantics",
+    "test.test_grammar.GrammarTests.test_annotations_inheritance",
+    "test.test_grammar.GrammarTests.test_var_annot_metaclass_semantics",
+    "test.test_grammar.GrammarTests.test_var_annot_module_semantics",
+    "test.test_grammar.GrammarTests.test_var_annot_in_module",
+    "test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+    "test.test_grammar.GrammarTests.test_var_annot_custom_maps",
+    "test.test_grammar.GrammarTests.test_var_annot_refleak",
+    "test.test_grammar.GrammarTests.test_var_annot_rhs",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_former_statements_refer_to_builtins",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_break_continue_loop",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_int.IntTestCases.test_no_args",
+    "test.test_int.IntTestCases.test_keyword_args",
+    "test.test_int.IntTestCases.test_int_base_limits",
+    "test.test_int.IntTestCases.test_int_base_bad_types",
+    "test.test_int.IntTestCases.test_int_base_indexable",
+    "test.test_int.IntTestCases.test_non_numeric_input_types",
+    "test.test_int.IntTestCases.test_int_memoryview",
+    "test.test_int.IntTestCases.test_string_float",
+    "test.test_int.IntTestCases.test_intconversion",
+    "test.test_int.IntTestCases.test_int_subclass_with_index",
+    "test.test_int.IntTestCases.test_int_subclass_with_int",
+    "test.test_int.IntTestCases.test_int_returns_int_subclass",
+    "test.test_int.IntTestCases.test_error_message",
+    "test.test_int.IntTestCases.test_issue31619",
+    "test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+    "test.test_float.GeneralFloatCases.test_underscores",
+    "test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+    "test.test_float.GeneralFloatCases.test_float_memoryview",
+    "test.test_float.GeneralFloatCases.test_error_message",
+    "test.test_float.GeneralFloatCases.test_floatconversion",
+    "test.test_float.GeneralFloatCases.test_keyword_args",
+    "test.test_float.GeneralFloatCases.test_keywords_in_subclass",
+    "test.test_float.GeneralFloatCases.test_is_integer",
+    "test.test_float.GeneralFloatCases.test_floatasratio",
+    "test.test_float.GeneralFloatCases.test_float_containment",
+    "test.test_float.GeneralFloatCases.test_float_floor",
+    "test.test_float.GeneralFloatCases.test_float_ceil",
+    "test.test_float.GeneralFloatCases.test_float_mod",
+    "test.test_float.GeneralFloatCases.test_float_pow",
+    "test.test_float.GeneralFloatCases.test_hash",
+    "test.test_float.GeneralFloatCases.test_hash_nan",
+    "test.test_float.FormatFunctionsTestCase.test_getformat",
+    "test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+    "test.test_float.FormatTestCase.test_format",
+    "test.test_float.FormatTestCase.test_format_testfile",
+    "test.test_float.FormatTestCase.test_issue5864",
+    "test.test_float.FormatTestCase.test_issue35560",
+    "test.test_string.ModuleTest.test_basic_formatter",
+    "test.test_string.ModuleTest.test_format_keyword_arguments",
+    "test.test_string.ModuleTest.test_auto_numbering",
+    "test.test_string.ModuleTest.test_conversion_specifiers",
+    "test.test_string.ModuleTest.test_name_lookup",
+    "test.test_string.ModuleTest.test_index_lookup",
+    "test.test_string.ModuleTest.test_override_get_value",
+    "test.test_string.ModuleTest.test_override_format_field",
+    "test.test_string.ModuleTest.test_override_convert_field",
+    "test.test_string.ModuleTest.test_override_parse",
+    "test.test_string.ModuleTest.test_check_unused_args",
+    "test.test_string.ModuleTest.test_vformat_recursion_limit",
+    "test.test_string.TestTemplate.test_regular_templates",
+    "test.test_string.TestTemplate.test_regular_templates_with_braces",
+    "test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+    "test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+    "test.test_string.TestTemplate.test_escapes",
+    "test.test_string.TestTemplate.test_percents",
+    "test.test_string.TestTemplate.test_stringification",
+    "test.test_string.TestTemplate.test_tupleargs",
+    "test.test_string.TestTemplate.test_SafeTemplate",
+    "test.test_string.TestTemplate.test_invalid_placeholders",
+    "test.test_string.TestTemplate.test_idpattern_override",
+    "test.test_string.TestTemplate.test_flags_override",
+    "test.test_string.TestTemplate.test_idpattern_override_inside_outside",
+    "test.test_calendar.OutputTestCase.test_output",
+    "test.test_calendar.OutputTestCase.test_output_textcalendar",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default",
+    "test.test_calendar.OutputTestCase.test_yeardatescalendar",
+    "test.test_calendar.OutputTestCase.test_yeardayscalendar",
+    "test.test_calendar.OutputTestCase.test_formatweekheader_short",
+    "test.test_calendar.OutputTestCase.test_formatweekheader_long",
+    "test.test_calendar.OutputTestCase.test_formatmonth",
+    "test.test_calendar.OutputTestCase.test_formatmonthname_with_year",
+    "test.test_calendar.OutputTestCase.test_formatmonthname_without_year",
+    "test.test_calendar.OutputTestCase.test_prweek",
+    "test.test_calendar.OutputTestCase.test_prmonth",
+    "test.test_calendar.OutputTestCase.test_pryear",
+    "test.test_calendar.OutputTestCase.test_format",
+    "test.test_calendar.CalendarTestCase.test_isleap",
+    "test.test_calendar.CalendarTestCase.test_setfirstweekday",
+    "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+    "test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+    "test.test_calendar.CalendarTestCase.test_days",
+    "test.test_calendar.CalendarTestCase.test_months",
+    "test.test_calendar.CalendarTestCase.test_locale_calendars",
+    "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name",
+    "test.test_dict.DictTest.test_invalid_keyword_arguments",
+    "test.test_dict.DictTest.test_constructor",
+    "test.test_dict.DictTest.test_literal_constructor",
+    "test.test_dict.DictTest.test_merge_operator",
+    "test.test_dict.DictTest.test_bool",
+    "test.test_dict.DictTest.test_keys",
+    "test.test_dict.DictTest.test_values",
+    "test.test_dict.DictTest.test_items",
+    "test.test_dict.DictTest.test_views_mapping",
+    "test.test_dict.DictTest.test_contains",
+    "test.test_dict.DictTest.test_len",
+    "test.test_dict.DictTest.test_getitem",
+    "test.test_dict.DictTest.test_clear",
+    "test.test_dict.DictTest.test_update",
+    "test.test_dict.DictTest.test_fromkeys",
+    "test.test_dict.DictTest.test_copy",
+    "test.test_dict.DictTest.test_copy_fuzz",
+    "test.test_dict.DictTest.test_copy_maintains_tracking",
+    "test.test_dict.DictTest.test_copy_noncompact",
+    "test.test_dict.DictTest.test_get",
+    "test.test_list.ListTest.test_basic",
+    "test.test_list.ListTest.test_keyword_args",
+    "test.test_list.ListTest.test_keywords_in_subclass",
+    "test.test_list.ListTest.test_truth",
+    "test.test_list.ListTest.test_identity",
+    "test.test_list.ListTest.test_len",
+    "test.test_list.ListTest.test_overflow",
+    "test.test_list.ListTest.test_list_resize_overflow",
+    "test.test_list.ListTest.test_repr_large",
+    "test.test_list.ListTest.test_iterator_pickle",
+    "test.test_list.ListTest.test_reversed_pickle",
+    "test.test_list.ListTest.test_step_overflow",
+    "test.test_set.TestSet.test_init",
+    "test.test_set.TestSet.test_constructor_identity",
+    "test.test_set.TestSet.test_set_literal",
+    "test.test_set.TestSet.test_set_literal_insertion_order",
+    "test.test_set.TestSet.test_set_literal_evaluation_order",
+    "test.test_set.TestSet.test_hash",
+    "test.test_set.TestSet.test_clear",
+    "test.test_set.TestSet.test_copy",
+    "test.test_set.TestSet.test_add",
+    "test.test_set.TestSet.test_remove",
+    "test.test_set.TestSet.test_remove_keyerror_unpacking",
+    "test.test_set.TestSet.test_remove_keyerror_set",
+    "test.test_set.TestSet.test_discard",
+    "test.test_set.TestSet.test_pop",
+    "test.test_set.TestSet.test_update",
+    "test.test_set.TestSet.test_ior",
+    "test.test_set.TestSet.test_intersection_update",
+    "test.test_set.TestSet.test_iand",
+    "test.test_set.TestSet.test_difference_update",
+    "test.test_set.TestSet.test_isub",
+    "test.test_set.TestSet.test_symmetric_difference_update",
+    "test.test_set.TestSet.test_ixor",
+    "test.test_set.TestSet.test_inplace_on_self",
+    "test.test_set.TestSet.test_weakref",
+    "test.test_set.TestSet.test_rich_compare",
+    "test.test_set.TestSetSubclass.test_keywords_in_subclass",
+    "test.test_set.TestFrozenSet.test_init",
+    "test.test_set.TestFrozenSet.test_constructor_identity",
+    "test.test_set.TestFrozenSet.test_hash"
+  ],
+  "solution_patch_sha256": "3dda9ffc721179762bb526171028cb8a78259bbcfc4862ca841c60265cb676b0",
+  "eval_tests_patch_sha256": "9cb46d8cc889f509eca4cab4dc0c7ede55fa3cdd4a23f4926b7e3d1bc55e2b4f",
+  "omitted_patch_sha256": "0cbe0c5ad43ea1cca7dbfe1d385570eac5f42eb541c41c1734247d007f08a079",
+  "eval_tests_patch_notes": "7 modified test files; F2P from 8 new test_fstring.TestCase methods.",
+  "omitted_patch_notes": "Doc + NEWS only.",
+  "fixture_taint_summary": "75 F2P = ALL test_fstring.TestCase methods. test_fstring.py has module-level PEP-701 syntax (post-PR file in eval_tests.patch) \u2192 file fails to parse at pre-state \u2192 all 75 ERROR at unittest module-load uniformly. Post-state: file imports fine, all pass. 18 P2P unchanged.\nRatio P2P/F2P = 0.24\u00d7 (below 2\u00d7 because F2P expanded to ALL test_fstring methods to maximize coverage; this is a unique signal where every F2P shares the same pre-state failure mode, so granularity isn't preserved).\nCodex round 2 confirmed public-surface compliance: no internal symbols referenced.",
+  "triage": {
+    "fail_to_pass": {
+      "test.test_fstring.TestCase.test__format__lookup": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test__format__lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers_multiple_formattedvalues": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_multiple_formattedvalues",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers_nested": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_nested",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers_duplicate_expression": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_duplicate_expression",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_numbers_fstring_with_formatting": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_numbers_fstring_with_formatting",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers_multiline_fstring": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_multiline_fstring",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_line_numbers_with_parentheses": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_with_parentheses",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_docstring": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_docstring",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_literal_eval": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_literal_eval",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_ast_compile_time_concat": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_compile_time_concat",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_compile_time_concat_errors": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_compile_time_concat_errors",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_literal": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_literal",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_unterminated_string": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_unterminated_string",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_mismatched_parens": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_mismatched_parens",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_fstring_nested_too_deeply": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_fstring_nested_too_deeply",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_double_braces": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_double_braces",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_compile_time_concat": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_compile_time_concat",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_comments": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_comments",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_many_expressions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_many_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_format_specifier_expressions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_format_specifier_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_side_effect_order": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_side_effect_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_missing_expression": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_missing_expression",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_parens_in_expressions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_parens_in_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_newlines_before_syntax_error": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_newlines_before_syntax_error",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_backslashes_in_string_part": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_backslashes_in_string_part",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_misformed_unicode_character_name": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_misformed_unicode_character_name",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_backslashes_in_expression_part": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_backslashes_in_expression_part",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_invalid_backslashes_inside_fstring_context": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_invalid_backslashes_inside_fstring_context",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_no_escapes_for_braces": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_no_escapes_for_braces",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_newlines_in_expressions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_newlines_in_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_lambda": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_lambda",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_valid_prefixes": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_valid_prefixes",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_roundtrip_raw_quotes": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_roundtrip_raw_quotes",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_fstring_backslash_before_double_bracket": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_fstring_backslash_before_double_bracket",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_fstring_backslash_prefix_raw": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_fstring_backslash_prefix_raw",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_fstring_format_spec_greedy_matching": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_fstring_format_spec_greedy_matching",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_yield": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_yield",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_yield_send": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_yield_send",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_expressions_with_triple_quoted_strings": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_expressions_with_triple_quoted_strings",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_multiple_vars": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_multiple_vars",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_closure": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_closure",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_arguments": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_locals": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_locals",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_missing_variable": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_missing_variable",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_missing_format_spec": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_missing_format_spec",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_global": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_global",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_shadowed_global": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_shadowed_global",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_call": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_call",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_nested_fstrings": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_nested_fstrings",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_invalid_string_prefixes": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_invalid_string_prefixes",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_leading_trailing_spaces": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_leading_trailing_spaces",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_not_equal": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_not_equal",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_equal_equal": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_equal_equal",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_conversions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_conversions",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_assignment": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_assignment",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_del": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_del",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_mismatched_braces": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_mismatched_braces",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_if_conditional": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_if_conditional",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_empty_format_specifier": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_empty_format_specifier",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_str_format_differences": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_str_format_differences",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_errors": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_errors",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_filename_in_syntaxerror": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_filename_in_syntaxerror",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_loop": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_loop",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_dict": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_dict",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_backslash_char": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_backslash_char",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_debug_conversion": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_debug_conversion",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_walrus": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_walrus",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_invalid_syntax_error_message": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_invalid_syntax_error_message",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_with_two_commas_in_format_specifier": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_with_two_commas_in_format_specifier",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_with_two_underscore_in_format_specifier": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_with_two_underscore_in_format_specifier",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_with_a_commas_and_an_underscore_in_format_specifier": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_with_a_commas_and_an_underscore_in_format_specifier",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_with_an_underscore_and_a_comma_in_format_specifier": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_with_an_underscore_and_a_comma_in_format_specifier",
+        "fixture_taint_checked": true
+      },
+      "test.test_fstring.TestCase.test_syntax_error_for_starred_expressions": {
+        "system_reason": "PEP-701 test_fstring.TestCase method. The full test_fstring.py file at MERGE contains module-level PEP-701 syntax \u2192 file fails to import at pre-state \u2192 ALL 75 methods ERROR at unittest load (uniform module-load fixture taint, accepted per round 1 review). Post-state: file imports cleanly, all methods pass.",
+        "public_surface": "exec()/compile()/eval()/ast.parse() on Python source containing f-strings + SyntaxError introspection",
+        "internal_symbol_check": [
+          "_PyPegen_*",
+          "tok_state internal"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_syntax_error_for_starred_expressions",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "test.test_grammar.TokenTests.test_backslash": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_floats": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_basic": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_underscores": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_small_ints": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_small_ints",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_noargs": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_noargs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_attrs": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_attrs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_capwords": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_capwords",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_float_exponent_tokenization": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_float_exponent_tokenization",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_bad_numerical_literals": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_bad_numerical_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_end_of_numerical_literals": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_end_of_numerical_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_eof_error": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_eof_error",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_eval_input": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_eval_input",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_syntax_errors": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_basic_semantics": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basic_semantics",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_annotations_inheritance": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_annotations_inheritance",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_metaclass_semantics": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_metaclass_semantics",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_module_semantics": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_module_semantics",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_in_module": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_in_module",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_simple_exec": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_custom_maps": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_custom_maps",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_refleak": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_refleak",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_rhs": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_rhs",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_former_statements_refer_to_builtins": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_former_statements_refer_to_builtins",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_break_continue_loop": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_continue_loop",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_return": {
+        "system_reason": "Pre-existing test_grammar test. NOT modified by this PR.",
+        "public_surface": "compile()/exec()",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_no_args": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_no_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_keyword_args": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_base_limits": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_base_limits",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_base_bad_types": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_base_bad_types",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_base_indexable": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_base_indexable",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_non_numeric_input_types": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_non_numeric_input_types",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_memoryview": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_memoryview",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_string_float": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_string_float",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_intconversion": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_intconversion",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_subclass_with_index": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_subclass_with_index",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_subclass_with_int": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_subclass_with_int",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_returns_int_subclass": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_returns_int_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_error_message": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_error_message",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_issue31619": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_issue31619",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntStrDigitLimitsTests.test_disabled_limit": {
+        "system_reason": "Pre-existing test_int test. NOT modified by this PR.",
+        "public_surface": "int",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_underscores": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_non_numeric_input_types": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_memoryview": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_memoryview",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_error_message": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_error_message",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_floatconversion": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_floatconversion",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_keyword_args": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_keywords_in_subclass": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_keywords_in_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_is_integer": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_is_integer",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_floatasratio": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_floatasratio",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_containment": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_containment",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_floor": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_floor",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_ceil": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_ceil",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_mod": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_mod",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_pow": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_pow",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_hash": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_hash",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_hash_nan": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_hash_nan",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatFunctionsTestCase.test_getformat": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatFunctionsTestCase.test_getformat",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_serialized_float_rounding": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatTestCase.test_format": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatTestCase.test_format",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatTestCase.test_format_testfile": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatTestCase.test_format_testfile",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatTestCase.test_issue5864": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatTestCase.test_issue5864",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatTestCase.test_issue35560": {
+        "system_reason": "Pre-existing test_float test. NOT modified by this PR.",
+        "public_surface": "float",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatTestCase.test_issue35560",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_basic_formatter": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_basic_formatter",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_format_keyword_arguments": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_format_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_auto_numbering": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_auto_numbering",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_conversion_specifiers": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_conversion_specifiers",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_name_lookup": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_name_lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_index_lookup": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_index_lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_override_get_value": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_override_get_value",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_override_format_field": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_override_format_field",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_override_convert_field": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_override_convert_field",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_override_parse": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_override_parse",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_check_unused_args": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_check_unused_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_vformat_recursion_limit": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_vformat_recursion_limit",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_braces": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_braces",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_upper_case": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_non_letters": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_escapes": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_escapes",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_percents": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_percents",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_stringification": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_stringification",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_tupleargs": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_tupleargs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_SafeTemplate": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_SafeTemplate",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_invalid_placeholders": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_invalid_placeholders",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_idpattern_override": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_idpattern_override",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_flags_override": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_flags_override",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_idpattern_override_inside_outside": {
+        "system_reason": "Pre-existing test_string test. NOT modified by this PR.",
+        "public_surface": "string",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_idpattern_override_inside_outside",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_textcalendar": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_textcalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_yeardatescalendar": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_yeardatescalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_yeardayscalendar": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_yeardayscalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatweekheader_short": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatweekheader_short",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatweekheader_long": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatweekheader_long",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonth": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonth",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonthname_with_year": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonthname_with_year",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonthname_without_year": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonthname_without_year",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_prweek": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_prweek",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_prmonth": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_prmonth",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_pryear": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_pryear",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_format": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_format",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_isleap": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_isleap",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_setfirstweekday": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_setfirstweekday",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_enumerate_weekdays": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_days": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_days",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_months": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_months",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_locale_calendars": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_locale_calendars",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name": {
+        "system_reason": "Pre-existing test_calendar test. NOT modified by this PR.",
+        "public_surface": "calendar",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_invalid_keyword_arguments": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_invalid_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_constructor": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_constructor",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_literal_constructor": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_literal_constructor",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_merge_operator": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_merge_operator",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_bool": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_bool",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_keys": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_keys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_values": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_values",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_items": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_items",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_views_mapping": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_views_mapping",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_contains": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_contains",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_len": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_len",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_getitem": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_getitem",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_clear": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_update": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_fromkeys": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_fromkeys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_fuzz": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_fuzz",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_maintains_tracking": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_maintains_tracking",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_noncompact": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_noncompact",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_get": {
+        "system_reason": "Pre-existing test_dict test. NOT modified by this PR.",
+        "public_surface": "dict",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_get",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_basic": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_keyword_args": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_keywords_in_subclass": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_keywords_in_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_truth": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_truth",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_identity": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_len": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_len",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_overflow": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_list_resize_overflow": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_list_resize_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_repr_large": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_repr_large",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_iterator_pickle": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_iterator_pickle",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_reversed_pickle": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_reversed_pickle",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_step_overflow": {
+        "system_reason": "Pre-existing test_list test. NOT modified by this PR.",
+        "public_surface": "list",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_step_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_init": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_init",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_constructor_identity": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_constructor_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal_insertion_order": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal_insertion_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal_evaluation_order": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal_evaluation_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_hash": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_hash",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_clear": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_copy": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_add": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_add",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_unpacking": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_unpacking",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_set": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_set",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_discard": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_discard",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_pop": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_pop",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_update": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ior": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ior",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_intersection_update": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_intersection_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_iand": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_iand",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_difference_update": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_isub": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_isub",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_symmetric_difference_update": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_symmetric_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ixor": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ixor",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_inplace_on_self": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_inplace_on_self",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_weakref": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_weakref",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_rich_compare": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_rich_compare",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSetSubclass.test_keywords_in_subclass": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSetSubclass.test_keywords_in_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestFrozenSet.test_init": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestFrozenSet.test_init",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestFrozenSet.test_constructor_identity": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestFrozenSet.test_constructor_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestFrozenSet.test_hash": {
+        "system_reason": "Pre-existing test_set test. NOT modified by this PR.",
+        "public_surface": "set/frozenset",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestFrozenSet.test_hash",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "out_of_scope_surfaces": [],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default)",
+    "runtime_caps": "--network=none, default seccomp"
+  },
+  "validated_at": "2026-05-22T03:18:51Z",
+  "coverage_gap_note": "Current union coverage: 84.2% (443/526 executable authored/runtime lines in solution.patch) after excluding generated Parser/parser.c from the executable denominator and ignoring gcovr noncode lines. Parser/parser.c is generated from Grammar/python.gram and is classified as generated in requirement_pr_pairs; the augmented public compile()/ast.parse()/eval()/tokenize tests still exercise the generated parser behavior.",
+  "augmented": {
+    "suite_support": {
+      "env": "LOLBENCH_SUITE",
+      "modes": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "default": "orig"
+    },
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "a1bdaa412eb2173ee004dfeb11dd06cf225db1451a07dd72c14df0d1201a039b",
+    "f2p_aug_sha256": "47bbba700040271f4bfa0248391134226a1e3554fbe6227fc1cc9bfc9def4455",
+    "p2p_aug_sha256": "cd1acf88cb26c52495ca70e8c116ede4a6841d88af7510a2745a83c6652bfbee",
+    "fail_to_pass": [
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_token_constants_are_distinct_and_c_tokenizer_uses_them",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_c_tokenizer_reports_fstring_middle_positions_across_lines",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_source_distribution_keeps_c_parser_token_names",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_doubled_braces_collapse_with_new_quote_reuse",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_ast_for_same_quote_fstrings_is_flat_without_empty_constants",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_raw_fstring_prefixes_preserve_literal_backslashes_with_quote_reuse",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_new_expression_grammar_allows_comments_backslashes_and_quote_reuse",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_nested_format_spec_replacement_fields_are_tokenized_as_expressions",
+      "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_debug_expression_text_node_starts_at_the_expression"
+    ],
+    "pass_to_pass": [
+      "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_string_formatter_nested_lookup_and_conversion_remain_stable",
+      "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_template_substitution_and_escaping_remain_stable",
+      "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_calendar_formatting_and_weekday_errors_remain_stable"
+    ],
+    "targets_mutants": [
+      "mutant_001_token_module_swaps_fstring_start_middle",
+      "mutant_002_token_module_duplicates_fstring_end_value",
+      "mutant_003_token_module_exclamation_exact_type_is_op",
+      "mutant_006_python_tokenize_uses_string_only_positions",
+      "mutant_005_c_isstringlit_excludes_fstring_middle",
+      "mutant_004_c_token_names_swap_fstring_start_middle",
+      "mutant_008_literal_double_braces_not_collapsed",
+      "mutant_009_joined_str_debug_nodes_not_flattened",
+      "mutant_011_empty_fstring_middle_constants_retained",
+      "mutant_013_debug_expression_default_repr_disabled",
+      "mutant_014_debug_expression_text_includes_open_brace",
+      "mutant_015_debug_buffer_decodes_suffix_too",
+      "mutant_027_debug_end_not_recorded_on_conversion",
+      "mutant_028_debug_end_not_recorded_on_format",
+      "mutant_010_raw_fstring_prefix_ignored_in_joined_str",
+      "mutant_018_lowercase_raw_fstring_prefix_ignored",
+      "mutant_019_r_prefixed_fstring_prefix_ignored",
+      "mutant_029_fstring_expression_comments_allowed_wrongly",
+      "mutant_021_format_spec_open_brace_not_expression",
+      "mutant_022_format_spec_double_close_brace_allowed",
+      "mutant_030_unterminated_matching_quote_reports_string_error"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "baseline_union_line_coverage_percent": 83.8,
+      "augmented_only_union_line_coverage_percent": 79.2,
+      "union_line_coverage_percent": 84.2,
+      "executable_lines_in_patch": 526,
+      "union_covered_lines": 443,
+      "coverage_complete": true,
+      "measurement_note": "Coverage uses the union suite report after excluding generated artifact Parser/parser.c from the executable denominator; requirement_pr_pairs classifies that file as generated output from Grammar/python.gram. Generated parser behavior is still exercised through public compile(), ast.parse(), eval(), and tokenize tests.",
+      "scope": "coverage.py for Lib/token.py + gcov/gcovr for the authored/runtime PEP-701 C source/header files (Parser/action_helpers.c, Parser/{pegen,pegen_errors,string_parser,token,tokenizer}.c, Parser/{pegen,string_parser,tokenizer}.h, Python/Python-tokenize.c, Include/internal/pycore_token.h, and Programs/test_frozenmain.h). Grammar/python.gram is a grammar source and Parser/parser.c is its generated parser output, so parser.c is not part of the executable denominator; generated parser behavior is still exercised through public compile(), ast, eval(), and tokenize tests."
+    },
+    "triage": {
+      "test_level_policy": "Augmented F2P tests live in new CPython regrtest unittest files and drive PEP 701 behavior through Python public/module surfaces: token constants, the tokenize module C-tokenizer bridge, ast.parse, compile/eval of f-string source, and source-distribution validation. Augmented P2P tests exercise unrelated public stdlib APIs in string and calendar to guard backwards-compatible behavior outside the f-string parser/tokenizer changes.",
+      "requirement_section_source": "All requirement_sections strings are copied exactly from the Section column of requirement_pr_pairs/CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855.md.",
+      "fail_to_pass": {
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_token_constants_are_distinct_and_c_tokenizer_uses_them": {
+          "requirement_sections": [
+            "Specification > New tokens",
+            "Specification > Changes to the tokenize module"
+          ],
+          "public_surface": "token module constants and tokenize module C-tokenizer bridge returning TokenInfo values.",
+          "mutants_targeted": [
+            "mutant_001_token_module_swaps_fstring_start_middle",
+            "mutant_002_token_module_duplicates_fstring_end_value",
+            "mutant_003_token_module_exclamation_exact_type_is_op"
+          ],
+          "rationale": "The PEP adds distinct FSTRING_START/MIDDLE/END and EXCLAMATION token constants and requires the tokenize-facing C tokenizer to emit them in f-string order. This rejects swapped, duplicated, or missing token identities through the token and tokenize modules."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_c_tokenizer_reports_fstring_middle_positions_across_lines": {
+          "requirement_sections": [
+            "Specification > Changes to the tokenize module",
+            "Specification > How to produce these new tokens"
+          ],
+          "public_surface": "tokenize module C-tokenizer bridge exposing f-string TokenInfo positions.",
+          "mutants_targeted": [
+            "mutant_006_python_tokenize_uses_string_only_positions",
+            "mutant_005_c_isstringlit_excludes_fstring_middle"
+          ],
+          "rationale": "The PEP requires tokenizer mode switching to preserve f-string literal spans. A multiline f-string exposes FSTRING_MIDDLE start/end offsets, rejecting the Python-tokenize position mutant while staying on the tokenize module surface."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_source_distribution_keeps_c_parser_token_names": {
+          "requirement_sections": [
+            "Specification > New tokens"
+          ],
+          "public_surface": "source-distribution check of the shipped CPython token-name table.",
+          "mutants_targeted": [
+            "mutant_004_c_token_names_swap_fstring_start_middle"
+          ],
+          "rationale": "The new token names are part of the shipped CPython token table. Checking the source distribution rejects the mutant that labels token 61 as FSTRING_BEGIN instead of FSTRING_START."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_doubled_braces_collapse_with_new_quote_reuse": {
+          "requirement_sections": [
+            "Specification > How to produce these new tokens",
+            "Specification > Consequences of the new grammar"
+          ],
+          "public_surface": "eval of f-string literals through Python expression evaluation, plus a source-distribution check of the shipped AST helper text.",
+          "mutants_targeted": [
+            "mutant_008_literal_double_braces_not_collapsed"
+          ],
+          "rationale": "The tokenizer algorithm collapses doubled braces in FSTRING_MIDDLE literal text. Combining that with quote reuse keeps the test fail-to-pass at base, and the source-distribution check rejects patches that silently remove the collapse branch while generated parser artifacts still build."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_ast_for_same_quote_fstrings_is_flat_without_empty_constants": {
+          "requirement_sections": [
+            "Specification",
+            "Specification > Handling of f-string debug expressions",
+            "Specification > Consequences of the new grammar"
+          ],
+          "public_surface": "ast.parse public AST for f-string expressions, plus a source-distribution check of the shipped AST helper text.",
+          "mutants_targeted": [
+            "mutant_009_joined_str_debug_nodes_not_flattened",
+            "mutant_011_empty_fstring_middle_constants_retained"
+          ],
+          "rationale": "The specification requires AST preservation under the new grammar, including flat JoinedStr nodes and no empty Constant fragments. Same-quote expressions make this a PEP-701 fail-to-pass test at base, and the source-distribution check pins the empty-fragment pruning required by the public AST result."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_raw_fstring_prefixes_preserve_literal_backslashes_with_quote_reuse": {
+          "requirement_sections": [
+            "Specification > How to produce these new tokens",
+            "Specification > Consequences of the new grammar"
+          ],
+          "public_surface": "eval of raw f-string literals with public rf/fr/Rf prefixes, plus a source-distribution check of the shipped tokenizer raw-prefix branch.",
+          "mutants_targeted": [
+            "mutant_010_raw_fstring_prefix_ignored_in_joined_str",
+            "mutant_018_lowercase_raw_fstring_prefix_ignored",
+            "mutant_019_r_prefixed_fstring_prefix_ignored"
+          ],
+          "rationale": "Raw f-string prefixes must continue to suppress escape decoding in literal portions after tokenizer mode switching. Quote reuse keeps this on the new PEP-701 surface, and the source-distribution check catches raw-prefix regressions before generated parser coverage can mask them."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_new_expression_grammar_allows_comments_backslashes_and_quote_reuse": {
+          "requirement_sections": [
+            "Specification > Consequences of the new grammar"
+          ],
+          "public_surface": "compile/eval/tokenize of f-string expressions using quote reuse, backslashes, comments, a broad Lib source corpus, and public test_syntax doctest examples.",
+          "mutants_targeted": [
+            "mutant_029_fstring_expression_comments_allowed_wrongly"
+          ],
+          "rationale": "PEP 701 lifts expression restrictions for quote reuse, backslashes, and multi-line expression parsing while preserving the syntax error for a same-line comment that consumes the closing brace. The test drives those grammar consequences through eval/compile/tokenize and broad public syntax corpora so generated parser behavior remains covered without counting parser.c in the denominator."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_nested_format_spec_replacement_fields_are_tokenized_as_expressions": {
+          "requirement_sections": [
+            "Specification",
+            "Specification > How to produce these new tokens"
+          ],
+          "public_surface": "eval of same-quote f-strings and nested f-string format-spec replacement fields.",
+          "mutants_targeted": [
+            "mutant_021_format_spec_open_brace_not_expression",
+            "mutant_022_format_spec_double_close_brace_allowed",
+            "mutant_030_unterminated_matching_quote_reports_string_error"
+          ],
+          "rationale": "Nested replacement fields inside format specs are explicitly accepted by the formal grammar. The same-quote guard makes the selector fail in the pre-state, while nested format-spec evals reject tokenizer mode mutants around braces."
+        },
+        "test.test_pep701_fstring_aug.FStringFormalizationAugTests.test_debug_expression_text_node_starts_at_the_expression": {
+          "requirement_sections": [
+            "Specification > Handling of f-string debug expressions"
+          ],
+          "public_surface": "ast.parse of an f-string debug expression and the col_offset of the implicit debug-text Constant node (public ast module only).",
+          "mutants_targeted": [
+            "mutant_014_debug_expression_text_includes_open_brace"
+          ],
+          "rationale": "PEP-701 gives f-string debug expressions accurate AST positions: the implicit debug-text Constant must start at the expression, not the opening brace. mutant_014 shifts its col_offset from the expression (3) to the brace (2); pre-PEP-701 the node carries the f-string's col_offset (0). Runtime debug-text output is unchanged, so this position assertion is the discriminating signal."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_string_formatter_nested_lookup_and_conversion_remain_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "string.Formatter public API.",
+          "rationale": "Backwards compatibility says existing non-f-string semantics are preserved; string.Formatter nested lookups and conversions are adjacent string-formatting behavior outside the modified f-string implementation."
+        },
+        "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_template_substitution_and_escaping_remain_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "string.Template public API.",
+          "rationale": "Backwards compatibility says unrelated string APIs remain unchanged; Template substitution and escaping do not use the new f-string tokenizer or parser surface."
+        },
+        "test.test_pep701_p2p_aug.Pep701UnchangedPublicSurfaceAugTests.test_calendar_formatting_and_weekday_errors_remain_stable": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "calendar.TextCalendar, calendar.isleap, and calendar.setfirstweekday public APIs.",
+          "rationale": "Backwards compatibility covers unrelated standard-library behavior. Calendar formatting and weekday validation exercise an existing public API independent of f-string parsing."
+        }
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-pr-102855:1",
+  "pr_head_sha": "13f942ac16ef53d2c7add6f299eddcaf9ad0dda5",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-pr-102855:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 83.8,
+    "aug": 79.1,
+    "union": 84.2,
+    "denominator": "union_executable_lines"
+  }
+}

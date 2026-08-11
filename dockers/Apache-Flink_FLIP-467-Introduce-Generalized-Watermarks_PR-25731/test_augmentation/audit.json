@@ -1,0 +1,108 @@
+{
+  "instance_id": "Apache-Flink_FLIP-467-Introduce-Generalized-Watermarks_PR-25731",
+  "suite_support": {
+    "env": "LOLBENCH_SUITE",
+    "modes": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "default": "orig"
+  },
+  "sidecar_patch": "eval_tests_aug.patch",
+  "sidecar_patch_sha256": "57af2e69c8841e66f26cce73bf82e65b8153f90777151a94e789d7192c89978f",
+  "new_file_rule": "All active augmented selectors are supplied by eval_tests_aug.patch in new test files under flink-tests and flink-clients.",
+  "tests": {
+    "org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testDefaultDeclarationPoliciesAndWatermarks": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Proposed Changes > Watermark Definition",
+        "Proposed Changes > Declare Watermark",
+        "Proposed Changes > Combine Watermarks"
+      ],
+      "public_surface": "WatermarkDeclarations.newBuilder(...).typeLong/typeBool().build(), LongWatermarkDeclaration, BoolWatermarkDeclaration, LongWatermark, BoolWatermark, and WatermarkCombinationPolicy getters.",
+      "kills_mutants": [
+        "mutant_001_long_builder_default_max",
+        "mutant_002_bool_builder_default_or"
+      ],
+      "coverage_goal": "Builds long and bool declarations without optional builder calls and verifies the FLIP-specified default MIN and AND combination policies, default FORWARD handling, and produced watermark identifiers/values. This makes flipped builder defaults observable through the public declaration surface.",
+      "internal_symbol_check": "No private production helper is called from the sidecar test source."
+    },
+    "org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testExplicitDeclarationPoliciesAndHandlingStrategies": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Proposed Changes > Declare Watermark",
+        "Proposed Changes > Combine Watermarks",
+        "Proposed Changes > Handle Watermarks in Process Function"
+      ],
+      "public_surface": "WatermarkDeclarations long/bool builders using combineFunctionMax, combineFunctionMin, combineFunctionOR, combineFunctionAND, combineWaitForAllChannels, defaultHandlingStrategyIgnore, and defaultHandlingStrategyForward.",
+      "kills_mutants": [
+        "mutant_003_combine_function_max_sets_min",
+        "mutant_004_combine_function_or_sets_and",
+        "mutant_005_ignore_strategy_maps_to_forward",
+        "mutant_006_wait_for_all_setter_ignored"
+      ],
+      "coverage_goal": "Uses explicit public builder calls and verifies the selected combination function, wait-for-all flag, and default handling strategy. Distinct chained calls catch ignored setters and wrong enum assignments directly from the public declaration object.",
+      "internal_symbol_check": "No private production helper is called from the sidecar test source."
+    },
+    "org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testPolicyGetterCarriesWaitForAllFlag": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Proposed Changes > Combine Watermarks"
+      ],
+      "public_surface": "WatermarkCombinationPolicy constructor, getWatermarkCombinationFunction, and isCombineWaitForAllChannels.",
+      "kills_mutants": [
+        "mutant_006_wait_for_all_setter_ignored"
+      ],
+      "coverage_goal": "Pins the public policy object invariant that combineWaitForAllChannels is preserved by the flag-carrying value object used by watermark combination.",
+      "internal_symbol_check": "No private production helper is called from the sidecar test source."
+    },
+    "org.apache.flink.test.streaming.api.datastream.WatermarkCoreApiAugTest#testWatermarkValueAndDeclarationAccessors": {
+      "kind": "F2P-cov",
+      "requirement_sections": [
+        "Proposed Changes > Watermark Definition",
+        "Proposed Changes > Declare Watermark",
+        "Proposed Changes > Combine Watermarks"
+      ],
+      "public_surface": "LongWatermark, BoolWatermark, LongWatermarkDeclaration, and BoolWatermarkDeclaration constructors and getters through public watermark declaration/value APIs.",
+      "kills_mutants": [],
+      "coverage_goal": "Covers the FLIP-visible watermark value and declaration accessor branches without requiring PR-specific equality, hashing, or string formatting behavior.",
+      "internal_symbol_check": "No private production helper is called from the sidecar test source."
+    },
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip467AugTest#testSleepTimeUsesConfiguredCapAfterOverflow": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "ExponentialWaitStrategy.sleepTime(long) in flink-clients.",
+      "stability_goal": "Pins an unrelated public client retry cap behavior so generalized watermark changes do not regress adjacent client functionality outside the modified watermark modules.",
+      "internal_symbol_check": "No generalized watermark symbols or private production helpers are imported."
+    },
+    "org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip467AugTest#testNegativeAttemptIsRejected": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "ExponentialWaitStrategy.sleepTime(long) in flink-clients.",
+      "stability_goal": "Pins the existing negative-attempt validation in flink-clients, a P2P stability surface independent of generalized watermark declarations and runtime emission.",
+      "internal_symbol_check": "No generalized watermark symbols or private production helpers are imported."
+    }
+  },
+  "coverage_validation": {
+    "status": "passed",
+    "required_minimum_percent": 80,
+    "reports": {
+      "baseline": "coverage_out/coverage_report_orig.json",
+      "augmented_only": "coverage_out/coverage_report_aug.json",
+      "union": "coverage_out/coverage_report_union.json"
+    },
+    "measurement_note": "JaCoCo line coverage over executable Java lines added by solution.patch; union mode runs original plus augmented F2P/P2P selectors.",
+    "baseline_union_line_coverage_percent": 55.3,
+    "augmented_only_union_line_coverage_percent": 71.9,
+    "union_line_coverage_percent": 80.3,
+    "executable_lines_in_patch": 676,
+    "union_covered_lines": 543,
+    "coverage_complete": true,
+    "post_audit_note": "Coverage figures are historical from before the post-audit removal of unselected internal-import hunks; active F2P/P2P selector behavior is unchanged."
+  }
+}

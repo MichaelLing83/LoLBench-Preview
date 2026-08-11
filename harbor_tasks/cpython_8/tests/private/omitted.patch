@@ -1,0 +1,35 @@
+diff --git a/Doc/library/token-list.inc b/Doc/library/token-list.inc
+index 2739d5bfc1..3b345099bf 100644
+--- a/Doc/library/token-list.inc
++++ b/Doc/library/token-list.inc
+@@ -201,6 +201,10 @@
+ 
+    Token value for ``":="``.
+ 
++.. data:: EXCLAMATION
++
++   Token value for ``"!"``.
++
+ .. data:: OP
+ 
+ .. data:: AWAIT
+@@ -213,6 +217,12 @@
+ 
+ .. data:: SOFT_KEYWORD
+ 
++.. data:: FSTRING_START
++
++.. data:: FSTRING_MIDDLE
++
++.. data:: FSTRING_END
++
+ .. data:: ERRORTOKEN
+ 
+ .. data:: N_TOKENS
+diff --git a/Misc/NEWS.d/next/Core and Builtins/2023-04-17-16-00-32.gh-issue-102856.UunJ7y.rst b/Misc/NEWS.d/next/Core and Builtins/2023-04-17-16-00-32.gh-issue-102856.UunJ7y.rst
+new file mode 100644
+index 0000000000..35eceb8381
+--- /dev/null
++++ b/Misc/NEWS.d/next/Core and Builtins/2023-04-17-16-00-32.gh-issue-102856.UunJ7y.rst	
+@@ -0,0 +1 @@
++Implement the required C tokenizer changes for PEP 701. Patch by Pablo Galindo Salgado, Lysandros Nikolaou, Batuhan Taskaya, Marta Gómez Macías and sunmy2019.

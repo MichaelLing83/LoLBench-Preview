@@ -1,0 +1,237 @@
+diff --git a/Lib/test/test_pep701_fstring_aug.py b/Lib/test/test_pep701_fstring_aug.py
+new file mode 100644
+index 0000000..4bbeda8
+--- /dev/null
++++ b/Lib/test/test_pep701_fstring_aug.py
+@@ -0,0 +1,201 @@
++import ast
++import pathlib
++import token
++import tokenize
++import unittest
++
++
++CPYTHON_ROOT = pathlib.Path(__file__).resolve().parents[2]
++
++
++def c_token_infos(source):
++    return list(tokenize._generate_tokens_from_c_tokenizer(source))
++
++
++def c_token_tuples(source):
++    return [
++        (token.tok_name.get(info.type, info.type), info.string, info.start, info.end)
++        for info in c_token_infos(source)
++    ]
++
++
++class FStringFormalizationAugTests(unittest.TestCase):
++    def test_token_constants_are_distinct_and_c_tokenizer_uses_them(self):
++        self.assertNotEqual(token.FSTRING_START, token.FSTRING_MIDDLE)
++        self.assertNotEqual(token.FSTRING_MIDDLE, token.FSTRING_END)
++        self.assertEqual(token.tok_name[token.FSTRING_START], "FSTRING_START")
++        self.assertEqual(token.tok_name[token.FSTRING_MIDDLE], "FSTRING_MIDDLE")
++        self.assertEqual(token.tok_name[token.FSTRING_END], "FSTRING_END")
++        self.assertEqual(token.EXACT_TOKEN_TYPES["!"], token.EXCLAMATION)
++
++        infos = c_token_infos('f"alpha {value!r:.{width}f} omega"\n')
++        self.assertEqual(
++            [(info.type, info.string) for info in infos[:8]],
++            [
++                (token.FSTRING_START, 'f"'),
++                (token.FSTRING_MIDDLE, "alpha "),
++                (token.LBRACE, "{"),
++                (token.NAME, "value"),
++                (token.EXCLAMATION, "!"),
++                (token.NAME, "r"),
++                (token.COLON, ":"),
++                (token.FSTRING_MIDDLE, "."),
++            ],
++        )
++        self.assertEqual(infos[-2].type, token.FSTRING_END)
++        self.assertEqual(infos[-2].string, '"')
++
++    def test_c_tokenizer_reports_fstring_middle_positions_across_lines(self):
++        tokens = c_token_tuples('f"""alpha\n{value}\nomega"""\n')
++        self.assertEqual(tokens[0], ("FSTRING_START", 'f"""', (1, 0), (1, 4)))
++        self.assertEqual(tokens[1], ("FSTRING_MIDDLE", "alpha\n", (1, 4), (2, 0)))
++        self.assertEqual(tokens[2:5], [
++            ("LBRACE", "{", (2, 0), (2, 1)),
++            ("NAME", "value", (2, 1), (2, 6)),
++            ("RBRACE", "}", (2, 6), (2, 7)),
++        ])
++        self.assertEqual(tokens[5], ("FSTRING_MIDDLE", "\nomega", (2, 17), (3, 5)))
++        self.assertEqual(tokens[6], ("FSTRING_END", '"""', (3, 5), (3, 8)))
++
++    def test_source_distribution_keeps_c_parser_token_names(self):
++        token_c = (CPYTHON_ROOT / "Parser" / "token.c").read_text()
++        self.assertIn('"FSTRING_START"', token_c)
++        self.assertIn('"FSTRING_MIDDLE"', token_c)
++        self.assertIn('"FSTRING_END"', token_c)
++        self.assertNotIn('"FSTRING_BEGIN"', token_c)
++
++    def test_doubled_braces_collapse_with_new_quote_reuse(self):
++        mapping = {"x": "value"}
++        self.assertEqual(eval('f"{{}}"'), "{}")
++        self.assertEqual(eval('f"{mapping[\"x\"]} {{}}"'), "value {}")
++        self.assertEqual(eval('f"{{{mapping[\"x\"]}}}"'), "{value}")
++
++    def test_ast_for_same_quote_fstrings_is_flat_without_empty_constants(self):
++        expr = ast.parse('f"{mapping[\"x\"]=}"', mode="eval").body
++        self.assertIsInstance(expr, ast.JoinedStr)
++        self.assertEqual(len(expr.values), 2)
++        self.assertIsInstance(expr.values[0], ast.Constant)
++        self.assertEqual(expr.values[0].value, 'mapping["x"]=')
++        self.assertIsInstance(expr.values[1], ast.FormattedValue)
++        self.assertFalse(any(isinstance(value, ast.JoinedStr) for value in expr.values))
++
++        expr = ast.parse('f"{x}"', mode="eval").body
++        self.assertIsInstance(expr, ast.JoinedStr)
++        self.assertEqual(len(expr.values), 1)
++        self.assertIsInstance(expr.values[0], ast.FormattedValue)
++
++    def test_debug_text_stops_before_conversion_and_format_suffixes(self):
++        mapping = {"x": 7}
++        x = 7
++        self.assertEqual(eval('f"{x=}"'), "x=7")
++        self.assertEqual(eval('f"{mapping[\"x\"]=}"'), 'mapping["x"]=7')
++        self.assertEqual(eval('f"{mapping[\"x\"]=!r}"'), 'mapping["x"]=7')
++        self.assertEqual(eval('f"{mapping[\"x\"]=:>3}"'), 'mapping["x"]=  7')
++
++        converted = ast.parse('f"{mapping[\"x\"]=!r}"', mode="eval").body.values
++        self.assertEqual(converted[0].value, 'mapping["x"]=')
++        self.assertEqual(converted[1].conversion, ord("r"))
++
++    def test_raw_fstring_prefixes_preserve_literal_backslashes_with_quote_reuse(self):
++        mapping = {"x": "tail"}
++        self.assertEqual(eval('rf"\\n{mapping[\"x\"]}"'), "\\ntail")
++        self.assertEqual(eval('rf"{mapping[\"x\"]}\\n"'), "tail\\n")
++        self.assertEqual(eval('fr"{mapping[\"x\"]}\\t"'), "tail\\t")
++        self.assertEqual(eval('Rf"{mapping[\"x\"]}\\r"'), "tail\\r")
++
++    def test_new_expression_grammar_allows_comments_backslashes_and_quote_reuse(self):
++        data = {"key": "left"}
++        self.assertEqual(eval('f"{data[\"key\"]}"'), "left")
++        self.assertEqual(eval('f"{\'\\n\'.join([\'a\', \'b\'])}"'), "a\nb")
++        self.assertEqual(eval('f"""{1 +\n 2\n}"""'), "3")
++        with self.assertRaises(SyntaxError):
++            compile('f"{1 # comment}"', "<pep701-aug>", "eval")
++        compiled = 0
++        for path in sorted((CPYTHON_ROOT / "Lib").rglob("*.py")):
++            relative = path.relative_to(CPYTHON_ROOT).as_posix()
++            if "badsyntax" in relative or "bad_coding" in relative:
++                continue
++            try:
++                with tokenize.open(path) as handle:
++                    compile(handle.read(), relative, "exec")
++            except (SyntaxError, UnicodeDecodeError, ValueError):
++                continue
++            compiled += 1
++        self.assertGreater(compiled, 700)
++        import doctest
++        from test import test_syntax
++        syntax_errors = 0
++        for example in doctest.DocTestParser().get_examples(test_syntax.__doc__):
++            try:
++                compile(example.source, "<test_syntax doctest>", "exec")
++            except SyntaxError:
++                syntax_errors += 1
++        self.assertGreater(syntax_errors, 100)
++        namespace = {
++            "data": {"key": "left"},
++            "items": [1, 2],
++            "name": "alpha",
++            "precision": 2,
++            "range": range,
++            "value": 3.14159,
++            "width": 8,
++            "x": 7,
++        }
++        valid_sources = [
++            'f"{data[\"key\"]}"',
++            'rf"\\n{data[\"key\"]}"',
++            'fr"{data[\"key\"]}\\t"',
++            'f"{(lambda y: y + 1)(x)}"',
++            'f"{[i * i for i in range(3)]}"',
++            'f"{(1, *items)}"',
++            'f"{value!r:>{width}}"',
++            'f"{value:{width}.{precision}f}"',
++            'f"{name=!s:>12}"',
++            'F"{x = :#04x}"',
++            'f"{{{data[\"key\"]}}}"',
++            'f"{ {\"a\": 1} | {\"b\": 2} }"',
++            'f"""{1 +\n 2\n}"""',
++        ]
++        for source in valid_sources:
++            self.assertIsInstance(eval(source, namespace), str)
++            self.assertTrue(c_token_infos(source + "\n"))
++        invalid_sources = [
++            'f"{"',
++            'f"}"',
++            'f"{x"',
++            'f"{x!"',
++            'f"{x!rr}"',
++            'f"{!r}"',
++            'f"{}"',
++            'f"{lambda x: x}"',
++            'f"{x:{"',
++            'f"{x:{width}"',
++            'f"{1 # comment}"',
++        ]
++        for source in invalid_sources:
++            with self.assertRaises(SyntaxError):
++                compile(source, "<pep701-invalid-corpus>", "eval")
++
++
++    def test_nested_format_spec_replacement_fields_are_tokenized_as_expressions(self):
++        guard = {"x": "ok"}
++        self.assertEqual(eval('f"{guard[\"x\"]}"'), "ok")
++        width = 5
++        precision = 2
++        value = 3.14159
++
++    def test_debug_expression_text_node_starts_at_the_expression(self):
++        # PEP-701 reparses f-strings with the new PEG grammar and gives debug
++        # expressions ('f"{expr=}"') accurate AST positions. The implicit
++        # debug-text Constant must start at the expression itself, not at the
++        # opening brace (pre-PEP-701 it carried the f-string's col_offset of 0).
++        src = 'f"{x=}"'
++        const = ast.parse(src).body[0].value.values[0]
++        self.assertIsInstance(const, ast.Constant)
++        self.assertEqual(const.value, "x=")
++        self.assertEqual(
++            src[const.col_offset],
++            "x",
++            "debug-text node points at %r, not the expression" % src[const.col_offset],
++        )
++
+diff --git a/Lib/test/test_pep701_p2p_aug.py b/Lib/test/test_pep701_p2p_aug.py
+new file mode 100644
+index 0000000..84e3910
+--- /dev/null
++++ b/Lib/test/test_pep701_p2p_aug.py
+@@ -0,0 +1,24 @@
++import calendar
++import string
++import unittest
++
++
++class Pep701UnchangedPublicSurfaceAugTests(unittest.TestCase):
++    def test_string_formatter_nested_lookup_and_conversion_remain_stable(self):
++        formatter = string.Formatter()
++        rendered = formatter.format("{name!r:^10} -> {point[0]:03d}/{point[1]:03d}", name="x", point=(7, 42))
++        self.assertEqual(rendered, "   'x'     -> 007/042")
++        self.assertEqual("{0.real:.1f}+{0.imag:.1f}j".format(3 + 4j), "3.0+4.0j")
++
++    def test_template_substitution_and_escaping_remain_stable(self):
++        template = string.Template("$kind:${name}:$$${amount}")
++        self.assertEqual(template.substitute(kind="item", name="alpha", amount="9"), "item:alpha:$9")
++        self.assertEqual(template.safe_substitute(kind="item"), "item:${name}:$${amount}")
++
++    def test_calendar_formatting_and_weekday_errors_remain_stable(self):
++        cal = calendar.TextCalendar(firstweekday=calendar.SUNDAY)
++        self.assertEqual(cal.formatweekheader(2), "Su Mo Tu We Th Fr Sa")
++        self.assertTrue(calendar.isleap(2000))
++        self.assertFalse(calendar.isleap(1900))
++        with self.assertRaises(calendar.IllegalWeekdayError):
++            calendar.setfirstweekday(9)

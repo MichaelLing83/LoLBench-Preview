@@ -1,0 +1,1199 @@
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSinkConnector.java b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSinkConnector.java
+index 5733199a04..8309d72313 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSinkConnector.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSinkConnector.java
+@@ -20,7 +20,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+ import org.apache.kafka.common.TopicPartition;
+ import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.kafka.connect.connector.Task;
+-import org.apache.kafka.connect.runtime.TestSinkConnector;
++import org.apache.kafka.connect.runtime.SampleSinkConnector;
+ import org.apache.kafka.connect.sink.SinkRecord;
+ import org.apache.kafka.connect.sink.SinkTask;
+ import org.slf4j.Logger;
+@@ -39,7 +39,7 @@ import java.util.Map;
+  * which are initiated by the embedded connector, and wait for them to consume a desired number of
+  * messages.
+  */
+-public class MonitorableSinkConnector extends TestSinkConnector {
++public class MonitorableSinkConnector extends SampleSinkConnector {
+ 
+     private static final Logger log = LoggerFactory.getLogger(MonitorableSinkConnector.class);
+ 
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSourceConnector.java b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSourceConnector.java
+index 390927cee1..4f13ad08a2 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSourceConnector.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/MonitorableSourceConnector.java
+@@ -21,7 +21,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
+ import org.apache.kafka.connect.connector.Task;
+ import org.apache.kafka.connect.data.Schema;
+ import org.apache.kafka.connect.header.ConnectHeaders;
+-import org.apache.kafka.connect.runtime.TestSourceConnector;
++import org.apache.kafka.connect.runtime.SampleSourceConnector;
+ import org.apache.kafka.connect.source.SourceRecord;
+ import org.apache.kafka.connect.source.SourceTask;
+ import org.apache.kafka.tools.ThroughputThrottler;
+@@ -43,7 +43,7 @@ import java.util.stream.LongStream;
+  * that generates records of a fixed structure. The rate of record production can be adjusted
+  * through the configs 'throughput' and 'messages.per.poll'
+  */
+-public class MonitorableSourceConnector extends TestSourceConnector {
++public class MonitorableSourceConnector extends SampleSourceConnector {
+     private static final Logger log = LoggerFactory.getLogger(MonitorableSourceConnector.class);
+ 
+     public static final String TOPIC_CONFIG = "topic";
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/AbstractHerderTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/AbstractHerderTest.java
+index d64dbaa216..5b9e199e5a 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/AbstractHerderTest.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/AbstractHerderTest.java
+@@ -23,18 +23,20 @@ import org.apache.kafka.common.config.ConfigException;
+ import org.apache.kafka.common.config.ConfigTransformer;
+ import org.apache.kafka.common.config.ConfigValue;
+ import org.apache.kafka.common.config.SaslConfigs;
++import org.apache.kafka.common.config.provider.DirectoryConfigProvider;
+ import org.apache.kafka.common.security.oauthbearer.internals.unsecured.OAuthBearerUnsecuredLoginCallbackHandler;
+-import org.apache.kafka.connect.connector.ConnectRecord;
+ import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.policy.AllConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.connector.policy.ConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.connector.policy.NoneConnectorClientConfigOverridePolicy;
+ import org.apache.kafka.connect.connector.policy.PrincipalConnectorClientConfigOverridePolicy;
++import org.apache.kafka.connect.errors.NotFoundException;
+ import org.apache.kafka.connect.runtime.distributed.ClusterConfigState;
+ import org.apache.kafka.connect.runtime.isolation.PluginDesc;
+ import org.apache.kafka.connect.runtime.isolation.Plugins;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfos;
++import org.apache.kafka.connect.runtime.rest.entities.ConfigKeyInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigValueInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConnectorStateInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConnectorType;
+@@ -69,6 +71,7 @@ import java.util.function.Function;
+ import java.util.stream.Collectors;
+ 
+ import static org.apache.kafka.connect.runtime.AbstractHerder.keysWithVariableValues;
++import static org.easymock.EasyMock.anyString;
+ import static org.junit.Assert.assertNull;
+ import static org.junit.Assert.assertThrows;
+ import static org.powermock.api.easymock.PowerMock.verifyAll;
+@@ -292,11 +295,11 @@ public class AbstractHerderTest {
+ 
+     @Test()
+     public void testConfigValidationNullConfig() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put("name", "somename");
+         config.put("required", "value");
+         config.put("testKey", null);
+@@ -311,11 +314,11 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationMultipleNullConfig() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put("name", "somename");
+         config.put("required", "value");
+         config.put("testKey", null);
+@@ -414,7 +417,7 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationEmptyConfig() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy, 0);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy, 0);
+         replayAll();
+ 
+         assertThrows(BadRequestException.class, () -> herder.validateConnectorConfig(Collections.emptyMap(), false));
+@@ -424,15 +427,15 @@ public class AbstractHerderTest {
+ 
+     @Test()
+     public void testConfigValidationMissingName() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+-        Map<String, String> config = Collections.singletonMap(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        Map<String, String> config = Collections.singletonMap(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         ConfigInfos result = herder.validateConnectorConfig(config, false);
+ 
+         // We expect there to be errors due to the missing name and .... Note that these assertions depend heavily on
+         // the config fields for SourceConnectorConfig, but we expect these to change rarely.
+-        assertEquals(TestSourceConnector.class.getName(), result.name());
++        assertEquals(SampleSourceConnector.class.getName(), result.name());
+         assertEquals(Arrays.asList(ConnectorConfig.COMMON_GROUP, ConnectorConfig.TRANSFORMS_GROUP,
+                 ConnectorConfig.PREDICATES_GROUP, ConnectorConfig.ERROR_GROUP, SourceConnectorConfig.TOPIC_CREATION_GROUP), result.groups());
+         assertEquals(2, result.errorCount());
+@@ -453,11 +456,11 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationInvalidTopics() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSinkConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSinkConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSinkConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSinkConnector.class.getName());
+         config.put(SinkConnectorConfig.TOPICS_CONFIG, "topic1,topic2");
+         config.put(SinkConnectorConfig.TOPICS_REGEX_CONFIG, "topic.*");
+ 
+@@ -468,11 +471,11 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationTopicsWithDlq() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSinkConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSinkConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSinkConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSinkConnector.class.getName());
+         config.put(SinkConnectorConfig.TOPICS_CONFIG, "topic1");
+         config.put(SinkConnectorConfig.DLQ_TOPIC_NAME_CONFIG, "topic1");
+ 
+@@ -483,11 +486,11 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationTopicsRegexWithDlq() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSinkConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSinkConnector.class, noneConnectorClientConfigOverridePolicy);
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSinkConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSinkConnector.class.getName());
+         config.put(SinkConnectorConfig.TOPICS_REGEX_CONFIG, "topic.*");
+         config.put(SinkConnectorConfig.DLQ_TOPIC_NAME_CONFIG, "topic1");
+ 
+@@ -498,7 +501,7 @@ public class AbstractHerderTest {
+ 
+     @Test()
+     public void testConfigValidationTransformsExtendResults() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy);
+ 
+         // 2 transform aliases defined -> 2 plugin lookups
+         Set<PluginDesc<Transformation<?>>> transformations = new HashSet<>();
+@@ -510,7 +513,7 @@ public class AbstractHerderTest {
+         // Define 2 transformations. One has a class defined and so can get embedded configs, the other is missing
+         // class info that should generate an error.
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put(ConnectorConfig.NAME_CONFIG, "connector-name");
+         config.put(ConnectorConfig.TRANSFORMS_CONFIG, "xformA,xformB");
+         config.put(ConnectorConfig.TRANSFORMS_CONFIG + ".xformA.type", SampleTransformation.class.getName());
+@@ -520,7 +523,7 @@ public class AbstractHerderTest {
+ 
+         // We expect there to be errors due to the missing name and .... Note that these assertions depend heavily on
+         // the config fields for SourceConnectorConfig, but we expect these to change rarely.
+-        assertEquals(TestSourceConnector.class.getName(), result.name());
++        assertEquals(SampleSourceConnector.class.getName(), result.name());
+         // Each transform also gets its own group
+         List<String> expectedGroups = Arrays.asList(
+                 ConnectorConfig.COMMON_GROUP,
+@@ -550,7 +553,7 @@ public class AbstractHerderTest {
+ 
+     @Test()
+     public void testConfigValidationPredicatesExtendResults() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, noneConnectorClientConfigOverridePolicy);
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, noneConnectorClientConfigOverridePolicy);
+ 
+         // 2 transform aliases defined -> 2 plugin lookups
+         Set<PluginDesc<Transformation<?>>> transformations = new HashSet<>();
+@@ -566,7 +569,7 @@ public class AbstractHerderTest {
+         // Define 2 transformations. One has a class defined and so can get embedded configs, the other is missing
+         // class info that should generate an error.
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put(ConnectorConfig.NAME_CONFIG, "connector-name");
+         config.put(ConnectorConfig.TRANSFORMS_CONFIG, "xformA");
+         config.put(ConnectorConfig.TRANSFORMS_CONFIG + ".xformA.type", SampleTransformation.class.getName());
+@@ -579,7 +582,7 @@ public class AbstractHerderTest {
+ 
+         // We expect there to be errors due to the missing name and .... Note that these assertions depend heavily on
+         // the config fields for SourceConnectorConfig, but we expect these to change rarely.
+-        assertEquals(TestSourceConnector.class.getName(), result.name());
++        assertEquals(SampleSourceConnector.class.getName(), result.name());
+         // Each transform also gets its own group
+         List<String> expectedGroups = Arrays.asList(
+                 ConnectorConfig.COMMON_GROUP,
+@@ -632,11 +635,11 @@ public class AbstractHerderTest {
+ 
+     @Test()
+     public void testConfigValidationPrincipalOnlyOverride() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, new PrincipalConnectorClientConfigOverridePolicy());
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, new PrincipalConnectorClientConfigOverridePolicy());
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put(ConnectorConfig.NAME_CONFIG, "connector-name");
+         config.put("required", "value"); // connector required config
+         String ackConfigKey = producerOverrideKey(ProducerConfig.ACKS_CONFIG);
+@@ -649,7 +652,7 @@ public class AbstractHerderTest {
+ 
+         // We expect there to be errors due to now allowed override policy for ACKS.... Note that these assertions depend heavily on
+         // the config fields for SourceConnectorConfig, but we expect these to change rarely.
+-        assertEquals(TestSourceConnector.class.getName(), result.name());
++        assertEquals(SampleSourceConnector.class.getName(), result.name());
+         // Each transform also gets its own group
+         List<String> expectedGroups = Arrays.asList(
+             ConnectorConfig.COMMON_GROUP,
+@@ -672,11 +675,11 @@ public class AbstractHerderTest {
+ 
+     @Test
+     public void testConfigValidationAllOverride() {
+-        AbstractHerder herder = createConfigValidationHerder(TestSourceConnector.class, new AllConnectorClientConfigOverridePolicy());
++        AbstractHerder herder = createConfigValidationHerder(SampleSourceConnector.class, new AllConnectorClientConfigOverridePolicy());
+         replayAll();
+ 
+         Map<String, String> config = new HashMap<>();
+-        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, TestSourceConnector.class.getName());
++        config.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, SampleSourceConnector.class.getName());
+         config.put(ConnectorConfig.NAME_CONFIG, "connector-name");
+         config.put("required", "value"); // connector required config
+         // Try to test a variety of configuration types: string, int, long, boolean, list, class
+@@ -987,53 +990,6 @@ public class AbstractHerderTest {
+         return herder;
+     }
+ 
+-    public static class SampleTransformation<R extends ConnectRecord<R>> implements Transformation<R> {
+-        @Override
+-        public void configure(Map<String, ?> configs) {
+-
+-        }
+-
+-        @Override
+-        public R apply(R record) {
+-            return record;
+-        }
+-
+-        @Override
+-        public ConfigDef config() {
+-            return new ConfigDef()
+-                           .define("subconfig", ConfigDef.Type.STRING, "default", ConfigDef.Importance.LOW, "docs");
+-        }
+-
+-        @Override
+-        public void close() {
+-
+-        }
+-    }
+-
+-    public static class SamplePredicate<R extends ConnectRecord<R>> implements Predicate<R> {
+-
+-        @Override
+-        public ConfigDef config() {
+-            return new ConfigDef()
+-                    .define("predconfig", ConfigDef.Type.STRING, "default", ConfigDef.Importance.LOW, "docs");
+-        }
+-
+-        @Override
+-        public boolean test(R record) {
+-            return false;
+-        }
+-
+-        @Override
+-        public void close() {
+-
+-        }
+-
+-        @Override
+-        public void configure(Map<String, ?> configs) {
+-
+-        }
+-    }
+-
+     // We need to use a real class here due to some issue with mocking java.lang.Class
+     private abstract class BogusSourceConnector extends SourceConnector {
+     }
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/PredicatedTransformationTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/PredicatedTransformationTest.java
+index 75542e7352..8bce328817 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/PredicatedTransformationTest.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/PredicatedTransformationTest.java
+@@ -16,12 +16,7 @@
+  */
+ package org.apache.kafka.connect.runtime;
+ 
+-import java.util.Map;
+-
+-import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.kafka.connect.source.SourceRecord;
+-import org.apache.kafka.connect.transforms.Transformation;
+-import org.apache.kafka.connect.transforms.predicates.Predicate;
+ import org.junit.Test;
+ 
+ import static java.util.Collections.singletonMap;
+@@ -43,75 +38,9 @@ public class PredicatedTransformationTest {
+ 
+     private void applyAndAssert(boolean predicateResult, boolean negate,
+                                 SourceRecord expectedResult) {
+-        class TestTransformation implements Transformation<SourceRecord> {
+-
+-            private boolean closed = false;
+-            private SourceRecord transformedRecord;
+-
+-            private TestTransformation(SourceRecord transformedRecord) {
+-                this.transformedRecord = transformedRecord;
+-            }
+-
+-            @Override
+-            public SourceRecord apply(SourceRecord record) {
+-                return transformedRecord;
+-            }
+-
+-            @Override
+-            public ConfigDef config() {
+-                return null;
+-            }
+-
+-            @Override
+-            public void close() {
+-                closed = true;
+-            }
+-
+-            @Override
+-            public void configure(Map<String, ?> configs) {
+-
+-            }
+-
+-            private void assertClosed() {
+-                assertTrue("Transformer should be closed", closed);
+-            }
+-        }
+-
+-        class TestPredicate implements Predicate<SourceRecord> {
+-
+-            private boolean testResult;
+-            private boolean closed = false;
+-
+-            private TestPredicate(boolean testResult) {
+-                this.testResult = testResult;
+-            }
+-
+-            @Override
+-            public ConfigDef config() {
+-                return null;
+-            }
+-
+-            @Override
+-            public boolean test(SourceRecord record) {
+-                return testResult;
+-            }
+-
+-            @Override
+-            public void close() {
+-                closed = true;
+-            }
+-
+-            @Override
+-            public void configure(Map<String, ?> configs) {
+-
+-            }
+ 
+-            private void assertClosed() {
+-                assertTrue("Predicate should be closed", closed);
+-            }
+-        }
+-        TestPredicate predicate = new TestPredicate(predicateResult);
+-        TestTransformation predicatedTransform = new TestTransformation(transformed);
++        SamplePredicate predicate = new SamplePredicate(predicateResult);
++        SampleTransformation<SourceRecord> predicatedTransform = new SampleTransformation<>(transformed);
+         PredicatedTransformation<SourceRecord> pt = new PredicatedTransformation<>(
+                 predicate,
+                 negate,
+@@ -120,7 +49,7 @@ public class PredicatedTransformationTest {
+         assertEquals(expectedResult, pt.apply(initial));
+ 
+         pt.close();
+-        predicate.assertClosed();
+-        predicatedTransform.assertClosed();
++        assertTrue(predicate.closed);
++        assertTrue(predicatedTransform.closed);
+     }
+ }
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestConverterWithHeaders.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleConverterWithHeaders.java
+similarity index 97%
+rename from connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestConverterWithHeaders.java
+rename to connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleConverterWithHeaders.java
+index 91e0999d29..3927ba7516 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestConverterWithHeaders.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleConverterWithHeaders.java
+@@ -28,7 +28,7 @@ import org.apache.kafka.connect.storage.Converter;
+ /**
+  * This is a simple Converter implementation that uses "encoding" header to encode/decode strings via provided charset name
+  */
+-public class TestConverterWithHeaders implements Converter {
++public class SampleConverterWithHeaders implements Converter {
+     private static final String HEADER_ENCODING = "encoding";
+ 
+     @Override
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleHeaderConverter.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleHeaderConverter.java
+new file mode 100644
+index 0000000000..ed11360a72
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleHeaderConverter.java
+@@ -0,0 +1,53 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.runtime;
++
++import org.apache.kafka.common.config.ConfigDef;
++import org.apache.kafka.connect.data.Schema;
++import org.apache.kafka.connect.data.SchemaAndValue;
++import org.apache.kafka.connect.storage.HeaderConverter;
++
++import java.io.IOException;
++import java.util.Map;
++
++public class SampleHeaderConverter implements HeaderConverter {
++    @Override
++    public SchemaAndValue toConnectHeader(String topic, String headerKey, byte[] value) {
++        return null;
++    }
++
++    @Override
++    public byte[] fromConnectHeader(String topic, String headerKey, Schema schema, Object value) {
++        return new byte[0];
++    }
++
++    @Override
++    public ConfigDef config() {
++        return new ConfigDef()
++                .define("converterconfig", ConfigDef.Type.STRING, "default", ConfigDef.Importance.LOW, "docs");
++    }
++
++    @Override
++    public void close() throws IOException {
++
++    }
++
++    @Override
++    public void configure(Map<String, ?> configs) {
++
++    }
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SamplePredicate.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SamplePredicate.java
+new file mode 100644
+index 0000000000..90dfba753c
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SamplePredicate.java
+@@ -0,0 +1,55 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.runtime;
++
++import org.apache.kafka.common.config.ConfigDef;
++import org.apache.kafka.connect.source.SourceRecord;
++import org.apache.kafka.connect.transforms.predicates.Predicate;
++
++import java.util.Map;
++
++public class SamplePredicate implements Predicate<SourceRecord> {
++
++    private boolean testResult;
++    boolean closed = false;
++
++    public SamplePredicate() { }
++
++    public SamplePredicate(boolean testResult) {
++        this.testResult = testResult;
++    }
++
++    @Override
++    public ConfigDef config() {
++        return new ConfigDef()
++                .define("predconfig", ConfigDef.Type.STRING, "default", ConfigDef.Importance.LOW, "docs");
++    }
++
++    @Override
++    public boolean test(SourceRecord record) {
++        return testResult;
++    }
++
++    @Override
++    public void close() {
++        closed = true;
++    }
++
++    @Override
++    public void configure(Map<String, ?> configs) { }
++
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSinkConnector.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSinkConnector.java
+similarity index 96%
+rename from connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSinkConnector.java
+rename to connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSinkConnector.java
+index a6e3bb17bd..1c324fe6ce 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSinkConnector.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSinkConnector.java
+@@ -23,7 +23,7 @@ import org.apache.kafka.connect.sink.SinkConnector;
+ import java.util.List;
+ import java.util.Map;
+ 
+-public class TestSinkConnector extends SinkConnector {
++public class SampleSinkConnector extends SinkConnector {
+ 
+     public static final String VERSION = "some great version";
+ 
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSourceConnector.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSourceConnector.java
+similarity index 96%
+rename from connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSourceConnector.java
+rename to connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSourceConnector.java
+index 5f754e218a..3615954075 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/TestSourceConnector.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleSourceConnector.java
+@@ -23,7 +23,7 @@ import org.apache.kafka.connect.source.SourceConnector;
+ import java.util.List;
+ import java.util.Map;
+ 
+-public class TestSourceConnector extends SourceConnector {
++public class SampleSourceConnector extends SourceConnector {
+ 
+     public static final String VERSION = "an entirely different version";
+ 
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleTransformation.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleTransformation.java
+new file mode 100644
+index 0000000000..b9043599e9
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/SampleTransformation.java
+@@ -0,0 +1,55 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.runtime;
++
++import org.apache.kafka.common.config.ConfigDef;
++import org.apache.kafka.connect.connector.ConnectRecord;
++import org.apache.kafka.connect.transforms.Transformation;
++
++import java.util.Map;
++
++public class SampleTransformation<R extends ConnectRecord<R>> implements Transformation<R> {
++
++    boolean closed = false;
++    private R transformedRecord;
++
++    public SampleTransformation() { }
++
++    public SampleTransformation(R transformedRecord) {
++        this.transformedRecord = transformedRecord;
++    }
++
++    @Override
++    public R apply(R record) {
++        return transformedRecord;
++    }
++
++    @Override
++    public ConfigDef config() {
++        return new ConfigDef()
++                .define("subconfig", ConfigDef.Type.STRING, "default", ConfigDef.Importance.LOW, "docs");
++    }
++
++    @Override
++    public void close() {
++        closed = true;
++    }
++
++    @Override
++    public void configure(Map<String, ?> configs) { }
++
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSinkTaskTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSinkTaskTest.java
+index 77f992ed96..65ab0c7e7c 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSinkTaskTest.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSinkTaskTest.java
+@@ -1790,7 +1790,7 @@ public class WorkerSinkTaskTest {
+     @Test
+     public void testHeadersWithCustomConverter() throws Exception {
+         StringConverter stringConverter = new StringConverter();
+-        TestConverterWithHeaders testConverter = new TestConverterWithHeaders();
++        SampleConverterWithHeaders testConverter = new SampleConverterWithHeaders();
+ 
+         createTask(initialState, stringConverter, testConverter, stringConverter);
+ 
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSourceTaskTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSourceTaskTest.java
+index e2e23668ef..78db83c7ee 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSourceTaskTest.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/WorkerSourceTaskTest.java
+@@ -996,7 +996,7 @@ public class WorkerSourceTaskTest extends ThreadedTest {
+     @Test
+     public void testHeadersWithCustomConverter() throws Exception {
+         StringConverter stringConverter = new StringConverter();
+-        TestConverterWithHeaders testConverter = new TestConverterWithHeaders();
++        SampleConverterWithHeaders testConverter = new SampleConverterWithHeaders();
+ 
+         createWorkerTask(TargetState.STARTED, stringConverter, testConverter, stringConverter);
+ 
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResourceTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResourceTest.java
+index 16ef79830c..59cf83ca9a 100644
+--- a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResourceTest.java
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResourceTest.java
+@@ -16,9 +16,7 @@
+  */
+ package org.apache.kafka.connect.runtime.rest.resources;
+ 
+-import com.fasterxml.jackson.core.type.TypeReference;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+-import javax.ws.rs.core.HttpHeaders;
+ import org.apache.kafka.common.config.Config;
+ import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.kafka.common.config.ConfigDef.Importance;
+@@ -28,91 +26,126 @@ import org.apache.kafka.common.config.ConfigDef.Width;
+ import org.apache.kafka.common.config.ConfigValue;
+ import org.apache.kafka.connect.connector.Connector;
+ import org.apache.kafka.connect.connector.Task;
++import org.apache.kafka.connect.converters.LongConverter;
+ import org.apache.kafka.connect.runtime.AbstractHerder;
+ import org.apache.kafka.connect.runtime.ConnectorConfig;
+ import org.apache.kafka.connect.runtime.Herder;
+-import org.apache.kafka.connect.runtime.TestSinkConnector;
+-import org.apache.kafka.connect.runtime.TestSourceConnector;
+-import org.apache.kafka.connect.runtime.WorkerConfig;
++import org.apache.kafka.connect.runtime.SampleSinkConnector;
++import org.apache.kafka.connect.runtime.SampleSourceConnector;
++import org.apache.kafka.connect.runtime.distributed.DistributedHerder;
++import org.apache.kafka.connect.runtime.isolation.DelegatingClassLoader;
+ import org.apache.kafka.connect.runtime.isolation.PluginClassLoader;
+ import org.apache.kafka.connect.runtime.isolation.PluginDesc;
++import org.apache.kafka.connect.runtime.isolation.PluginType;
+ import org.apache.kafka.connect.runtime.isolation.Plugins;
+-import org.apache.kafka.connect.runtime.rest.RestClient;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigInfos;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigKeyInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConfigValueInfo;
+-import org.apache.kafka.connect.runtime.rest.entities.ConnectorPluginInfo;
++import org.apache.kafka.connect.runtime.rest.entities.PluginInfo;
+ import org.apache.kafka.connect.runtime.rest.entities.ConnectorType;
+-import org.apache.kafka.connect.sink.SinkConnector;
+ import org.apache.kafka.connect.source.SourceConnector;
+-import org.apache.kafka.connect.tools.MockConnector;
++import org.apache.kafka.connect.storage.StringConverter;
+ import org.apache.kafka.connect.tools.MockSinkConnector;
+ import org.apache.kafka.connect.tools.MockSourceConnector;
+ import org.apache.kafka.connect.tools.SchemaSourceConnector;
+ import org.apache.kafka.connect.tools.VerifiableSinkConnector;
+ import org.apache.kafka.connect.tools.VerifiableSourceConnector;
++import org.apache.kafka.connect.transforms.RegexRouter;
++import org.apache.kafka.connect.transforms.TimestampConverter;
++import org.apache.kafka.connect.transforms.predicates.HasHeaderKey;
++import org.apache.kafka.connect.transforms.predicates.RecordIsTombstone;
+ import org.apache.kafka.connect.util.Callback;
+-import org.easymock.Capture;
+-import org.easymock.EasyMock;
+-import org.easymock.IAnswer;
+ import org.junit.Before;
+ import org.junit.Test;
+-import org.junit.runner.RunWith;
+-import org.powermock.api.easymock.PowerMock;
+-import org.powermock.api.easymock.annotation.Mock;
+-import org.powermock.core.classloader.annotations.PowerMockIgnore;
+-import org.powermock.core.classloader.annotations.PrepareForTest;
+-import org.powermock.modules.junit4.PowerMockRunner;
++import org.mockito.ArgumentCaptor;
+ 
+ import javax.ws.rs.BadRequestException;
+ import java.net.URL;
++import java.util.ArrayList;
++import java.util.Collection;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.LinkedList;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Optional;
+ import java.util.Set;
+ import java.util.TreeSet;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
+ 
+ import static java.util.Arrays.asList;
+ import static org.junit.Assert.assertEquals;
+-import static org.junit.Assert.assertFalse;
+ import static org.junit.Assert.assertThrows;
+ import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.Mockito.atLeastOnce;
++import static org.mockito.Mockito.doAnswer;
++import static org.mockito.Mockito.doReturn;
++import static org.mockito.Mockito.anyBoolean;
++import static org.mockito.Mockito.eq;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
+ 
+-@RunWith(PowerMockRunner.class)
+-@PrepareForTest(RestClient.class)
+-@PowerMockIgnore("javax.management.*")
+ public class ConnectorPluginsResourceTest {
+ 
+-    private static Map<String, String> props;
+-    private static Map<String, String> partialProps = new HashMap<>();
++    private static final Map<String, String> PROPS;
++    private static final Map<String, String> PARTIAL_PROPS = new HashMap<>();
+     static {
+-        partialProps.put("name", "test");
+-        partialProps.put("test.string.config", "testString");
+-        partialProps.put("test.int.config", "1");
+-        partialProps.put("test.list.config", "a,b");
+-
+-        props = new HashMap<>(partialProps);
+-        props.put("connector.class", ConnectorPluginsResourceTestConnector.class.getSimpleName());
+-        props.put("plugin.path", "test.path");
++        PARTIAL_PROPS.put("name", "test");
++        PARTIAL_PROPS.put("test.string.config", "testString");
++        PARTIAL_PROPS.put("test.int.config", "1");
++        PARTIAL_PROPS.put("test.list.config", "a,b");
++
++        PROPS = new HashMap<>(PARTIAL_PROPS);
++        PROPS.put("connector.class", ConnectorPluginsResourceTestConnector.class.getSimpleName());
+     }
+ 
+     private static final ConfigInfos CONFIG_INFOS;
+     private static final ConfigInfos PARTIAL_CONFIG_INFOS;
+     private static final int ERROR_COUNT = 0;
+     private static final int PARTIAL_CONFIG_ERROR_COUNT = 1;
+-    private static final Set<PluginDesc<Connector>> CONNECTOR_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> SINK_CONNECTOR_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> SOURCE_CONNECTOR_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> CONVERTER_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> HEADER_CONVERTER_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> TRANSFORMATION_PLUGINS = new TreeSet<>();
++    private static final Set<MockConnectorPluginDesc<?>> PREDICATE_PLUGINS = new TreeSet<>();
++
++    static {
++        try {
++            SINK_CONNECTOR_PLUGINS.add(new MockConnectorPluginDesc<>(SampleSinkConnector.class));
++
++            SOURCE_CONNECTOR_PLUGINS.add(new MockConnectorPluginDesc<>(SampleSourceConnector.class));
++            SOURCE_CONNECTOR_PLUGINS.add(new MockConnectorPluginDesc<>(ConnectorPluginsResourceTestConnector.class));
++
++            CONVERTER_PLUGINS.add(new MockConnectorPluginDesc<>(StringConverter.class));
++            CONVERTER_PLUGINS.add(new MockConnectorPluginDesc<>(LongConverter.class));
++
++            HEADER_CONVERTER_PLUGINS.add(new MockConnectorPluginDesc<>(StringConverter.class));
++            HEADER_CONVERTER_PLUGINS.add(new MockConnectorPluginDesc<>(LongConverter.class));
++
++            TRANSFORMATION_PLUGINS.add(new MockConnectorPluginDesc<>(RegexRouter.class));
++            TRANSFORMATION_PLUGINS.add(new MockConnectorPluginDesc<>(TimestampConverter.class));
++
++            PREDICATE_PLUGINS.add(new MockConnectorPluginDesc<>(HasHeaderKey.class));
++            PREDICATE_PLUGINS.add(new MockConnectorPluginDesc<>(RecordIsTombstone.class));
++        } catch (Exception e) {
++            fail("Failed setting up plugins");
++        }
++    }
+ 
+     static {
+         List<ConfigInfo> configs = new LinkedList<>();
+         List<ConfigInfo> partialConfigs = new LinkedList<>();
+ 
+         ConfigDef connectorConfigDef = ConnectorConfig.configDef();
+-        List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(props);
+-        List<ConfigValue> partialConnectorConfigValues = connectorConfigDef.validate(partialProps);
++        List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(PROPS);
++        List<ConfigValue> partialConnectorConfigValues = connectorConfigDef.validate(PARTIAL_PROPS);
+         ConfigInfos result = AbstractHerder.generateResult(ConnectorPluginsResourceTestConnector.class.getName(), connectorConfigDef.configKeys(), connectorConfigValues, Collections.emptyList());
+         ConfigInfos partialResult = AbstractHerder.generateResult(ConnectorPluginsResourceTestConnector.class.getName(), connectorConfigDef.configKeys(), partialConnectorConfigValues, Collections.emptyList());
+         configs.addAll(result.values());
+@@ -144,70 +177,34 @@ public class ConnectorPluginsResourceTest {
+ 
+         CONFIG_INFOS = new ConfigInfos(ConnectorPluginsResourceTestConnector.class.getName(), ERROR_COUNT, Collections.singletonList("Test"), configs);
+         PARTIAL_CONFIG_INFOS = new ConfigInfos(ConnectorPluginsResourceTestConnector.class.getName(), PARTIAL_CONFIG_ERROR_COUNT, Collections.singletonList("Test"), partialConfigs);
+-
+-        List<Class<? extends Connector>> abstractConnectorClasses = asList(
+-            Connector.class,
+-            SourceConnector.class,
+-            SinkConnector.class
+-        );
+-
+-        List<Class<? extends Connector>> connectorClasses = asList(
+-            VerifiableSourceConnector.class,
+-            VerifiableSinkConnector.class,
+-            MockSourceConnector.class,
+-            MockSinkConnector.class,
+-            MockConnector.class,
+-            SchemaSourceConnector.class,
+-            ConnectorPluginsResourceTestConnector.class
+-        );
+-
+-        try {
+-            for (Class<? extends Connector> klass : abstractConnectorClasses) {
+-                MockConnectorPluginDesc pluginDesc = new MockConnectorPluginDesc(klass, "0.0.0");
+-                CONNECTOR_PLUGINS.add(pluginDesc);
+-            }
+-            for (Class<? extends Connector> klass : connectorClasses) {
+-                MockConnectorPluginDesc pluginDesc = new MockConnectorPluginDesc(klass);
+-                CONNECTOR_PLUGINS.add(pluginDesc);
+-            }
+-        } catch (Exception e) {
+-            throw new RuntimeException(e);
+-        }
+     }
+ 
+-    @Mock
+-    private Herder herder;
+-    @Mock
+-    private Plugins plugins;
++    private final Herder herder = mock(DistributedHerder.class);
++    private final Plugins plugins = mock(Plugins.class);
+     private ConnectorPluginsResource connectorPluginsResource;
+ 
+     @Before
+     public void setUp() throws Exception {
+-        PowerMock.mockStatic(RestClient.class,
+-                RestClient.class.getMethod("httpRequest", String.class, String.class, HttpHeaders.class, Object.class, TypeReference.class, WorkerConfig.class));
+-
+-        plugins = PowerMock.createMock(Plugins.class);
+-        herder = PowerMock.createMock(AbstractHerder.class);
++        doReturn(plugins).when(herder).plugins();
++        doReturn(SINK_CONNECTOR_PLUGINS).when(plugins).sinkConnectors();
++        doReturn(SOURCE_CONNECTOR_PLUGINS).when(plugins).sourceConnectors();
++        doReturn(CONVERTER_PLUGINS).when(plugins).converters();
++        doReturn(HEADER_CONVERTER_PLUGINS).when(plugins).headerConverters();
++        doReturn(TRANSFORMATION_PLUGINS).when(plugins).transformations();
++        doReturn(PREDICATE_PLUGINS).when(plugins).predicates();
+         connectorPluginsResource = new ConnectorPluginsResource(herder);
+     }
+ 
+-    private void expectPlugins() {
+-        EasyMock.expect(herder.plugins()).andReturn(plugins);
+-        EasyMock.expect(plugins.connectors()).andReturn(CONNECTOR_PLUGINS);
+-        PowerMock.replayAll();
+-    }
+-
+     @Test
+     public void testValidateConfigWithSingleErrorDueToMissingConnectorClassname() throws Throwable {
+-        Capture<Callback<ConfigInfos>> configInfosCallback = EasyMock.newCapture();
+-        herder.validateConnectorConfig(EasyMock.eq(partialProps), EasyMock.capture(configInfosCallback), EasyMock.anyBoolean());
+-
+-        PowerMock.expectLastCall().andAnswer((IAnswer<Void>) () -> {
++        @SuppressWarnings("unchecked")
++        ArgumentCaptor<Callback<ConfigInfos>> configInfosCallback = ArgumentCaptor.forClass(Callback.class);
++        doAnswer(invocation -> {
+             ConfigDef connectorConfigDef = ConnectorConfig.configDef();
+-            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(partialProps);
++            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(PARTIAL_PROPS);
+ 
+             Connector connector = new ConnectorPluginsResourceTestConnector();
+-            Config config = connector.validate(partialProps);
++            Config config = connector.validate(PARTIAL_PROPS);
+             ConfigDef configDef = connector.config();
+             Map<String, ConfigDef.ConfigKey> configKeys = configDef.configKeys();
+             List<ConfigValue> configValues = config.configValues();
+@@ -224,15 +221,13 @@ public class ConnectorPluginsResourceTest {
+             );
+             configInfosCallback.getValue().onCompletion(null, configInfos);
+             return null;
+-        });
+-
+-        PowerMock.replayAll();
++        }).when(herder).validateConnectorConfig(eq(PARTIAL_PROPS), configInfosCallback.capture(), anyBoolean());
+ 
+         // This call to validateConfigs does not throw a BadRequestException because we've mocked
+         // validateConnectorConfig.
+         ConfigInfos configInfos = connectorPluginsResource.validateConfigs(
+             ConnectorPluginsResourceTestConnector.class.getSimpleName(),
+-            partialProps
++            PARTIAL_PROPS
+         );
+         assertEquals(PARTIAL_CONFIG_INFOS.name(), configInfos.name());
+         assertEquals(PARTIAL_CONFIG_INFOS.errorCount(), configInfos.errorCount());
+@@ -241,21 +236,19 @@ public class ConnectorPluginsResourceTest {
+             new HashSet<>(PARTIAL_CONFIG_INFOS.values()),
+             new HashSet<>(configInfos.values())
+         );
+-
+-        PowerMock.verifyAll();
++        verify(herder).validateConnectorConfig(eq(PARTIAL_PROPS), any(), anyBoolean());
+     }
+ 
+     @Test
+     public void testValidateConfigWithSimpleName() throws Throwable {
+-        Capture<Callback<ConfigInfos>> configInfosCallback = EasyMock.newCapture();
+-        herder.validateConnectorConfig(EasyMock.eq(props), EasyMock.capture(configInfosCallback), EasyMock.anyBoolean());
+-
+-        PowerMock.expectLastCall().andAnswer((IAnswer<ConfigInfos>) () -> {
++        @SuppressWarnings("unchecked")
++        ArgumentCaptor<Callback<ConfigInfos>> configInfosCallback = ArgumentCaptor.forClass(Callback.class);
++        doAnswer(invocation -> {
+             ConfigDef connectorConfigDef = ConnectorConfig.configDef();
+-            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(props);
++            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(PROPS);
+ 
+             Connector connector = new ConnectorPluginsResourceTestConnector();
+-            Config config = connector.validate(props);
++            Config config = connector.validate(PROPS);
+             ConfigDef configDef = connector.config();
+             Map<String, ConfigDef.ConfigKey> configKeys = configDef.configKeys();
+             List<ConfigValue> configValues = config.configValues();
+@@ -272,34 +265,30 @@ public class ConnectorPluginsResourceTest {
+             );
+             configInfosCallback.getValue().onCompletion(null, configInfos);
+             return null;
+-        });
+-
+-        PowerMock.replayAll();
++        }).when(herder).validateConnectorConfig(eq(PROPS), configInfosCallback.capture(), anyBoolean());
+ 
+         // make a request to connector-plugins resource using just the simple class name.
+         ConfigInfos configInfos = connectorPluginsResource.validateConfigs(
+             ConnectorPluginsResourceTestConnector.class.getSimpleName(),
+-            props
++            PROPS
+         );
+         assertEquals(CONFIG_INFOS.name(), configInfos.name());
+         assertEquals(0, configInfos.errorCount());
+         assertEquals(CONFIG_INFOS.groups(), configInfos.groups());
+         assertEquals(new HashSet<>(CONFIG_INFOS.values()), new HashSet<>(configInfos.values()));
+-
+-        PowerMock.verifyAll();
++        verify(herder).validateConnectorConfig(eq(PROPS), any(), anyBoolean());
+     }
+ 
+     @Test
+     public void testValidateConfigWithAlias() throws Throwable {
+-        Capture<Callback<ConfigInfos>> configInfosCallback = EasyMock.newCapture();
+-        herder.validateConnectorConfig(EasyMock.eq(props), EasyMock.capture(configInfosCallback), EasyMock.anyBoolean());
+-
+-        PowerMock.expectLastCall().andAnswer((IAnswer<ConfigInfos>) () -> {
++        @SuppressWarnings("unchecked")
++        ArgumentCaptor<Callback<ConfigInfos>> configInfosCallback = ArgumentCaptor.forClass(Callback.class);
++        doAnswer(invocation -> {
+             ConfigDef connectorConfigDef = ConnectorConfig.configDef();
+-            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(props);
++            List<ConfigValue> connectorConfigValues = connectorConfigDef.validate(PROPS);
+ 
+             Connector connector = new ConnectorPluginsResourceTestConnector();
+-            Config config = connector.validate(props);
++            Config config = connector.validate(PROPS);
+             ConfigDef configDef = connector.config();
+             Map<String, ConfigDef.ConfigKey> configKeys = configDef.configKeys();
+             List<ConfigValue> configValues = config.configValues();
+@@ -316,21 +305,18 @@ public class ConnectorPluginsResourceTest {
+             );
+             configInfosCallback.getValue().onCompletion(null, configInfos);
+             return null;
+-        });
+-
+-        PowerMock.replayAll();
++        }).when(herder).validateConnectorConfig(eq(PROPS), configInfosCallback.capture(), anyBoolean());
+ 
+         // make a request to connector-plugins resource using a valid alias.
+         ConfigInfos configInfos = connectorPluginsResource.validateConfigs(
+             "ConnectorPluginsResourceTest",
+-            props
++            PROPS
+         );
+         assertEquals(CONFIG_INFOS.name(), configInfos.name());
+         assertEquals(0, configInfos.errorCount());
+         assertEquals(CONFIG_INFOS.groups(), configInfos.groups());
+         assertEquals(new HashSet<>(CONFIG_INFOS.values()), new HashSet<>(configInfos.values()));
+-
+-        PowerMock.verifyAll();
++        verify(herder).validateConnectorConfig(eq(PROPS), any(), anyBoolean());
+     }
+ 
+     @Test
+@@ -339,44 +325,38 @@ public class ConnectorPluginsResourceTest {
+         // simple name but different package.
+         String customClassname = "com.custom.package."
+             + ConnectorPluginsResourceTestConnector.class.getSimpleName();
+-        assertThrows(BadRequestException.class, () -> connectorPluginsResource.validateConfigs(customClassname, props));
++        assertThrows(BadRequestException.class, () -> connectorPluginsResource.validateConfigs(customClassname, PROPS));
+     }
+ 
+     @Test
+     public void testValidateConfigWithNonExistentAlias() {
+-        assertThrows(BadRequestException.class, () -> connectorPluginsResource.validateConfigs("ConnectorPluginsTest", props));
++        assertThrows(BadRequestException.class, () -> connectorPluginsResource.validateConfigs("ConnectorPluginsTest", PROPS));
+     }
+ 
+     @Test
+-    public void testListConnectorPlugins() throws Exception {
+-        expectPlugins();
+-        Set<ConnectorPluginInfo> connectorPlugins = new HashSet<>(connectorPluginsResource.listConnectorPlugins());
+-        assertFalse(connectorPlugins.contains(newInfo(Connector.class, "0.0")));
+-        assertFalse(connectorPlugins.contains(newInfo(SourceConnector.class, "0.0")));
+-        assertFalse(connectorPlugins.contains(newInfo(SinkConnector.class, "0.0")));
+-        assertFalse(connectorPlugins.contains(newInfo(VerifiableSourceConnector.class)));
+-        assertFalse(connectorPlugins.contains(newInfo(VerifiableSinkConnector.class)));
+-        assertFalse(connectorPlugins.contains(newInfo(MockSourceConnector.class)));
+-        assertFalse(connectorPlugins.contains(newInfo(MockSinkConnector.class)));
+-        assertFalse(connectorPlugins.contains(newInfo(MockConnector.class)));
+-        assertFalse(connectorPlugins.contains(newInfo(SchemaSourceConnector.class)));
+-        assertTrue(connectorPlugins.contains(newInfo(ConnectorPluginsResourceTestConnector.class)));
+-        PowerMock.verifyAll();
++    public void testListConnectorPlugins() {
++        // KIP-769: the default listing (connectorsOnly=true) returns only connector plugins
++        // (sink and source). The mocked plugin sets contain no internally-excluded classes,
++        // so the documented listing returns exactly the provided connector plugins.
++        Set<PluginInfo> expectedConnectorPlugins = Stream.of(SINK_CONNECTOR_PLUGINS, SOURCE_CONNECTOR_PLUGINS)
++                .flatMap(Collection::stream)
++                .map(ConnectorPluginsResourceTest::newInfo)
++                .collect(Collectors.toSet());
++        Set<PluginInfo> actualConnectorPlugins = new HashSet<>(connectorPluginsResource.listConnectorPlugins(true));
++        assertEquals(expectedConnectorPlugins, actualConnectorPlugins);
++        verify(herder, atLeastOnce()).plugins();
+     }
+ 
+     @Test
+-    public void testConnectorPluginsIncludesTypeAndVersionInformation() throws Exception {
+-        expectPlugins();
+-        ConnectorPluginInfo sinkInfo = newInfo(TestSinkConnector.class);
+-        ConnectorPluginInfo sourceInfo =
+-                newInfo(TestSourceConnector.class);
+-        ConnectorPluginInfo unknownInfo =
+-            newInfo(ConnectorPluginsResourceTestConnector.class);
+-        assertEquals(ConnectorType.SINK, sinkInfo.type());
+-        assertEquals(ConnectorType.SOURCE, sourceInfo.type());
+-        assertEquals(ConnectorType.UNKNOWN, unknownInfo.type());
+-        assertEquals(TestSinkConnector.VERSION, sinkInfo.version());
+-        assertEquals(TestSourceConnector.VERSION, sourceInfo.version());
++    public void testConnectorPluginsIncludesClassTypeAndVersionInformation() throws Exception {
++        PluginInfo sinkInfo = newInfo(SampleSinkConnector.class);
++        PluginInfo sourceInfo = newInfo(SampleSourceConnector.class);
++        assertEquals(PluginType.SINK.toString(), sinkInfo.type());
++        assertEquals(PluginType.SOURCE.toString(), sourceInfo.type());
++        assertEquals(SampleSinkConnector.VERSION, sinkInfo.version());
++        assertEquals(SampleSourceConnector.VERSION, sourceInfo.version());
++        assertEquals(SampleSinkConnector.class.getName(), sinkInfo.className());
++        assertEquals(SampleSourceConnector.class.getName(), sourceInfo.className());
+ 
+         final ObjectMapper objectMapper = new ObjectMapper();
+         String serializedSink = objectMapper.writeValueAsString(ConnectorType.SINK);
+@@ -399,19 +379,36 @@ public class ConnectorPluginsResourceTest {
+         );
+     }
+ 
+-    protected static ConnectorPluginInfo newInfo(Class<? extends Connector> klass, String version) {
+-        return new ConnectorPluginInfo(new MockConnectorPluginDesc(klass, version));
++    @Test
++    public void testListAllPlugins() {
++        // KIP-769: connectorsOnly=false lists all plugin types (connectors, converters,
++        // header converters, transformations, predicates). The mocked plugin sets contain
++        // no internally-excluded classes, so the listing returns exactly the provided plugins.
++        Set<PluginInfo> expectedConnectorPlugins = Stream.of(
++                        SINK_CONNECTOR_PLUGINS,
++                        SOURCE_CONNECTOR_PLUGINS,
++                        CONVERTER_PLUGINS,
++                        HEADER_CONVERTER_PLUGINS,
++                        TRANSFORMATION_PLUGINS,
++                        PREDICATE_PLUGINS
++                ).flatMap(Collection::stream)
++                .map(ConnectorPluginsResourceTest::newInfo)
++                .collect(Collectors.toSet());
++        Set<PluginInfo> actualConnectorPlugins = new HashSet<>(connectorPluginsResource.listConnectorPlugins(false));
++        assertEquals(expectedConnectorPlugins, actualConnectorPlugins);
++        verify(herder, atLeastOnce()).plugins();
+     }
+ 
+-    protected static ConnectorPluginInfo newInfo(Class<? extends Connector> klass)
++    protected static PluginInfo newInfo(PluginDesc<?> pluginDesc) {
++        return new PluginInfo(new MockConnectorPluginDesc<>(pluginDesc.pluginClass(), pluginDesc.version()));
++    }
++
++    protected static PluginInfo newInfo(Class<?> klass)
+             throws Exception {
+-        return new ConnectorPluginInfo(new MockConnectorPluginDesc(klass));
++        return new PluginInfo(new MockConnectorPluginDesc<>(klass));
+     }
+ 
+     public static class MockPluginClassLoader extends PluginClassLoader {
+-        public MockPluginClassLoader(URL pluginLocation, URL[] urls, ClassLoader parent) {
+-            super(pluginLocation, urls, parent);
+-        }
+ 
+         public MockPluginClassLoader(URL pluginLocation, URL[] urls) {
+             super(pluginLocation, urls);
+@@ -423,22 +420,28 @@ public class ConnectorPluginsResourceTest {
+         }
+     }
+ 
+-    public static class MockConnectorPluginDesc extends PluginDesc<Connector> {
+-        public MockConnectorPluginDesc(Class<? extends Connector> klass, String version) {
++    public static class MockConnectorPluginDesc<T> extends PluginDesc<T> {
++        public MockConnectorPluginDesc(Class<T> klass, String version) {
+             super(klass, version, new MockPluginClassLoader(null, new URL[0]));
+         }
+ 
+-        public MockConnectorPluginDesc(Class<? extends Connector> klass) throws Exception {
++        public MockConnectorPluginDesc(Class<T> klass) throws Exception {
+             super(
+                     klass,
+-                    klass.getConstructor().newInstance().version(),
++                    versionOf(klass),
+                     new MockPluginClassLoader(null, new URL[0])
+             );
+         }
++
++        private static String versionOf(Class<?> klass) throws ReflectiveOperationException {
++            return org.apache.kafka.connect.connector.Connector.class.isAssignableFrom(klass)
++                    ? ((org.apache.kafka.connect.connector.Connector) klass.getDeclaredConstructor().newInstance()).version()
++                    : "undefined";
++        }
+     }
+ 
+     /* Name here needs to be unique as we are testing the aliasing mechanism */
+-    public static class ConnectorPluginsResourceTestConnector extends Connector {
++    public static class ConnectorPluginsResourceTestConnector extends SourceConnector {
+ 
+         private static final String TEST_STRING_CONFIG = "test.string.config";
+         private static final String TEST_INT_CONFIG = "test.int.config";

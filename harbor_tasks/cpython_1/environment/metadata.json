@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_1",
+  "source_instance_id": "CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503",
+  "source_slug": "CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503",
+  "docker_slug": "CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503",
+  "dockerhub_image": "smartdub26/lolbench:cpython_1-1.0.0",
+  "dockerhub_digest": "sha256:e5467b4549b27712528e969f4f119d75717fc3cbaa39ef583921ebb11b23a6d3",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0617/",
+  "pr_link": "https://github.com/python/cpython/pull/19503",
+  "base_commit": "a81849b0315277bb3937271174aaaa5059c0b445",
+  "merge_commit": "c5fc15685202cda73f7c3f5c6f299b0945f58508",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

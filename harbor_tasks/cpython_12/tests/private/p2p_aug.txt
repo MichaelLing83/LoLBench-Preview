@@ -1,0 +1,2 @@
+test.test_pep649_p2p_aug.PEP649P2PAugTest.test_math_fsum_preserves_small_residual
+test.test_pep649_p2p_aug.PEP649P2PAugTest.test_statistics_mean_preserves_fraction_type

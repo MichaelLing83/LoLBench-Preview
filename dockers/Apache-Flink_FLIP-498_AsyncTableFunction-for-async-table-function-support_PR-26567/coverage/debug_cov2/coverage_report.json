@@ -1,0 +1,131 @@
+{
+  "instance_id": "Apache-Flink_FLIP-486-Introduce-A-New-DeltaJoin_PR-27099",
+  "files": {
+    "flink-runtime/src/main/java/org/apache/flink/streaming/api/graph/DefaultStreamGraphContext.java": {
+      "kind": "java",
+      "lines_in_patch": 18,
+      "executable_lines_in_patch": 8,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/api/graph/StreamGraphContext.java": {
+      "kind": "java",
+      "lines_in_patch": 12,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/api/graph/util/ImmutableStreamEdge.java": {
+      "kind": "java",
+      "lines_in_patch": 15,
+      "executable_lines_in_patch": 3,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-runtime/src/main/java/org/apache/flink/streaming/api/graph/util/StreamEdgeUpdateRequestInfo.java": {
+      "kind": "java",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 3,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/OptimizerConfigOptions.java": {
+      "kind": "java",
+      "lines_in_patch": 73,
+      "executable_lines_in_patch": 26,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/processor/AdaptiveJoinProcessor.java": {
+      "kind": "java",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/delegation/BatchPlanner.scala": {
+      "kind": "other",
+      "lines_in_patch": 22,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/strategy/AdaptiveBroadcastJoinOptimizationStrategy.java": {
+      "kind": "java",
+      "lines_in_patch": 12,
+      "executable_lines_in_patch": 4,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/strategy/AdaptiveJoinOptimizationUtils.java": {
+      "kind": "java",
+      "lines_in_patch": 62,
+      "executable_lines_in_patch": 17,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/strategy/AdaptiveSkewedJoinOptimizationStrategy.java": {
+      "kind": "java",
+      "lines_in_patch": 311,
+      "executable_lines_in_patch": 136,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 524,
+    "executable_lines_in_patch": 199,
+    "f2p_covered": 0,
+    "p2p_covered": 0,
+    "union_covered": 0,
+    "f2p_pct": 0.0,
+    "p2p_pct": 0.0,
+    "union_pct": 0.0,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

@@ -1,0 +1,488 @@
+diff --git a/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterKip470AugTest.java b/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterKip470AugTest.java
+new file mode 100644
+index 0000000000..0000000000
+--- /dev/null
++++ b/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterKip470AugTest.java
+@@ -0,0 +1,56 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.json;
++
++import org.apache.kafka.connect.data.SchemaAndValue;
++import org.junit.Test;
++
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.Map;
++
++import static org.junit.Assert.assertEquals;
++
++public class JsonConverterKip470AugTest {
++    private static final String TOPIC = "topic";
++
++    @Test
++    public void testSchemalessNestedMapRoundTripRemainsUnchanged() {
++        final JsonConverter converter = new JsonConverter();
++        converter.configure(Collections.singletonMap("schemas.enable", false), false);
++
++        final Map<String, Object> nested = new LinkedHashMap<>();
++        nested.put("numbers", Arrays.asList(1, 2, 3));
++        nested.put("flag", true);
++        nested.put("child", Collections.singletonMap("name", "connect"));
++
++        final byte[] encoded = converter.fromConnectData(TOPIC, null, nested);
++        final SchemaAndValue decoded = converter.toConnectData(TOPIC, encoded);
++        final Map<?, ?> decodedMap = (Map<?, ?>) decoded.value();
++        final java.util.List<?> numbers = (java.util.List<?>) decodedMap.get("numbers");
++        final Map<?, ?> child = (Map<?, ?>) decodedMap.get("child");
++
++        assertEquals(null, decoded.schema());
++        assertEquals(3, numbers.size());
++        assertEquals(1, ((Number) numbers.get(0)).intValue());
++        assertEquals(2, ((Number) numbers.get(1)).intValue());
++        assertEquals(3, ((Number) numbers.get(2)).intValue());
++        assertEquals(true, decodedMap.get("flag"));
++        assertEquals("connect", child.get("name"));
++    }
++}
+diff --git a/streams/test-utils/src/test/java/org/apache/kafka/streams/TestTopicsAugTest.java b/streams/test-utils/src/test/java/org/apache/kafka/streams/TestTopicsAugTest.java
+new file mode 100644
+index 0000000000..0000000000
+--- /dev/null
++++ b/streams/test-utils/src/test/java/org/apache/kafka/streams/TestTopicsAugTest.java
+@@ -0,0 +1,420 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.streams;
++
++import org.apache.kafka.clients.consumer.ConsumerRecord;
++import org.apache.kafka.clients.producer.ProducerRecord;
++import org.apache.kafka.common.header.Headers;
++import org.apache.kafka.common.record.TimestampType;
++import org.apache.kafka.common.serialization.LongDeserializer;
++import org.apache.kafka.common.serialization.LongSerializer;
++import org.apache.kafka.common.serialization.Serde;
++import org.apache.kafka.common.serialization.Serdes;
++import org.apache.kafka.common.serialization.StringDeserializer;
++import org.apache.kafka.common.serialization.StringSerializer;
++import org.apache.kafka.streams.kstream.Consumed;
++import org.apache.kafka.streams.kstream.KStream;
++import org.apache.kafka.streams.kstream.Produced;
++import org.apache.kafka.streams.test.TestRecord;
++import org.junit.After;
++import org.junit.Before;
++import org.junit.Test;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.util.Arrays;
++import java.util.HashMap;
++import java.util.LinkedList;
++import java.util.List;
++import java.util.Map;
++import java.util.NoSuchElementException;
++import java.util.Properties;
++
++import static org.hamcrest.CoreMatchers.containsString;
++import static org.hamcrest.CoreMatchers.equalTo;
++import static org.hamcrest.CoreMatchers.is;
++import static org.hamcrest.MatcherAssert.assertThat;
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertNotEquals;
++import static org.junit.Assert.assertThrows;
++import static org.junit.Assert.assertTrue;
++
++public class TestTopicsAugTest {
++    private static final String INPUT_TOPIC = "aug-input";
++    private static final String OUTPUT_TOPIC = "aug-output";
++    private static final String MAP_INPUT_TOPIC = "aug-map-input";
++    private static final String MAP_OUTPUT_TOPIC = "aug-map-output";
++    private static final Instant BASE_TIME = Instant.parse("2019-06-01T10:00:00Z");
++
++    private final Serde<String> stringSerde = new Serdes.StringSerde();
++    private final Serde<Long> longSerde = new Serdes.LongSerde();
++
++    private TopologyTestDriver testDriver;
++
++    @Before
++    public void setup() {
++        final StreamsBuilder builder = new StreamsBuilder();
++        builder.stream(INPUT_TOPIC).to(OUTPUT_TOPIC);
++        final KStream<Long, String> mappedSource = builder.stream(MAP_INPUT_TOPIC, Consumed.with(longSerde, stringSerde));
++        mappedSource.map((key, value) -> new KeyValue<>(value, key))
++                .to(MAP_OUTPUT_TOPIC, Produced.with(stringSerde, longSerde));
++        testDriver = new TopologyTestDriver(builder.build(), config());
++    }
++
++    @After
++    public void tearDown() {
++        if (testDriver != null) {
++            testDriver.close();
++        }
++    }
++
++    @Test
++    public void testAutoAdvanceExplicitTimestampAndManualAdvance() {
++        final Duration advance = Duration.ofSeconds(2);
++        final TestInputTopic<Long, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new LongSerializer(),
++                new StringSerializer(),
++                BASE_TIME,
++                advance
++        );
++        final TestOutputTopic<Long, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new LongDeserializer(),
++                new StringDeserializer()
++        );
++
++        inputTopic.pipeInput(1L, "first");
++        inputTopic.pipeInput(2L, "second");
++        inputTopic.advanceTime(Duration.ofSeconds(3));
++        inputTopic.pipeInput(3L, "third");
++
++        final Instant explicitTime = BASE_TIME.plusSeconds(99);
++        inputTopic.pipeInput(new TestRecord<Long, String>(4L, "explicit", explicitTime));
++        inputTopic.pipeInput(5L, "millis", explicitTime.toEpochMilli() + 1L);
++
++        assertEquals(new TestRecord<>(1L, "first", BASE_TIME), outputTopic.readRecord());
++        assertEquals(new TestRecord<>(2L, "second", BASE_TIME.plus(advance)), outputTopic.readRecord());
++        assertEquals(new TestRecord<>(3L, "third", BASE_TIME.plus(advance).plus(advance).plusSeconds(3)), outputTopic.readRecord());
++        assertEquals(new TestRecord<>(4L, "explicit", explicitTime), outputTopic.readRecord());
++        assertEquals(new TestRecord<Long, String>(5L, "millis", null, explicitTime.toEpochMilli() + 1L), outputTopic.readRecord());
++        assertTrue(outputTopic.isEmpty());
++    }
++
++    @Test
++    public void testSimpleInputTopicDoesNotAutoAdvanceByDefault() {
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++
++        inputTopic.pipeInput("first");
++        inputTopic.pipeInput("second");
++
++        final TestRecord<String, String> first = outputTopic.readRecord();
++        final TestRecord<String, String> second = outputTopic.readRecord();
++        assertEquals("first", first.value());
++        assertEquals("second", second.value());
++        assertEquals(first.timestamp(), second.timestamp());
++    }
++
++    @Test
++    public void testNegativeDurationsAreRejected() {
++        assertThrows(IllegalArgumentException.class, () -> testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer(),
++                BASE_TIME,
++                Duration.ofMillis(-1L)
++        ));
++
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        assertThrows(IllegalArgumentException.class, () -> inputTopic.advanceTime(Duration.ofMillis(-1L)));
++    }
++
++    @Test
++    public void testKeyValueListAndMapPreserveKeysAndRejectNullMapKeys() {
++        final TestInputTopic<Long, String> mapInput = testDriver.createInputTopic(
++                MAP_INPUT_TOPIC,
++                new LongSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, Long> mapOutput = testDriver.createOutputTopic(
++                MAP_OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new LongDeserializer()
++        );
++        final List<KeyValue<Long, String>> keyValues = Arrays.asList(
++                new KeyValue<>(10L, "ten"),
++                new KeyValue<>(11L, "eleven")
++        );
++
++        mapInput.pipeKeyValueList(keyValues);
++        final Map<String, Long> expected = new HashMap<>();
++        expected.put("ten", 10L);
++        expected.put("eleven", 11L);
++        assertEquals(expected, mapOutput.readKeyValuesToMap());
++        assertTrue(mapOutput.isEmpty());
++
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++        inputTopic.pipeInput("keyless");
++        assertThrows(NullPointerException.class, outputTopic::readKeyValuesToMap);
++    }
++
++    @Test
++    public void testOutputReadsQueueStateAndEmptyTopicErrors() {
++        final TestInputTopic<Long, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new LongSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<Long, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new LongDeserializer(),
++                new StringDeserializer()
++        );
++
++        assertTrue(outputTopic.isEmpty());
++        assertEquals(0L, outputTopic.getQueueSize());
++
++        inputTopic.pipeInput(9L, "nine");
++        assertFalse(outputTopic.isEmpty());
++        assertEquals(1L, outputTopic.getQueueSize());
++        assertEquals(new KeyValue<>(9L, "nine"), outputTopic.readKeyValue());
++        assertTrue(outputTopic.isEmpty());
++        assertThrows(NoSuchElementException.class, outputTopic::readRecord);
++    }
++
++    @Test
++    public void testValueAndRecordCollectionsPreserveOrderAndTimestamps() {
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++
++        final List<String> values = Arrays.asList("alpha", "beta", "gamma");
++        inputTopic.pipeValueList(values);
++        assertEquals(values, outputTopic.readValuesToList());
++
++        final TestInputTopic<Long, String> mapInput = testDriver.createInputTopic(
++                MAP_INPUT_TOPIC,
++                new LongSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, Long> mapOutput = testDriver.createOutputTopic(
++                MAP_OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new LongDeserializer()
++        );
++        final List<KeyValue<Long, String>> keyValues = Arrays.asList(
++                new KeyValue<>(1L, "one"),
++                new KeyValue<>(2L, "two"),
++                new KeyValue<>(3L, "three")
++        );
++        final Duration step = Duration.ofSeconds(5);
++        mapInput.pipeKeyValueList(keyValues, BASE_TIME, step);
++
++        final List<TestRecord<String, Long>> expected = new LinkedList<>();
++        expected.add(new TestRecord<>("one", 1L, BASE_TIME));
++        expected.add(new TestRecord<>("two", 2L, BASE_TIME.plus(step)));
++        expected.add(new TestRecord<>("three", 3L, BASE_TIME.plus(step).plus(step)));
++        assertEquals(expected, mapOutput.readRecordsToList());
++    }
++
++    @Test
++    public void testFactoriesUnknownTopicsAndToStringDiagnostics() {
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                "missing-input",
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        assertThrows(IllegalArgumentException.class, () -> inputTopic.pipeInput("value"));
++
++        final TestOutputTopic<String, String> unknownOutput = testDriver.createOutputTopic(
++                "missing-output",
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++        assertThrows(IllegalArgumentException.class, unknownOutput::readRecord);
++
++        final TestInputTopic<String, String> namedInput = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, String> namedOutput = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++        // KIP-470 does not define a toString format for these classes; assert only
++        // that the diagnostic string names the topic, not its exact rendering.
++        assertThat(namedInput.toString(), containsString(INPUT_TOPIC));
++        assertThat(namedOutput.toString(), containsString(OUTPUT_TOPIC));
++    }
++
++    @SuppressWarnings("deprecation")
++    @Test
++    public void testAdditionalInputOutputAndDriverOverloads() {
++        final TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(
++                INPUT_TOPIC,
++                new StringSerializer(),
++                new StringSerializer()
++        );
++        final TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(
++                OUTPUT_TOPIC,
++                new StringDeserializer(),
++                new StringDeserializer()
++        );
++
++        inputTopic.pipeInput("timed", BASE_TIME);
++        assertEquals(new TestRecord<String, String>(null, "timed", BASE_TIME), outputTopic.readRecord());
++
++        inputTopic.pipeRecordList(Arrays.asList(
++                new TestRecord<>("first-key", "first-value", BASE_TIME.plusSeconds(1L)),
++                new TestRecord<>("second-key", "second-value", BASE_TIME.plusSeconds(2L))
++        ));
++        assertEquals(Arrays.asList(
++                new KeyValue<>("first-key", "first-value"),
++                new KeyValue<>("second-key", "second-value")
++        ), outputTopic.readKeyValuesToList());
++
++        inputTopic.pipeValueList(Arrays.asList("bulk-one", "bulk-two"), BASE_TIME.plusSeconds(3L), Duration.ofMillis(10L));
++        assertEquals(Arrays.asList("bulk-one", "bulk-two"), outputTopic.readValuesToList());
++
++        final byte[] keyBytes = new StringSerializer().serialize(INPUT_TOPIC, "raw-key");
++        final byte[] valueBytes = new StringSerializer().serialize(INPUT_TOPIC, "raw-value");
++        final ConsumerRecord<byte[], byte[]> consumerRecord = new ConsumerRecord<>(
++                INPUT_TOPIC,
++                0,
++                0L,
++                BASE_TIME.plusSeconds(10L).toEpochMilli(),
++                TimestampType.CREATE_TIME,
++                ConsumerRecord.NULL_CHECKSUM,
++                keyBytes.length,
++                valueBytes.length,
++                keyBytes,
++                valueBytes
++        );
++        testDriver.pipeInput(consumerRecord);
++        assertEquals(new KeyValue<>("raw-key", "raw-value"), outputTopic.readKeyValue());
++
++        testDriver.advanceWallClockTime(5L);
++        assertEquals(null, testDriver.readOutput("never-produced"));
++        assertThrows(IllegalArgumentException.class, () -> testDriver.createOutputTopic(
++                "never-produced",
++                new StringDeserializer(),
++                new StringDeserializer()
++        ).readRecord());
++    }
++
++    @Test
++    public void testTestRecordTimestampEqualityAndProducerConstructor() {
++        final TestRecord<String, Integer> record = new TestRecord<>("key", 1, BASE_TIME);
++        assertEquals("key", record.key());
++        assertEquals(Integer.valueOf(1), record.value());
++        assertEquals(BASE_TIME.toEpochMilli(), record.timestamp().longValue());
++        assertEquals(BASE_TIME, record.getRecordTime());
++        assertThat(record.toString(), containsString("recordTime=" + BASE_TIME));
++
++        final TestRecord<String, Integer> same = new TestRecord<String, Integer>("key", 1, null, BASE_TIME.toEpochMilli());
++        final TestRecord<String, Integer> differentTime = new TestRecord<>("key", 1, BASE_TIME.plusMillis(1L));
++        assertEquals(record, same);
++        assertEquals(record.hashCode(), same.hashCode());
++        assertNotEquals(record, differentTime);
++
++        final ProducerRecord<String, Integer> producerRecord = new ProducerRecord<>(
++                "topic",
++                0,
++                BASE_TIME.toEpochMilli(),
++                "key",
++                1
++        );
++        assertEquals(new TestRecord<>("key", 1, producerRecord.headers(), BASE_TIME), new TestRecord<>(producerRecord));
++    }
++
++    @Test
++    public void testTestRecordNullTimestampAccessorsConsumerConstructorAndEqualityBranches() {
++        final TestRecord<String, Integer> nullableTimestamp = new TestRecord<String, Integer>("key", 1, null, (Long) null);
++        assertEquals(null, nullableTimestamp.timestamp());
++        assertEquals(null, nullableTimestamp.getRecordTime());
++
++        final TestRecord<String, Integer> headerConstructor = new TestRecord<String, Integer>("key", 1, (Headers) null);
++        assertEquals("key", headerConstructor.getKey());
++        assertEquals(Integer.valueOf(1), headerConstructor.getValue());
++        assertFalse(headerConstructor.getHeaders().iterator().hasNext());
++        assertEquals(null, headerConstructor.getRecordTime());
++
++        assertThrows(IllegalArgumentException.class, () -> new TestRecord<String, Integer>("bad", 1, null, -1L));
++
++        final ConsumerRecord<String, Integer> consumerRecord = new ConsumerRecord<>(
++                "topic",
++                0,
++                42L,
++                BASE_TIME.toEpochMilli(),
++                TimestampType.CREATE_TIME,
++                ConsumerRecord.NULL_CHECKSUM,
++                3,
++                1,
++                "key",
++                1
++        );
++        final TestRecord<String, Integer> copied = new TestRecord<>(consumerRecord);
++        assertEquals("key", copied.key());
++        assertEquals(Integer.valueOf(1), copied.value());
++        assertEquals(BASE_TIME, copied.getRecordTime());
++
++        assertEquals(headerConstructor, headerConstructor);
++        assertNotEquals(headerConstructor, "not-a-record");
++        assertNotEquals(headerConstructor, new TestRecord<String, Integer>("other-key", 1, (Headers) null));
++        assertNotEquals(headerConstructor, new TestRecord<String, Integer>("key", 2, (Headers) null));
++        assertNotEquals(new TestRecord<>("key", 1, BASE_TIME), new TestRecord<>("key", 1, BASE_TIME.plusMillis(1L)));
++    }
++
++    private Properties config() {
++        final Properties props = new Properties();
++        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "TestTopicsAugTest");
++        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
++        return props;
++    }
++}

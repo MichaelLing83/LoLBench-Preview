@@ -1,0 +1,109 @@
+{
+  "instance_id": "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378",
+  "files": {
+    "build.gradle": {
+      "kind": "other",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable source file"
+    },
+    "streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java": {
+      "kind": "java",
+      "lines_in_patch": 15,
+      "executable_lines_in_patch": 7,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/TestInputTopic.java": {
+      "kind": "java",
+      "lines_in_patch": 256,
+      "executable_lines_in_patch": 65,
+      "f2p_covered": 65,
+      "p2p_covered": 0,
+      "union_covered": 65,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/TestOutputTopic.java": {
+      "kind": "java",
+      "lines_in_patch": 198,
+      "executable_lines_in_patch": 44,
+      "f2p_covered": 44,
+      "p2p_covered": 0,
+      "union_covered": 44,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/TopologyTestDriver.java": {
+      "kind": "java",
+      "lines_in_patch": 243,
+      "executable_lines_in_patch": 56,
+      "f2p_covered": 42,
+      "p2p_covered": 0,
+      "union_covered": 42,
+      "f2p_pct": 75.0,
+      "p2p_pct": 0.0,
+      "union_pct": 75.0
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/test/ConsumerRecordFactory.java": {
+      "kind": "java",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/test/OutputVerifier.java": {
+      "kind": "java",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "streams/test-utils/src/main/java/org/apache/kafka/streams/test/TestRecord.java": {
+      "kind": "java",
+      "lines_in_patch": 250,
+      "executable_lines_in_patch": 80,
+      "f2p_covered": 79,
+      "p2p_covered": 0,
+      "union_covered": 79,
+      "f2p_pct": 98.8,
+      "p2p_pct": 0.0,
+      "union_pct": 98.8
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 970,
+    "executable_lines_in_patch": 252,
+    "f2p_covered": 230,
+    "p2p_covered": 0,
+    "union_covered": 230,
+    "f2p_pct": 91.3,
+    "p2p_pct": 0.0,
+    "union_pct": 91.3,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

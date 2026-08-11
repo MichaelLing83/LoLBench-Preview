@@ -1,0 +1,2 @@
+org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip501AugTest#testSleepTimeUsesConfiguredCapAfterOverflow
+org.apache.flink.client.program.rest.retry.ExponentialWaitStrategyFlip501AugTest#testNegativeAttemptIsRejected

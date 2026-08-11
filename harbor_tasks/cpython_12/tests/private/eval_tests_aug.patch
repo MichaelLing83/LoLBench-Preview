@@ -1,0 +1,399 @@
+diff --git a/Lib/test/test_pep649_aug.py b/Lib/test/test_pep649_aug.py
+new file mode 100644
+index 0000000..7f08300
+--- /dev/null
++++ b/Lib/test/test_pep649_aug.py
+@@ -0,0 +1,372 @@
++import annotationlib
++import functools
++import importlib
++import sys
++import typing
++import unittest
++
++
++class PEP649AugTest(unittest.TestCase):
++    def test_forwardref_requires_owner_or_type_params(self):
++        ref = annotationlib.ForwardRef("T")
++        with self.assertRaises(TypeError):
++            ref.evaluate(globals={"T": int}, locals={})
++
++    def test_forwardref_evaluates_type_params_namespace(self):
++        T = typing.TypeVar("T")
++        ref = annotationlib.ForwardRef("T")
++
++        self.assertIs(ref.evaluate(globals={}, locals={}, type_params=(T,)), T)
++
++    def test_forwardref_evaluates_starred_typevartuple(self):
++        Ts = typing.TypeVarTuple("Ts")
++        ref = annotationlib.ForwardRef("*Ts")
++
++        self.assertEqual(
++            ref.evaluate(globals={}, locals={}, type_params=(Ts,)),
++            typing.Unpack[Ts],
++        )
++
++    def test_call_annotate_value_notimplemented_is_runtime_error(self):
++        def annotate(format):
++            raise NotImplementedError
++
++        with self.assertRaises(RuntimeError):
++            annotationlib.call_annotate_function(annotate, annotationlib.Format.VALUE)
++
++    def test_get_annotations_returns_fresh_dict(self):
++        def f(x: int) -> str:
++            pass
++
++        first = annotationlib.get_annotations(f)
++        first["x"] = str
++
++        self.assertEqual(f.__annotations__, {"x": int, "return": str})
++        self.assertEqual(annotationlib.get_annotations(f), {"x": int, "return": str})
++        self.assertIsNot(annotationlib.get_annotations(f), f.__annotations__)
++
++    def test_typing_evaluate_forward_ref_source_does_not_evaluate(self):
++        ref = annotationlib.ForwardRef("MissingType")
++
++        self.assertEqual(
++            typing.evaluate_forward_ref(
++                ref,
++                globals={},
++                locals={},
++                type_params=(),
++                format=annotationlib.Format.SOURCE,
++            ),
++            "MissingType",
++        )
++
++    def test_get_type_hints_class_source_does_not_evaluate(self):
++        class C:
++            x: MissingType
++
++        self.assertEqual(
++            typing.get_type_hints(C, format=annotationlib.Format.SOURCE),
++            {"x": "MissingType"},
++        )
++
++    def test_get_type_hints_class_source_preserves_forwardref_objects(self):
++        ref = annotationlib.ForwardRef("Legacy")
++
++        class C:
++            pass
++
++        C.__annotations__ = {"x": ref}
++
++        self.assertIs(
++            typing.get_type_hints(C, format=annotationlib.Format.SOURCE)["x"],
++            ref,
++        )
++
++    def test_get_type_hints_function_source_does_not_evaluate(self):
++        def f(x: MissingType) -> OtherType:
++            pass
++
++        self.assertEqual(
++            typing.get_type_hints(f, format=annotationlib.Format.SOURCE),
++            {"x": "MissingType", "return": "OtherType"},
++        )
++
++    def test_get_type_hints_function_source_preserves_forwardref_objects(self):
++        ref = annotationlib.ForwardRef("Legacy")
++
++        def f():
++            pass
++
++        f.__annotations__ = {"return": ref}
++
++        self.assertIs(
++            typing.get_type_hints(f, format=annotationlib.Format.SOURCE)["return"],
++            ref,
++        )
++
++    def test_namedtuple_source_format_returns_source_strings(self):
++        Point = typing.NamedTuple("Point", [("x", int), ("y", str)])
++
++        self.assertEqual(
++            Point.__annotate__(annotationlib.Format.SOURCE),
++            {"x": "int", "y": "str"},
++        )
++
++    def test_stringifier_source_covers_public_expression_forms(self):
++        def annotate(format):
++            if format != 1:
++                raise NotImplementedError
++            return {
++                "item": Missing["key"],
++                "tuple_item": Missing[1, 2],
++                "attr": Missing.attr,
++                "call": Missing(1, flag=True),
++                "star": tuple(Missing),
++                "add": Missing + 3,
++                "sub": Missing - 3,
++                "mul": Missing * 3,
++                "matmul": Missing @ 3,
++                "truediv": Missing / 3,
++                "mod": Missing % 3,
++                "lshift": Missing << 3,
++                "rshift": Missing >> 3,
++                "or": Missing | 3,
++                "xor": Missing ^ 3,
++                "and": Missing & 3,
++                "floordiv": Missing // 3,
++                "pow": Missing**3,
++                "radd": 3 + Missing,
++                "rsub": 3 - Missing,
++                "rmul": 3 * Missing,
++                "rmatmul": 3 @ Missing,
++                "rtruediv": 3 / Missing,
++                "rmod": 3 % Missing,
++                "rlshift": 3 << Missing,
++                "rrshift": 3 >> Missing,
++                "ror": 3 | Missing,
++                "rxor": 3 ^ Missing,
++                "rand": 3 & Missing,
++                "rfloordiv": 3 // Missing,
++                "rpow": 3**Missing,
++                "lt": Missing < 3,
++                "le": Missing <= 3,
++                "eq": Missing == 3,
++                "ne": Missing != 3,
++                "gt": Missing > 3,
++                "ge": Missing >= 3,
++                "invert": ~Missing,
++                "pos": +Missing,
++                "neg": -Missing,
++            }
++
++        source = annotationlib.call_annotate_function(
++            annotate, annotationlib.Format.SOURCE
++        )
++
++        self.assertEqual(source["item"], "Missing['key']")
++        self.assertEqual(source["tuple_item"], "Missing[1, 2]")
++        self.assertEqual(source["attr"], "Missing.attr")
++        self.assertEqual(source["call"], "Missing(1, flag=True)")
++        self.assertEqual(source["star"], "tuple(Missing)")
++        self.assertEqual(source["add"], "Missing + 3")
++        self.assertEqual(source["radd"], "3 + Missing")
++        self.assertEqual(source["lt"], "Missing < 3")
++        self.assertEqual(source["neg"], "-Missing")
++
++    def test_stringifier_rejects_format_specifiers(self):
++        def annotate(format):
++            if format != 1:
++                raise NotImplementedError
++            return {"bad": f"{Missing:>10}"}
++
++        with self.assertRaises(TypeError):
++            annotationlib.call_annotate_function(
++                annotate, annotationlib.Format.SOURCE
++            )
++
++    def test_forwardref_public_edge_behaviors(self):
++        with self.assertRaisesRegex(TypeError, "Forward reference must be a string"):
++            annotationlib.ForwardRef(42)
++
++        with self.assertRaises(TypeError):
++            class BadForwardRef(annotationlib.ForwardRef):
++                pass
++
++        cached = annotationlib.ForwardRef("Alias")
++        self.assertIs(
++            cached.evaluate(globals={"Alias": int}, locals={}, type_params=()),
++            int,
++        )
++        self.assertIs(cached.evaluate(), int)
++
++        class Owner:
++            Alias = str
++
++        owned = annotationlib.ForwardRef("Alias", owner=Owner, is_class=True)
++        self.assertIs(owned.evaluate(type_params=()), str)
++
++        module_owned = annotationlib.ForwardRef("int", owner=sys.modules["builtins"])
++        self.assertIs(module_owned.evaluate(type_params=()), int)
++
++        module_ref = annotationlib.ForwardRef("str", module="builtins")
++        self.assertIs(module_ref.evaluate(type_params=(), globals={}), str)
++        self.assertIn("module='builtins'", repr(module_ref))
++
++        left = annotationlib.ForwardRef("Alias")
++        right = annotationlib.ForwardRef("Alias")
++        self.assertIs(left.evaluate(globals={"Alias": dict}, locals={}, type_params=()), dict)
++        self.assertIs(right.evaluate(globals={"Alias": dict}, locals={}, type_params=()), dict)
++        self.assertEqual(left, right)
++        self.assertEqual(hash(left), hash(right))
++
++        union_ref = annotationlib.ForwardRef("Later")
++        self.assertEqual(union_ref | int, typing.Union[union_ref, int])
++        self.assertEqual(int | union_ref, typing.Union[int, union_ref])
++
++        with self.assertRaisesRegex(SyntaxError, "Forward reference must be an expression"):
++            annotationlib.ForwardRef("if").evaluate(globals={}, locals={}, type_params=())
++
++    def test_get_annotations_public_error_and_legacy_object_paths(self):
++        class BadAnnotate:
++            @staticmethod
++            def __annotate__(format):
++                return []
++
++        with self.assertRaises(ValueError):
++            annotationlib.get_annotations(
++                BadAnnotate, format=annotationlib.Format.SOURCE
++            )
++
++        class BadAnnotations:
++            pass
++
++        BadAnnotations.__annotations__ = 42
++        with self.assertRaisesRegex(ValueError, "neither a dict nor None"):
++            annotationlib.get_annotations(BadAnnotations)
++
++        class LegacyObject:
++            __annotations__ = {"x": "int"}
++
++        self.assertEqual(
++            annotationlib.get_annotations(LegacyObject(), eval_str=True),
++            {"x": int},
++        )
++
++    def test_typing_value_paths_and_annotation_stripping(self):
++        ref = annotationlib.ForwardRef("int")
++        self.assertIs(
++            typing.evaluate_forward_ref(
++                ref, globals={"int": int}, locals={}, type_params=()
++            ),
++            int,
++        )
++
++        with self.assertRaises(NameError):
++            typing.evaluate_forward_ref(
++                annotationlib.ForwardRef("MissingType"),
++                globals={},
++                locals={},
++                type_params=(),
++            )
++
++        class C:
++            x: typing.Annotated[int, "meta"]
++
++        def f(x: typing.Annotated[str, "meta"]) -> typing.Annotated[int, "meta"]:
++            pass
++
++        self.assertEqual(typing.get_type_hints(C), {"x": int})
++        self.assertEqual(typing.get_type_hints(f), {"x": str, "return": int})
++
++    def test_import_reexports_annotation_helpers(self):
++        import dataclasses
++        import inspect
++
++        inspect = importlib.reload(inspect)
++        dataclasses = importlib.reload(dataclasses)
++
++        self.assertIs(inspect.get_annotations, annotationlib.get_annotations)
++        self.assertTrue(hasattr(dataclasses, "_init_fn"))
++
++    def test_zz_module_reloads_and_public_fallback_paths(self):
++        anno = importlib.reload(annotationlib)
++        typing_mod = typing
++
++        self.assertEqual(
++            anno.__all__,
++            ["Format", "ForwardRef", "call_annotate_function", "get_annotations"],
++        )
++        self.assertTrue(hasattr(typing_mod, "ForwardRef"))
++        self.assertEqual([member.value for member in anno.Format], [1, 2, 3])
++
++        with self.assertRaises(TypeError):
++            class BadForwardRef(anno.ForwardRef):
++                pass
++
++        with self.assertRaises(TypeError):
++            anno.ForwardRef(42)
++
++        module_ref = anno.ForwardRef("int", module="builtins")
++        self.assertIs(module_ref.evaluate(type_params=()), int)
++        self.assertIs(module_ref.evaluate(type_params=()), int)
++        self.assertIn("module='builtins'", repr(module_ref))
++        self.assertEqual(anno.ForwardRef("int"), anno.ForwardRef("int"))
++        self.assertIsInstance(hash(anno.ForwardRef("int")), int)
++        self.assertIn(str, (anno.ForwardRef("int") | str).__args__)
++        self.assertIn(str, (str | anno.ForwardRef("int")).__args__)
++
++        def make_annotate_with_empty_cell():
++            missing_cell_value = object()
++
++            def annotate(format):
++                if format != 1:
++                    raise NotImplementedError
++                return {"x": missing_cell_value}
++
++            del missing_cell_value
++            return annotate
++
++        fwd = anno.call_annotate_function(
++            make_annotate_with_empty_cell(), anno.Format.FORWARDREF
++        )
++        self.assertIsInstance(fwd["x"], anno.ForwardRef)
++
++        def annotated(x):
++            pass
++
++        annotated.__annotations__ = {"x": "int"}
++        partial = functools.partial(annotated)
++        partial.__annotations__ = {"x": "int"}
++        self.assertEqual(anno.get_annotations(partial, eval_str=True), {"x": int})
++
++        self.assertIs(
++            typing_mod.evaluate_forward_ref(
++                anno.ForwardRef("int"),
++                globals={"int": int},
++                locals={},
++                type_params=(),
++            ),
++            int,
++        )
++
++        class C:
++            __annotations__ = {"x": "int"}
++
++        self.assertEqual(typing_mod.get_type_hints(C), {"x": int})
++        with self.assertRaises(TypeError):
++            typing_mod.get_type_hints(42)
++
++        def f(x):
++            pass
++
++        f.__annotations__ = {"x": "int", "return": None}
++        self.assertEqual(
++            typing_mod.get_type_hints(f),
++            {"x": int, "return": type(None)},
++        )
++
++        Empty = typing_mod.NamedTuple("Empty", [])
++        self.assertEqual(Empty.__annotate__(anno.Format.VALUE), {})
++
++        Movie = typing_mod.TypedDict("Movie", {"title": str})
++        self.assertEqual(Movie.__annotate__(anno.Format.SOURCE), {"title": "str"})
++        self.assertEqual(Movie.__annotate__(anno.Format.VALUE), {"title": str})
+diff --git a/Lib/test/test_pep649_p2p_aug.py b/Lib/test/test_pep649_p2p_aug.py
+new file mode 100644
+index 0000000000..0000000000
+--- /dev/null
++++ b/Lib/test/test_pep649_p2p_aug.py
+@@ -0,0 +1,15 @@
++from fractions import Fraction
++import math
++import statistics
++import unittest
++
++
++class PEP649P2PAugTest(unittest.TestCase):
++    def test_math_fsum_preserves_small_residual(self):
++        self.assertEqual(math.fsum([1e100, 1.0, -1e100]), 1.0)
++
++    def test_statistics_mean_preserves_fraction_type(self):
++        self.assertEqual(
++            statistics.mean([Fraction(1, 3), Fraction(2, 3)]),
++            Fraction(1, 2),
++        )

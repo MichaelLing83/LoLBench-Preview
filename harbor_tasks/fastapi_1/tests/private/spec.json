@@ -1,0 +1,705 @@
+{
+  "instance_id": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "project": "fastapi",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0593/",
+  "requirement_doc_title": "PEP 593 \u2014 Flexible function and variable annotations",
+  "pr_link": "https://github.com/fastapi/fastapi/pull/4871",
+  "pr_url": "https://github.com/fastapi/fastapi/pull/4871",
+  "pr_number": 4871,
+  "merge_commit": "375513f11494bc3499050ad2a0d378fb6e37ca98",
+  "merge_commit_sha": "375513f11494bc3499050ad2a0d378fb6e37ca98",
+  "pr_head_sha": "375513f11494bc3499050ad2a0d378fb6e37ca98",
+  "integration_commit_sha": "375513f11494bc3499050ad2a0d378fb6e37ca98",
+  "diff_source": "git diff --no-renames base..merge (squash-merge; csv base 4bb8ac21 overridden to actual parent ef176c66)",
+  "base_commit": "ef176c663195489b44030bfe1fb94a317762c8d5",
+  "base_commit_note": "PR-4871 merged 2023-03-17; base_commit ef176c66 is the squash-merge parent (the PR-creation-time tip is not used).",
+  "test_level": "system",
+  "fail_to_pass": [
+    "tests/test_annotated.py::test_get",
+    "tests/test_ambiguous_params.py::test_no_annotated_defaults",
+    "tests/test_ambiguous_params.py::test_no_multiple_annotations",
+    "tests/test_tutorial/test_annotated/test_tutorial001.py::test_get",
+    "tests/test_tutorial/test_annotated/test_tutorial001_py39.py::test_get",
+    "tests/test_tutorial/test_annotated/test_tutorial002.py::test_get",
+    "tests/test_tutorial/test_annotated/test_tutorial002_py39.py::test_get",
+    "tests/test_tutorial/test_annotated/test_tutorial003.py::test_get",
+    "tests/test_tutorial/test_annotated/test_tutorial003_py39.py::test_get"
+  ],
+  "pass_to_pass": [
+    "tests/test_additional_properties.py::test_additional_properties_schema",
+    "tests/test_additional_properties.py::test_additional_properties_post",
+    "tests/test_additional_response_extra.py::test_openapi_schema",
+    "tests/test_additional_response_extra.py::test_path_operation",
+    "tests/test_additional_responses_bad.py::test_openapi_schema",
+    "tests/test_additional_responses_custom_model_in_callback.py::test_openapi_schema",
+    "tests/test_additional_responses_custom_validationerror.py::test_openapi_schema",
+    "tests/test_additional_responses_default_validationerror.py::test_openapi_schema",
+    "tests/test_additional_responses_response_class.py::test_openapi_schema",
+    "tests/test_additional_responses_router.py::test_openapi_schema",
+    "tests/test_additional_responses_router.py::test_a",
+    "tests/test_callable_endpoint.py::test_partial",
+    "tests/test_custom_middleware_exception.py::test_custom_middleware_exception",
+    "tests/test_custom_middleware_exception.py::test_custom_middleware_exception_not_raised",
+    "tests/test_custom_route_class.py::test_get_path",
+    "tests/test_custom_route_class.py::test_route_classes",
+    "tests/test_custom_schema_fields.py::test_custom_response_schema",
+    "tests/test_custom_schema_fields.py::test_response",
+    "tests/test_custom_swagger_ui_redirect.py::test_swagger_ui",
+    "tests/test_custom_swagger_ui_redirect.py::test_swagger_ui_oauth2_redirect",
+    "tests/test_datastructures.py::test_upload_file_invalid",
+    "tests/test_datastructures.py::test_default_placeholder_equals",
+    "tests/test_datetime_custom_encoder.py::test_dt",
+    "tests/test_default_response_class.py::test_app",
+    "tests/test_default_response_class.py::test_app_override",
+    "tests/test_dependency_cache.py::test_sub_counter",
+    "tests/test_dependency_cache.py::test_sub_counter_no_cache",
+    "tests/test_dependency_class.py::test_class_dependency",
+    "tests/test_dependency_contextmanager.py::test_async_state",
+    "tests/test_dependency_contextvars.py::test_dependency_contextvars",
+    "tests/test_dependency_duplicates.py::test_no_duplicates",
+    "tests/test_dependency_normal_exceptions.py::test_dependency_gets_exception",
+    "tests/test_dependency_overrides.py::test_override_simple",
+    "tests/test_dependency_security_overrides.py::test_override_data",
+    "tests/test_http_connection_injection.py::test_value_extracting_by_http",
+    "tests/test_infer_param_optionality.py::test_schema_1",
+    "tests/test_infer_param_optionality.py::test_get_items_1",
+    "tests/test_param_class.py::test_default_param_query_none",
+    "tests/test_param_class.py::test_default_param_query",
+    "tests/test_param_in_path_and_dependency.py::test_reused_param",
+    "tests/test_param_include_in_schema.py::test_openapi_schema",
+    "tests/test_query.py::test_get_path",
+    "tests/test_required_noneable.py::test_required_noneable_query_value",
+    "tests/test_required_noneable.py::test_required_nonable_explicit_query_value",
+    "tests/test_repeated_parameter_alias.py::test_openapi_schema",
+    "tests/test_invalid_sequence_param.py::test_invalid_sequence",
+    "tests/test_multi_query_errors.py::test_multi_query",
+    "tests/test_request_body_parameters_media_type.py::test_openapi_schema",
+    "tests/test_get_request_body.py::test_openapi_schema",
+    "tests/test_get_request_body.py::test_get_with_body"
+  ],
+  "solution_patch_sha256": "9ad8a8f3aed582d99646caedd1578f9b4a437eb0e6e0d66048ba3efd197b3024",
+  "eval_tests_patch_sha256": "97300b53d6aba094a9d898d25ad5b81cb38734e707612b6041866b7e9d058da0",
+  "omitted_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "eval_tests_patch_notes": "NEW tests/test_annotated.py + tests/test_ambiguous_params.py + 6 NEW tests/test_tutorial/test_annotated/test_tutorial*.py files. Also 6 NEW docs_src/annotated/tutorial*.py fixture apps imported by tutorial tests. Minor edits to tests/main.py, tests/test_application.py, tests/test_params_repr.py, tests/test_path.py adjusting existing tests to recognize Annotated equivalents.",
+  "omitted_patch_notes": "No omitted files (docs_src tutorials moved into eval_tests because they're imported as test fixtures).",
+  "fixture_taint_summary": "9 F2P: 7 are TestClient-driven HTTP integration tests (test_annotated.test_get + 6 test_tutorial/test_annotated/test_tutorial*.test_get) exercising Annotated[T, Query()] / Annotated[T, Depends()] dependency injection. 2 (test_ambiguous_params) use pytest.raises against public FastAPI route decoration to verify the new restrictions on mixing Annotated metadata with defaults. Pre-state mechanism: solution.patch adds Annotated handling in fastapi/dependencies/utils.py + params.py; without it, decorators don't raise the expected error and HTTP-level tests get wrong parameter resolution.",
+  "out_of_scope_surfaces": [],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/fastapi-base-py310:1",
+    "python": "3.10",
+    "test_runner": "pytest"
+  },
+  "validated_at": "2026-06-15T00:00:00Z",
+  "triage": {
+    "fail_to_pass": {
+      "tests/test_annotated.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_annotated.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_ambiguous_params.py::test_no_annotated_defaults": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "Public FastAPI route-definition validation: app.get(...) with Annotated/Query/Depends mixing.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_ambiguous_params.py::test_no_annotated_defaults",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Pre-state: FastAPI doesn't enforce the new restrictions on mixing Annotated metadata with explicit defaults. Test uses public FastAPI route decorators + pytest.raises to verify the validation error path; no TestClient."
+      },
+      "tests/test_ambiguous_params.py::test_no_multiple_annotations": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "Public FastAPI route-definition validation: app.get(...) with Annotated/Query/Depends mixing.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_ambiguous_params.py::test_no_multiple_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Pre-state: FastAPI doesn't enforce the new restrictions on mixing Annotated metadata with explicit defaults. Test uses public FastAPI route decorators + pytest.raises to verify the validation error path; no TestClient."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial001.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial001.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial001_py39.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial001_py39.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial002.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial002.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial002_py39.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial002_py39.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial003.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial003.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      },
+      "tests/test_tutorial/test_annotated/test_tutorial003_py39.py::test_get": {
+        "system_reason": "TestClient-driven HTTP integration test exercising FastAPI's PEP-593 Annotated dependency-injection support.",
+        "public_surface": "fastapi.Query / Path / Body / Depends used inside Annotated[T, ...]; FastAPI's dependency-resolution at request handling time.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_tutorial/test_annotated/test_tutorial003_py39.py::test_get",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Each test posts/gets via TestClient and asserts JSON response shape. Pre-state: FastAPI doesn't recognize Annotated[str, Query()], so the dependency resolver mis-routes the parameter -> wrong validation behavior or 422 response."
+      }
+    },
+    "pass_to_pass": {
+      "tests/test_additional_properties.py::test_additional_properties_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_properties.py::test_additional_properties_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_properties.py::test_additional_properties_post": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_properties.py::test_additional_properties_post",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_response_extra.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_response_extra.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_response_extra.py::test_path_operation": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_response_extra.py::test_path_operation",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_bad.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_bad.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_custom_model_in_callback.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_custom_model_in_callback.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_custom_validationerror.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_custom_validationerror.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_default_validationerror.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_default_validationerror.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_response_class.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_response_class.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_router.py::test_openapi_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_router.py::test_openapi_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_additional_responses_router.py::test_a": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_additional_responses_router.py::test_a",
+        "fixture_taint_checked": true
+      },
+      "tests/test_callable_endpoint.py::test_partial": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_callable_endpoint.py::test_partial",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_middleware_exception.py::test_custom_middleware_exception": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_middleware_exception.py::test_custom_middleware_exception",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_middleware_exception.py::test_custom_middleware_exception_not_raised": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_middleware_exception.py::test_custom_middleware_exception_not_raised",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_route_class.py::test_get_path": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_route_class.py::test_get_path",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_route_class.py::test_route_classes": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_route_class.py::test_route_classes",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_schema_fields.py::test_custom_response_schema": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_schema_fields.py::test_custom_response_schema",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_schema_fields.py::test_response": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_schema_fields.py::test_response",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_swagger_ui_redirect.py::test_swagger_ui": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_swagger_ui_redirect.py::test_swagger_ui",
+        "fixture_taint_checked": true
+      },
+      "tests/test_custom_swagger_ui_redirect.py::test_swagger_ui_oauth2_redirect": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_custom_swagger_ui_redirect.py::test_swagger_ui_oauth2_redirect",
+        "fixture_taint_checked": true
+      },
+      "tests/test_datastructures.py::test_upload_file_invalid": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_datastructures.py::test_upload_file_invalid",
+        "fixture_taint_checked": true
+      },
+      "tests/test_datastructures.py::test_default_placeholder_equals": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_datastructures.py::test_default_placeholder_equals",
+        "fixture_taint_checked": true
+      },
+      "tests/test_datetime_custom_encoder.py::test_dt": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_datetime_custom_encoder.py::test_dt",
+        "fixture_taint_checked": true
+      },
+      "tests/test_default_response_class.py::test_app": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_default_response_class.py::test_app",
+        "fixture_taint_checked": true
+      },
+      "tests/test_default_response_class.py::test_app_override": {
+        "system_reason": "Pre-existing TestClient-driven integration test (NOT modified by this PR).",
+        "public_surface": "Public FastAPI request/response handling",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_default_response_class.py::test_app_override",
+        "fixture_taint_checked": true
+      },
+      "tests/test_dependency_cache.py::test_sub_counter": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_cache.py::test_sub_counter",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_cache.py::test_sub_counter_no_cache": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_cache.py::test_sub_counter_no_cache",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_class.py::test_class_dependency": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_class.py::test_class_dependency",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_contextmanager.py::test_async_state": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_contextmanager.py::test_async_state",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_contextvars.py::test_dependency_contextvars": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_contextvars.py::test_dependency_contextvars",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_duplicates.py::test_no_duplicates": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_duplicates.py::test_no_duplicates",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_normal_exceptions.py::test_dependency_gets_exception": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_normal_exceptions.py::test_dependency_gets_exception",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_overrides.py::test_override_simple": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_overrides.py::test_override_simple",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_dependency_security_overrides.py::test_override_data": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_dependency_security_overrides.py::test_override_data",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_http_connection_injection.py::test_value_extracting_by_http": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public Request/HTTPConnection injection behavior through FastAPI dependencies.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_http_connection_injection.py::test_value_extracting_by_http",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_infer_param_optionality.py::test_schema_1": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_infer_param_optionality.py::test_schema_1",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_infer_param_optionality.py::test_get_items_1": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_infer_param_optionality.py::test_get_items_1",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_param_class.py::test_default_param_query_none": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_param_class.py::test_default_param_query_none",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_param_class.py::test_default_param_query": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_param_class.py::test_default_param_query",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_param_in_path_and_dependency.py::test_reused_param": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI dependency resolution, dependency overrides, and TestClient request handling.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_param_in_path_and_dependency.py::test_reused_param",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_param_include_in_schema.py::test_openapi_schema": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_param_include_in_schema.py::test_openapi_schema",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_query.py::test_get_path": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_query.py::test_get_path",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_required_noneable.py::test_required_noneable_query_value": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_required_noneable.py::test_required_noneable_query_value",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_required_noneable.py::test_required_nonable_explicit_query_value": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_required_noneable.py::test_required_nonable_explicit_query_value",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_repeated_parameter_alias.py::test_openapi_schema": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_repeated_parameter_alias.py::test_openapi_schema",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_invalid_sequence_param.py::test_invalid_sequence": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_invalid_sequence_param.py::test_invalid_sequence",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_multi_query_errors.py::test_multi_query": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_multi_query_errors.py::test_multi_query",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_request_body_parameters_media_type.py::test_openapi_schema": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_request_body_parameters_media_type.py::test_openapi_schema",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_get_request_body.py::test_openapi_schema": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_get_request_body.py::test_openapi_schema",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      },
+      "tests/test_get_request_body.py::test_get_with_body": {
+        "system_reason": "Pre-existing upstream FastAPI test (NOT modified by this PR); selected as P2P regression coverage near dependency and parameter handling touched by the solution.",
+        "public_surface": "Public FastAPI parameter, request-body, and OpenAPI schema behavior.",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "pytest tests/test_get_request_body.py::test_get_with_body",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "Selector exists in the base checkout and is not introduced by eval_tests.patch or eval_tests_aug.patch; it was collected and passed in the FastAPI eval image before being added to p2p.txt."
+      }
+    }
+  },
+  "augmented": {
+    "suite_support": {
+      "env": "LOLBENCH_SUITE",
+      "modes": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "default": "orig"
+    },
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "04e368ed517bf460fe3f72f61307ab166ef057c33642f6666bef84ccd9654da3",
+    "f2p_aug_sha256": "51517b67fcc83b4d4d7feba55ec7febf0065bd15c4510285aa30576316ab1970",
+    "p2p_aug_sha256": "c5b5bfa7a461a8367fa263979a7b419dfd78de89bd4ec177157088f645f6bee6",
+    "fail_to_pass": [
+      "tests/test_annotated_aug.py::test_annotated_form_without_positional_default",
+      "tests/test_annotated_aug.py::test_annotated_file_without_positional_default"
+    ],
+    "pass_to_pass": [
+      "tests/test_annotated_aug.py::test_plain_query_parameter_default_still_works"
+    ],
+    "targets_mutants": [
+      "mutant_011_form_file_annotated_defaults_required"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "measurement_note": "Coverage measured with coverage.py over solution.patch Python lines; union mode runs original plus augmented F2P/P2P selectors.",
+      "baseline_union_line_coverage_percent": 84.8,
+      "augmented_only_union_line_coverage_percent": 56.5,
+      "union_line_coverage_percent": 84.8,
+      "executable_lines_in_patch": 92,
+      "union_covered_lines": 78,
+      "coverage_complete": true
+    },
+    "synthetic_tests": [
+      "tests/test_annotated_aug.py::test_annotated_form_without_positional_default",
+      "tests/test_annotated_aug.py::test_annotated_file_without_positional_default",
+      "tests/test_annotated_aug.py::test_plain_query_parameter_default_still_works"
+    ],
+    "triage": {
+      "test_level_policy": "All augmented selectors exercise FastAPI through public route decorators and TestClient requests. The F2P selectors validate PEP-593 Annotated metadata carrying FastAPI public parameter metadata classes; the P2P selector uses ordinary non-Annotated query-default request handling to guard adjacent unchanged behavior.",
+      "fail_to_pass": {
+        "tests/test_annotated_aug.py::test_annotated_form_without_positional_default": {
+          "requirement_sections": [
+            "Specification > Syntax"
+          ],
+          "public_surface": "FastAPI route declaration using Annotated[str, fastapi.params.Form()] and TestClient form submission.",
+          "mutants_targeted": [
+            "mutant_011_form_file_annotated_defaults_required"
+          ],
+          "rationale": "PEP 593 syntax allows Annotated[T, metadata] to carry runtime metadata while preserving the base type. FastAPI exposes Form as public parameter metadata, and the PR made the Form metadata class usable inside Annotated without requiring a duplicate positional default. The survivor changes that constructor default back to a required argument, so this public route declaration errors before the request can succeed."
+        },
+        "tests/test_annotated_aug.py::test_annotated_file_without_positional_default": {
+          "requirement_sections": [
+            "Specification > Syntax"
+          ],
+          "public_surface": "FastAPI route declaration using Annotated[bytes, fastapi.params.File()] and TestClient multipart upload.",
+          "mutants_targeted": [
+            "mutant_011_form_file_annotated_defaults_required"
+          ],
+          "rationale": "PEP 593 syntax lets FastAPI consume File metadata from Annotated without replacing the annotated type. The PR made the File metadata class mirror the Annotated default behavior used by other parameter metadata classes. The survivor requires an explicit default again, so this multipart route distinguishes the mutant through the public request path."
+        }
+      },
+      "pass_to_pass": {
+        "tests/test_annotated_aug.py::test_plain_query_parameter_default_still_works": {
+          "requirement_sections": [
+            "Specification > Consuming annotations"
+          ],
+          "public_surface": "FastAPI route declaration with a normal query parameter default and TestClient GET requests.",
+          "rationale": "PEP 593 consumption is additive: FastAPI should consume Annotated metadata without disturbing ordinary non-Annotated parameter defaults. This P2P selector guards the adjacent dependency-resolution behavior that must remain unchanged by the Annotated support patch."
+        }
+      }
+    }
+  },
+  "repo": "fastapi/fastapi",
+  "image": "lolbench/fastapi-pr-4871:1",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/fastapi-pr-4871:1"
+  },
+  "test_framework": "pytest",
+  "test_cmd_template": "pytest <test_selector>",
+  "log_parser": "python_unittest",
+  "validation_summary": {
+    "status": "validated",
+    "note": "On 2026-06-15, orig/aug/union pre- and post-state Docker validation passed after expanding p2p.txt to 50 pre-existing selectors; union P2P includes 51 selectors with the synthesized p2p_aug sidecar."
+  },
+  "coverage": {
+    "orig": 96.7,
+    "aug": 56.5,
+    "union": 96.7,
+    "denominator": "union_executable_lines"
+  }
+}

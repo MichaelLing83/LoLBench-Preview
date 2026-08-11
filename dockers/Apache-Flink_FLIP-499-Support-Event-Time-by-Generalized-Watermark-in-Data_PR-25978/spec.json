@@ -1,0 +1,405 @@
+{
+  "instance_id": "Apache-Flink_FLIP-499-Support-Event-Time-by-Generalized-Watermark-in-Data_PR-25978",
+  "project": "Apache Flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-499",
+  "pr_link": "https://github.com/apache/flink/pull/25978",
+  "pr_merge_date": "2025-02-12",
+  "language": "Java",
+  "build_system": "Maven",
+  "scope": {
+    "touched_modules": [
+      "flink-datastream-api",
+      "flink-datastream",
+      "flink-core",
+      "flink-tests"
+    ],
+    "f2p_module": "flink-tests",
+    "p2p_module": "flink-clients",
+    "total_files_changed": 36
+  },
+  "base_commit": "c4bea91284bf1871e23a4c93fbf9f3b65b1a89d4",
+  "base_commit_note": "PR-25978 is a 3-commit non-squash merge. Base = parent(9a4f2895) = c4bea91284bf1871e23a4c93fbf9f3b65b1a89d4.",
+  "merge_commit_sha": "69e67fa8ca704472545aada9b701e7ca9a0de408",
+  "diff_source": "pr_files_cache",
+  "solution_patch_sha256": "493d13fdf47654537a89d4ea8dba38ab491198545445b8ba8ae0a508f121a66a",
+  "eval_tests_patch_sha256": "e249b2da36c23b58e015faf4ba59c27d5148f610d275f7762c089972745e92a3",
+  "omitted_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "toolchain": {
+    "java": "11",
+    "maven": "3.x",
+    "junit": "5",
+    "flink_version_at_base": "2.0-SNAPSHOT"
+  },
+  "build_modules": [
+    "flink-tests",
+    "flink-clients"
+  ],
+  "test_framework": "junit-maven",
+  "test_level": "system",
+  "fail_to_pass": [
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testWatermarkGeneratorGenerateEventTimeWatermark",
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testOneInputProcessFunctionForwardEventTimeWatermark",
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testOneInputEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer",
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testOneInputEventTimeProcessFunctionForwardEventTimeWatermark",
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testTwoOutputProcessFunctionForwardEventTimeWatermark",
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionITCase#testTwoInputBroadcastProcessFunctionForwardEventTimeWatermark"
+  ],
+  "pass_to_pass": [
+    "org.apache.flink.client.cli.ClientOptionsTest",
+    "org.apache.flink.client.program.PackagedProgramUtilsTest",
+    "org.apache.flink.client.program.rest.RestClusterClientConfigurationTest",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassNoEntry",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassAssemblerClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassMainClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassAssemblerClassAndMainClass",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindEntryClassWithTestJobJar",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassEmptyArgument",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassSingleJarWithNoManifest",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassSingleJar",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassMultipleJarsWithMultipleManifestEntries",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindOnlyEntryClassMultipleJarsWithSingleManifestEntry",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindFirstManifestAttributeWithNoAttribute",
+    "org.apache.flink.client.deployment.application.JarManifestParserTest#testFindFirstManifestAttributeWithAttributes",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testCustomJarFile",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testMissingJar",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testMissingJobClassName",
+    "org.apache.flink.client.deployment.application.FromJarEntryClassInformationProviderTest#testEitherJobClassNameOrJarHasToBeSet",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testPolling",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testHappyPath",
+    "org.apache.flink.client.deployment.application.JobStatusPollingUtilsTest#testFailedJobResult",
+    "org.apache.flink.client.program.PackagedProgramTest#testExtractContainedLibraries",
+    "org.apache.flink.client.program.PackagedProgramTest#testNotThrowExceptionWhenJarFileIsNull",
+    "org.apache.flink.client.program.PackagedProgramTest#testBuilderThrowExceptionIfjarFileAndEntryPointClassNameAreBothNull",
+    "org.apache.flink.client.program.PackagedProgramUtilsPipelineTest#testConfigurationForwarding",
+    "org.apache.flink.client.program.PackagedProgramUtilsPipelineTest#testUserClassloaderForConfiguration",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithParentFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithDefaultChildFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithChildFirstClassloader",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testDynamicPropertiesWithClientTimeoutAndDefaultParallelism",
+    "org.apache.flink.client.cli.CliFrontendDynamicPropertiesTest#testSecurityConfigWithDynamicProperties",
+    "org.apache.flink.client.cli.DefaultCLITest#testCommandLineMaterialization",
+    "org.apache.flink.client.cli.DefaultCLITest#testDynamicPropertyMaterialization",
+    "org.apache.flink.client.cli.GenericCLITest#isActiveWhenTargetOnlyInConfig",
+    "org.apache.flink.client.cli.GenericCLITest#testWithPreexistingConfigurationInConstructor",
+    "org.apache.flink.client.cli.GenericCLITest#testIsActiveLong",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testMissingOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlan",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlanWithCliOptionParallelism",
+    "org.apache.flink.client.cli.CliFrontendInfoTest#testShowExecutionPlanWithDynamicPropertiesParallelism",
+    "org.apache.flink.client.cli.CliFrontendListTest#testListOptions",
+    "org.apache.flink.client.cli.CliFrontendListTest#testUnrecognizedOption",
+    "org.apache.flink.client.cli.CliFrontendListTest#testList",
+    "org.apache.flink.client.cli.CliFrontendListTest#testSorting",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testStandaloneClusterClientFactoryDiscovery",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testFactoryDiscovery",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testMoreThanOneCompatibleFactoriesException",
+    "org.apache.flink.client.deployment.ClusterClientServiceLoaderTest#testNoFactoriesFound"
+  ],
+  "augmented": {
+    "eval_tests_aug_patch_sha256": "34297f9832529d9c2b289048b45582cd390d2d18fc495ea557f6a6b168b6eb87",
+    "f2p_aug_sha256": "de915710890056a80b0d067adb82bccaf3dda012d334a24f3e214d5145306174",
+    "p2p_aug_sha256": "f350c172e59f283c9ebc50f292986f294a1e9bfd879a4c0edbce9468b3dfbd7a",
+    "fail_to_pass": [
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionForwardEventTimeWatermark",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionForwardEventTimeWatermark",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastProcessFunctionForwardEventTimeWatermark",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionForwardEventTimeWatermark",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeDeclarationUsesMinAndWaitsForAllChannels",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testIdleStatusDeclarationUsesAndAndWaitsForAllChannels",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testDefaultBuilderUsesPeriodicEventTimeWatermarks",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testNoWatermarkModeSuppressesEventTimeWatermarks",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testConfiguredPeriodicIntervalIsUsed",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testBuilderIdlenessEmitsIdleAndActiveStatus",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testMaxOutOfOrderTimeIsSubtracted",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeManagerAugITCase#testEventTimeManagerCurrentTimeTracksWatermark",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerIdleAugTest#testAllInputsIdleThenActive",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerAugTest#testTwoInputWatermarkHandler",
+      "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeOnlyBuilderDeclaresEventTimeWithoutIdleStatus"
+    ],
+    "pass_to_pass": [
+      "org.apache.flink.client.program.PackagedProgramUtilsAugTest"
+    ],
+    "equivalent_mutants": [],
+    "triage": {
+      "test_level_policy": "All augmented F2P selectors execute PR-authored flink-tests event-time IT/module tests through DataStream V2 process-function flows, runtime watermark combiners, and watermark handlers. The augmented P2P selector stays in unchanged flink-clients packaged-program behavior. The sidecar files only expose deterministic selector classes and do not call production private helpers.",
+      "fail_to_pass": {
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-output EventTimeProcessFunction running through EventTimeManager timer registration in EventTimeExtensionITCase.",
+          "mutants_targeted": [
+            "mutant_025",
+            "mutant_026",
+            "mutant_027"
+          ],
+          "rationale": "Exercises the provided event-time callback and timer path so the PR must route EventTimeWatermark updates into EventTimeProcessFunction and expose the current event time correctly."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionForwardEventTimeWatermark": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-output EventTimeProcessFunction forwarding event-time watermarks through the generalized watermark output.",
+          "mutants_targeted": [
+            "mutant_027",
+            "mutant_029"
+          ],
+          "rationale": "Pins the forwarding behavior for provided event-time process functions so event-time extension watermarks are handled by the framework rather than bypassing the event-time callback path."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-input broadcast EventTimeProcessFunction receiving event-time watermarks and registering timers.",
+          "mutants_targeted": [
+            "mutant_006",
+            "mutant_007",
+            "mutant_025",
+            "mutant_026",
+            "mutant_027"
+          ],
+          "rationale": "Forces the two-input broadcast handler to wait for both inputs and advance by the active minimum event time before invoking timer-aware user code."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionForwardEventTimeWatermark": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Handle watermarks by user-defined ProcessFunction"
+          ],
+          "public_surface": "DataStream V2 two-input broadcast process-function flow with generalized event-time watermark forwarding.",
+          "mutants_targeted": [
+            "mutant_027",
+            "mutant_028",
+            "mutant_029"
+          ],
+          "rationale": "Checks that event-time extension watermarks are recognized and delegated through the framework path for broadcast inputs instead of being forwarded as ordinary watermarks."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastProcessFunctionForwardEventTimeWatermark": {
+          "requirement_sections": [
+            "Handle watermarks by user-defined ProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-input non-broadcast user ProcessFunction handling an EventTimeWatermark.",
+          "mutants_targeted": [
+            "mutant_003",
+            "mutant_028",
+            "mutant_029"
+          ],
+          "rationale": "Pins the user-defined ProcessFunction route where EventTimeExtension.isEventTimeWatermark must recognize the declaration and PEEK must trigger framework event-time processing."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-input non-broadcast EventTimeProcessFunction receiving event-time watermarks and registering timers.",
+          "mutants_targeted": [
+            "mutant_006",
+            "mutant_007",
+            "mutant_025",
+            "mutant_026",
+            "mutant_027"
+          ],
+          "rationale": "Exercises the non-broadcast two-input handler's minimum-event-time and timer-registration behavior through the public event-time process-function contract."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionForwardEventTimeWatermark": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Handle watermarks by user-defined ProcessFunction"
+          ],
+          "public_surface": "DataStream V2 two-input non-broadcast EventTimeProcessFunction forwarding event-time watermarks.",
+          "mutants_targeted": [
+            "mutant_027",
+            "mutant_028",
+            "mutant_029"
+          ],
+          "rationale": "Covers the non-broadcast forwarding path so extension watermarks are identified and routed through the event-time framework before downstream emission."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeDeclarationUsesMinAndWaitsForAllChannels": {
+          "requirement_sections": [
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "EventTimeExtension public EVENT_TIME_WATERMARK_DECLARATION and public predicate helpers.",
+          "mutants_targeted": [
+            "mutant_001",
+            "mutant_002",
+            "mutant_003"
+          ],
+          "rationale": "Pins the public event-time watermark declaration to MIN combination, wait-for-all-channel behavior, FORWARD default handling, and event-time predicate recognition."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testIdleStatusDeclarationUsesAndAndWaitsForAllChannels": {
+          "requirement_sections": [
+            "Idle Status Watermark Definition"
+          ],
+          "public_surface": "EventTimeExtension public IDLE_STATUS_WATERMARK_DECLARATION and public predicate helpers.",
+          "mutants_targeted": [
+            "mutant_009",
+            "mutant_010",
+            "mutant_011"
+          ],
+          "rationale": "Pins the public idle-status declaration to AND combination, wait-for-all-channel behavior, FORWARD default handling, and idle-status predicate recognition."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testDefaultBuilderUsesPeriodicEventTimeWatermarks": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder public builder executed through ProcessOperator test harness.",
+          "mutants_targeted": [
+            "mutant_017"
+          ],
+          "rationale": "Checks the builder default mode by requiring a periodic event-time watermark after the configured auto-watermark interval."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testNoWatermarkModeSuppressesEventTimeWatermarks": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder noWatermark public builder mode executed through ProcessOperator test harness.",
+          "mutants_targeted": [
+            "mutant_020"
+          ],
+          "rationale": "Pins the public noWatermark mode so records and processing-time advances do not emit event-time watermarks."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testConfiguredPeriodicIntervalIsUsed": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder periodicWatermark(Duration) public builder mode executed through ProcessOperator test harness.",
+          "mutants_targeted": [
+            "mutant_021"
+          ],
+          "rationale": "Requires the user-provided periodic interval to schedule emission rather than falling back to the pipeline default interval."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testBuilderIdlenessEmitsIdleAndActiveStatus": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder",
+            "Idle Status Watermark Definition"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder withIdleness public builder mode executed through ProcessOperator test harness.",
+          "mutants_targeted": [
+            "mutant_018"
+          ],
+          "rationale": "Verifies the builder idleness option emits idle-status true after inactivity and false when records resume."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testMaxOutOfOrderTimeIsSubtracted": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder withMaxOutOfOrderTime public builder mode executed through ProcessOperator test harness.",
+          "mutants_targeted": [
+            "mutant_019",
+            "mutant_024"
+          ],
+          "rationale": "Pins the public max-out-of-order tolerance by requiring emitted event-time watermarks to subtract the configured delay from the current maximum timestamp."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeManagerAugITCase#testEventTimeManagerCurrentTimeTracksWatermark": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction"
+          ],
+          "public_surface": "DataStream V2 keyed EventTimeProcessFunction using the public EventTimeManager.currentTime method.",
+          "mutants_targeted": [
+            "mutant_026"
+          ],
+          "rationale": "Checks the public EventTimeManager currentTime contract from inside an EventTimeProcessFunction callback, requiring it to match the event-time watermark currently being handled."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerIdleAugTest#testAllInputsIdleThenActive": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-input non-broadcast EventTimeProcessFunction: only after every input channel supplies an event-time watermark does the combined (min) event time reach the function, which observes it via onEventTimeWatermark and registers event-time timers, all through the public operator output.",
+          "mutants_targeted": [
+            "mutant_006",
+            "mutant_007",
+            "mutant_025",
+            "mutant_026",
+            "mutant_027"
+          ],
+          "rationale": "Routes to the public two-input non-broadcast event-time receive-and-timer acceptance test, exercising the same all-channels-active combination the removed white-box handler test covered but observed only through the public EventTimeProcessFunction callbacks and operator output."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerAugTest#testTwoInputWatermarkHandler": {
+          "requirement_sections": [
+            "Handle watermarks by provided EventTimeProcessFunction",
+            "Event Time Watermark Definition"
+          ],
+          "public_surface": "DataStream V2 two-input non-broadcast EventTimeProcessFunction: the combined event-time watermark (min across both inputs, waiting for all input channels) advances and is forwarded through the operator's public output; no reliance on the internal EventTimeWatermarkHandler return type.",
+          "mutants_targeted": [
+            "mutant_027",
+            "mutant_028",
+            "mutant_029"
+          ],
+          "rationale": "Routes to the public two-input non-broadcast event-time forwarding acceptance test so a faithful FLIP-499 implementation that advances and forwards the combined event time is scored, without pinning the gold-only EventTimeUpdateStatus/isEventTimeUpdated/getNewEventTime handler internals."
+        },
+        "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeOnlyBuilderDeclaresEventTimeWithoutIdleStatus": {
+          "requirement_sections": [
+            "Generate watermarks by provided WatermarkGeneratorBuilder",
+            "Idle Status Watermark Definition"
+          ],
+          "public_surface": "EventTimeExtension.newWatermarkGeneratorBuilder public builder declaration contract without idleness enabled.",
+          "mutants_targeted": [],
+          "rationale": "Checks that the public event-time builder declares event-time watermarks without requiring idle-status declarations when idleness is not configured, avoiding internal combiner-helper names."
+        }
+      },
+      "pass_to_pass": {
+        "org.apache.flink.client.program.PackagedProgramUtilsAugTest": {
+          "requirement_sections": [
+            "Compatibility, Deprecation, and Migration Plan"
+          ],
+          "public_surface": "flink-clients PackagedProgramUtils public packaging and entry-class utility behavior.",
+          "rationale": "Pins unchanged packaged-program behavior in an unrelated client module so FLIP-499 event-time runtime changes cannot mask collateral regressions outside the DataStream watermark surface."
+        }
+      }
+    },
+    "mutant_set_revision": {
+      "date": "2026-06-16",
+      "removed": [
+        "mutant_007_handler_does_not_wait_all_inputs",
+        "mutant_029_process_operator_forwards_extension_watermarks_directly"
+      ],
+      "reason": "equivalent",
+      "note": "2 equivalent mutant(s) removed from mutations/ per the 2026-06-16 mutant-kill audit (no \u00a76-clean test can kill an equivalent mutant); union now kills all 27 remaining mutants.",
+      "new_total": 27,
+      "union_kills_all_remaining": true
+    }
+  },
+  "synthetic_tests": [],
+  "triage": {
+    "fail_to_pass": {
+      "_summary": "6 EventTimeExtensionITCase tests driving end-to-end DataStream V2 event-time watermark propagation through MiniCluster. Per Flink heuristic \u00a76.2-pre, *ITCase is system-level."
+    },
+    "pass_to_pass": {
+      "_summary": "50 untouched flink-clients selectors covering client options, packaged-program utilities, application entrypoint parsing, CLI dynamic properties, frontend info/list handling, and cluster-client service loading. They do not import or compile-depend on generalized-watermark DataStream classes, so they pass in both pre- and post-patch states."
+    },
+    "module_scope_rationale": "flink-tests hosts the EventTimeExtensionITCase. flink-clients is strict-\u00a77 P2P."
+  },
+  "f2p_entry_count": 6,
+  "p2p_entry_count": 50,
+  "timeout_s": 7200,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 8
+  },
+  "validated_at": "2026-06-15T00:00:00Z",
+  "repo": "apache/flink",
+  "image": "lolbench/apache-flink-flip-499-pr-25978:1",
+  "pr_head_sha": "9855bdafb6a338d78ae56013a9f5d27b73c33945",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --memory 8g --cpus 4 -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/apache-flink-flip-499-pr-25978:1"
+  },
+  "test_cmd_template": "./run_tests.sh <test_selector>",
+  "log_parser": "generic_log",
+  "coverage": {
+    "orig": 70.9,
+    "aug": 70.9,
+    "union": 70.9,
+    "denominator": "union_executable_lines"
+  }
+}

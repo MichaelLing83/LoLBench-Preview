@@ -1,0 +1,201 @@
+{
+  "instance_id": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "files_in_scope": [
+    "Include/internal/pycore_ast.h",
+    "Include/internal/pycore_ast_state.h",
+    "Include/internal/pycore_intrinsics.h",
+    "Include/internal/pycore_typevarobject.h",
+    "Lib/ast.py",
+    "Lib/typing.py",
+    "Modules/_typingmodule.c",
+    "Objects/clinic/typevarobject.c.h",
+    "Objects/typevarobject.c",
+    "Parser/parser.c",
+    "Python/Python-ast.c",
+    "Python/ast.c",
+    "Python/compile.c",
+    "Python/intrinsics.c",
+    "Python/symtable.c"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/ast.py",
+      "language": "python",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 9,
+      "f2p_covered": 9,
+      "p2p_covered": 0,
+      "union_covered": 9
+    },
+    {
+      "file": "Lib/typing.py",
+      "language": "python",
+      "lines_in_patch": 71,
+      "executable_lines_in_patch": 46,
+      "f2p_covered": 35,
+      "p2p_covered": 5,
+      "union_covered": 35
+    },
+    {
+      "file": "Include/internal/pycore_ast.h",
+      "language": "c",
+      "lines_in_patch": 12,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_ast_state.h",
+      "language": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_intrinsics.h",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_typevarobject.h",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Modules/_typingmodule.c",
+      "language": "c",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "Objects/clinic/typevarobject.c.h",
+      "language": "c",
+      "lines_in_patch": 137,
+      "executable_lines_in_patch": 42,
+      "f2p_covered": 41,
+      "p2p_covered": 16,
+      "union_covered": 41
+    },
+    {
+      "file": "Objects/typevarobject.c",
+      "language": "c",
+      "lines_in_patch": 313,
+      "executable_lines_in_patch": 116,
+      "f2p_covered": 107,
+      "p2p_covered": 17,
+      "union_covered": 107
+    },
+    {
+      "file": "Parser/parser.c",
+      "language": "c",
+      "lines_in_patch": 548,
+      "executable_lines_in_patch": 61,
+      "f2p_covered": 51,
+      "p2p_covered": 0,
+      "union_covered": 51
+    },
+    {
+      "file": "Python/Python-ast.c",
+      "language": "c",
+      "lines_in_patch": 157,
+      "executable_lines_in_patch": 86,
+      "f2p_covered": 68,
+      "p2p_covered": 23,
+      "union_covered": 68
+    },
+    {
+      "file": "Python/ast.c",
+      "language": "c",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 9,
+      "f2p_covered": 9,
+      "p2p_covered": 0,
+      "union_covered": 9
+    },
+    {
+      "file": "Python/compile.c",
+      "language": "c",
+      "lines_in_patch": 75,
+      "executable_lines_in_patch": 42,
+      "f2p_covered": 36,
+      "p2p_covered": 0,
+      "union_covered": 36
+    },
+    {
+      "file": "Python/intrinsics.c",
+      "language": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/symtable.c",
+      "language": "c",
+      "lines_in_patch": 44,
+      "executable_lines_in_patch": 23,
+      "f2p_covered": 16,
+      "p2p_covered": 0,
+      "union_covered": 16
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py for the 2 PEP-696 Python files (Lib/typing.py + Lib/ast.py \u2014 typing-API default= kwarg + ast.unparse for the new default field) + gcov/gcovr for the 13 PEP-696 C files (Python/{compile,symtable,ast,Python-ast,intrinsics}.c + Parser/parser.c + Objects/typevarobject.c + Objects/clinic/typevarobject.c.h + Modules/_typingmodule.c + pycore_{ast,ast_state,intrinsics,typevarobject}.h). Grammar/python.gram and Parser/Python.asdl are grammar / schema sources (non-executable) and so are not part of the coverage denominator; they contribute to coverage indirectly via the generated parser.c / Python-ast.c.",
+    "lines_in_patch_total": 1384,
+    "lines_in_patch_total_all": 1394,
+    "lines_in_patch_python": 80,
+    "lines_in_patch_c": 1304,
+    "executable_lines_in_patch": 436,
+    "f2p_covered": 373,
+    "p2p_covered": 62,
+    "union_covered": 373,
+    "f2p_pct": 85.6,
+    "p2p_pct": 14.2,
+    "union_pct": 85.6,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "45P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "65P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

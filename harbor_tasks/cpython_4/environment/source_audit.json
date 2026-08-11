@@ -1,0 +1,7 @@
+{
+  "source_policy": "dockerfile_fetch_pruned_ancestor_history",
+  "local_reference_policy": "auxiliary_sources_removed_execute_only",
+  "base_commit": "850aefc2c651110a784cd5478af9774b1f6287a3",
+  "repo": "python/cpython",
+  "note": "The Dockerfile fetches only the declared base history, removes refs/remotes/reflogs, repacks and prunes unreachable objects, asserts that git fsck finds no unreachable object, removes auxiliary reference sources, and makes remaining auxiliary toolchains root-owned and non-enumerable to the agent."
+}

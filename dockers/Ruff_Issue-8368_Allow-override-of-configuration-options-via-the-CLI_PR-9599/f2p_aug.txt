@@ -1,0 +1,2 @@
+config_aug::isolated_inline_overrides_still_apply
+config_aug::nested_pyproject_add_noqa_uses_cli_excludes

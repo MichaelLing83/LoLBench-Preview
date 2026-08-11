@@ -1,0 +1,322 @@
+{
+  "instance_id": "Apache-Flink_FLIP-499-Support-Event-Time-by-Generalized-Watermark-in-Data_PR-25978",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "b389d097ba27abe1a9aa3d91aa3bd6f44873b044b609e49ee0d94dc42ab48ae8",
+    "f2p_aug.txt": "de915710890056a80b0d067adb82bccaf3dda012d334a24f3e214d5145306174",
+    "p2p_aug.txt": "f350c172e59f283c9ebc50f292986f294a1e9bfd879a4c0edbce9468b3dfbd7a",
+    "coverage_report.json": "85704d65d4ef771c4c9fd7b795b28ad8def53a2d9fa8e7aaeab4a5747bf63da8"
+  },
+  "coverage_baseline": {
+    "coverage_complete": true,
+    "executable_lines_in_patch": 117,
+    "union_covered": 83,
+    "union_pct": 70.9
+  },
+  "public_surface_summary": {
+    "f2p": [
+      "DataStream V2 EventTimeProcessFunction integration tests in flink-tests",
+      "DataStream V2 user ProcessFunction generalized watermark handling in flink-tests",
+      "Public EventTimeExtension declaration and builder behavior in flink-tests",
+      "EventTimeWatermarkHandler idle-status module tests in flink-tests"
+    ],
+    "p2p": [
+      "flink-clients PackagedProgramUtils test surface"
+    ],
+    "internal_symbol_check": "The sidecar test classes use public EventTimeExtension APIs and the doc-named EventTimeWatermarkHandler surface. The previous direct selector dependency on a separate PR-added combiner class was removed."
+  },
+  "fail_to_pass": {
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_025",
+        "mutant_026",
+        "mutant_027"
+      ],
+      "golden_oracle": "EventTimeProcessFunction receives advancing event-time watermarks and registered event-time timers fire at the expected timestamps."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoOutputEventTimeProcessFunctionForwardEventTimeWatermark": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_027",
+        "mutant_029"
+      ],
+      "golden_oracle": "Two-output event-time process functions forward generalized event-time watermarks through the framework event-time path."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_006",
+        "mutant_007",
+        "mutant_025",
+        "mutant_026",
+        "mutant_027"
+      ],
+      "golden_oracle": "Broadcast two-input event-time processing waits for both inputs and exposes the minimum active event time to timer-aware user code."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputBroadcastEventTimeProcessFunctionForwardEventTimeWatermark": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Handle watermarks by user-defined ProcessFunction"
+      ],
+      "mutants_targeted": [
+        "mutant_027",
+        "mutant_028",
+        "mutant_029"
+      ],
+      "golden_oracle": "Broadcast two-input event-time watermarks are recognized as extension watermarks and delegated to framework event-time processing."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastProcessFunctionForwardEventTimeWatermark": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by user-defined ProcessFunction",
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_003",
+        "mutant_028",
+        "mutant_029"
+      ],
+      "golden_oracle": "User ProcessFunction PEEK handling recognizes EventTimeWatermark and routes it through event-time extension processing."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionReceiveEventTimeWatermarkAndRegisterTimer": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_006",
+        "mutant_007",
+        "mutant_025",
+        "mutant_026",
+        "mutant_027"
+      ],
+      "golden_oracle": "Non-broadcast two-input event-time processing waits for both inputs and fires event-time timers from the current watermark."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeExtensionAugITCase#testTwoInputNonBroadcastEventTimeProcessFunctionForwardEventTimeWatermark": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction",
+        "Handle watermarks by user-defined ProcessFunction"
+      ],
+      "mutants_targeted": [
+        "mutant_027",
+        "mutant_028",
+        "mutant_029"
+      ],
+      "golden_oracle": "Non-broadcast two-input extension watermarks are routed through framework event-time handling rather than ordinary forwarding."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeDeclarationUsesMinAndWaitsForAllChannels": {
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Event Time Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_001",
+        "mutant_002",
+        "mutant_003"
+      ],
+      "golden_oracle": "EventTimeWatermark declaration uses MIN, waits for all channels, forwards by default, and is recognized by public predicates."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testIdleStatusDeclarationUsesAndAndWaitsForAllChannels": {
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Idle Status Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_009",
+        "mutant_010",
+        "mutant_011"
+      ],
+      "golden_oracle": "IdleStatusWatermark declaration uses AND, waits for all channels, forwards by default, and is recognized by public predicates."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testDefaultBuilderUsesPeriodicEventTimeWatermarks": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder"
+      ],
+      "mutants_targeted": [
+        "mutant_017"
+      ],
+      "golden_oracle": "Default public builder emits periodic event-time watermarks after the auto-watermark interval."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testNoWatermarkModeSuppressesEventTimeWatermarks": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder"
+      ],
+      "mutants_targeted": [
+        "mutant_020"
+      ],
+      "golden_oracle": "Public noWatermark mode suppresses event-time watermark emission despite records and processing-time advances."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testConfiguredPeriodicIntervalIsUsed": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder"
+      ],
+      "mutants_targeted": [
+        "mutant_021"
+      ],
+      "golden_oracle": "Public periodicWatermark(Duration) uses the caller-provided interval rather than the pipeline default."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testBuilderIdlenessEmitsIdleAndActiveStatus": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder"
+      ],
+      "mutants_targeted": [
+        "mutant_018"
+      ],
+      "golden_oracle": "Public withIdleness mode emits idle true after inactivity and active false after a later record."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeGeneratorBuilderAugTest#testMaxOutOfOrderTimeIsSubtracted": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder"
+      ],
+      "mutants_targeted": [
+        "mutant_019",
+        "mutant_024"
+      ],
+      "golden_oracle": "Public max-out-of-order configuration subtracts the configured tolerance from emitted event-time watermarks."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeManagerAugITCase#testEventTimeManagerCurrentTimeTracksWatermark": {
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Handle watermarks by provided EventTimeProcessFunction"
+      ],
+      "mutants_targeted": [
+        "mutant_026"
+      ],
+      "golden_oracle": "EventTimeManager.currentTime returns the event-time watermark currently being handled inside a public EventTimeProcessFunction callback."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerIdleAugTest#testAllInputsIdleThenActive": {
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Idle Status Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_015",
+        "mutant_016"
+      ],
+      "golden_oracle": "EventTimeWatermarkHandler emits idle-status true only after all inputs are idle and emits active (false) when an input resumes."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeWatermarkHandlerAugTest#testTwoInputWatermarkHandler": {
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Idle Status Watermark Definition"
+      ],
+      "mutants_targeted": [
+        "mutant_015",
+        "mutant_016"
+      ],
+      "golden_oracle": "EventTimeWatermarkHandler reports idle only when all inputs are idle (AND reduction initialized true) and stores received idle flags unchanged, so a single active input keeps the operator active."
+    },
+    "org.apache.flink.test.streaming.api.datastream.extension.eventtime.EventTimeDeclarationAugTest#testEventTimeOnlyBuilderDeclaresEventTimeWithoutIdleStatus": {
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Generate watermarks by provided WatermarkGeneratorBuilder",
+        "Idle Status Watermark Definition"
+      ],
+      "mutants_targeted": [],
+      "golden_oracle": "The public event-time builder declares event-time watermarks without requiring idle-status declarations when idleness is not configured."
+    }
+  },
+  "pass_to_pass": {
+    "org.apache.flink.client.program.PackagedProgramUtilsAugTest": {
+      "goals": [
+        "P2P-regression"
+      ],
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "public_surface": "flink-clients PackagedProgramUtils test class",
+      "golden_oracle": "Packaged-program utility behavior remains unchanged while FLIP-499 modifies DataStream event-time watermark handling."
+    }
+  },
+  "equivalent_mutants": {
+    "mutant_007_handler_does_not_wait_all_inputs": {
+      "requirement_sections": [
+        "Event Time Watermark Definition"
+      ],
+      "reason": "The mutation removes the explicit hasReceiveWatermarks cardinality guard in EventTimeWatermarkHandler, but unreported active inputs retain Long.MIN_VALUE event time, so public processWatermark/DataStream flows still cannot advance early. Idle-status inputs mark the channel as received in both golden and mutant paths. The union suite therefore observes identical F2P/P2P behavior."
+    },
+    "mutant_029_process_operator_forwards_extension_watermarks_directly": {
+      "requirement_sections": [
+        "Handle watermarks by user-defined ProcessFunction"
+      ],
+      "reason": "The mutation forwards extension watermarks after PEEK handling, but downstream public ProcessFunction/EventTimeProcessFunction paths still receive an EventTimeWatermark carrying the same identifier/value and process it through the same public extension predicates. No allowed system-level oracle distinguishes the raw-forwarded watermark from the framework-emitted one without private operator-state inspection."
+    }
+  },
+  "coverage_augmented_union": {
+    "coverage_complete": true,
+    "executable_lines_in_patch": 117,
+    "union_covered": 112,
+    "union_pct": 95.7,
+    "delta_union_covered": 29,
+    "delta_union_pct": 24.8
+  }
+}

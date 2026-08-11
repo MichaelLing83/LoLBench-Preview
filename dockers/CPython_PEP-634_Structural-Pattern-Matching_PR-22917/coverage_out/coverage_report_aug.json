@@ -1,0 +1,364 @@
+{
+  "suite": "aug",
+  "files": {
+    "Grammar/python.gram": {
+      "kind": "grammar",
+      "lines_in_patch": 110,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Include/Python-ast.h": {
+      "kind": "c",
+      "lines_in_patch": 50,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Include/internal/pycore_ast.h": {
+      "kind": "c",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Include/internal/pycore_interp.h": {
+      "kind": "c",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Include/object.h": {
+      "kind": "c",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Include/opcode.h": {
+      "kind": "c",
+      "lines_in_patch": 6,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Include/symtable.h": {
+      "kind": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Lib/ast.py": {
+      "kind": "python",
+      "lines_in_patch": 27,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/collections/__init__.py": {
+      "kind": "python",
+      "lines_in_patch": 1,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/dataclasses.py": {
+      "kind": "python",
+      "lines_in_patch": 12,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/importlib/_bootstrap_external.py": {
+      "kind": "python",
+      "lines_in_patch": 2,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/keyword.py": {
+      "kind": "python",
+      "lines_in_patch": 3,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/opcode.py": {
+      "kind": "python",
+      "lines_in_patch": 10,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Lib/test/libregrtest/pgo.py": {
+      "kind": "python",
+      "lines_in_patch": 1,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Objects/bytearrayobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/bytesobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/dictobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/floatobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/listobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/longobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/setobject.c": {
+      "kind": "c",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/tupleobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Objects/typeobject.c": {
+      "kind": "c",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 2,
+      "p2p_covered": 2,
+      "union_covered": 2,
+      "f2p_pct": 100.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    },
+    "Objects/unicodeobject.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Parser/Python.asdl": {
+      "kind": "other",
+      "lines_in_patch": 8,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Parser/asdl_c.py": {
+      "kind": "python",
+      "lines_in_patch": 4,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Parser/parser.c": {
+      "kind": "generated",
+      "lines_in_patch": 11135,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Python/Python-ast.c": {
+      "kind": "generated",
+      "lines_in_patch": 467,
+      "note": "skipped: not gcov-measurable (see compute_coverage.py module docstring)"
+    },
+    "Python/ast.c": {
+      "kind": "c",
+      "lines_in_patch": 29,
+      "executable_lines_in_patch": 19,
+      "f2p_covered": 4,
+      "p2p_covered": 0,
+      "union_covered": 4,
+      "f2p_pct": 21.1,
+      "p2p_pct": 0.0,
+      "union_pct": 21.1
+    },
+    "Python/ast_opt.c": {
+      "kind": "c",
+      "lines_in_patch": 130,
+      "executable_lines_in_patch": 75,
+      "f2p_covered": 68,
+      "p2p_covered": 0,
+      "union_covered": 68,
+      "f2p_pct": 90.7,
+      "p2p_pct": 0.0,
+      "union_pct": 90.7
+    },
+    "Python/ceval.c": {
+      "kind": "c",
+      "lines_in_patch": 382,
+      "executable_lines_in_patch": 219,
+      "f2p_covered": 115,
+      "p2p_covered": 0,
+      "union_covered": 115,
+      "f2p_pct": 52.5,
+      "p2p_pct": 0.0,
+      "union_pct": 52.5
+    },
+    "Python/compile.c": {
+      "kind": "c",
+      "lines_in_patch": 713,
+      "executable_lines_in_patch": 413,
+      "f2p_covered": 360,
+      "p2p_covered": 7,
+      "union_covered": 360,
+      "f2p_pct": 87.2,
+      "p2p_pct": 1.7,
+      "union_pct": 87.2
+    },
+    "Python/importlib_external.h": {
+      "kind": "c",
+      "lines_in_patch": 109,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Python/opcode_targets.h": {
+      "kind": "c",
+      "lines_in_patch": 6,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "Python/pystate.c": {
+      "kind": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 2,
+      "p2p_covered": 2,
+      "union_covered": 2,
+      "f2p_pct": 100.0,
+      "p2p_pct": 100.0,
+      "union_pct": 100.0
+    },
+    "Python/symtable.c": {
+      "kind": "c",
+      "lines_in_patch": 34,
+      "executable_lines_in_patch": 24,
+      "f2p_covered": 24,
+      "p2p_covered": 2,
+      "union_covered": 24,
+      "f2p_pct": 100.0,
+      "p2p_pct": 8.3,
+      "union_pct": 100.0
+    }
+  },
+  "summary": {
+    "scope": "gcov-only hand-written C / .h; generated parser/AST outputs, Python, grammar, and build files are recorded but not measured",
+    "lines_in_patch_total": 1505,
+    "lines_in_patch_total_all": 13285,
+    "lines_in_patch_c_only": 1505,
+    "executable_lines_in_patch": 754,
+    "f2p_covered": 575,
+    "p2p_covered": 13,
+    "union_covered": 575,
+    "f2p_pct": 76.3,
+    "p2p_pct": 1.7,
+    "union_pct": 76.3,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_cpp": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_cpp": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_run": {
+      "ok": true,
+      "summary": "8P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "4P/0F/0E/0S",
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

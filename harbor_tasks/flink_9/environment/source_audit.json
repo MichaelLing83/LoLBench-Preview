@@ -1,0 +1,6 @@
+{
+  "source_policy": "dockerfile_fetch_historyless_base_snapshot",
+  "base_commit": "c4bea91284bf1871e23a4c93fbf9f3b65b1a89d4",
+  "repo": "apache/flink",
+  "note": "The generated Dockerfile fetches the base commit with ancestor history, preserves .git, removes post-base refs/remotes/reflogs, and prunes unreachable future commit objects during image build."
+}

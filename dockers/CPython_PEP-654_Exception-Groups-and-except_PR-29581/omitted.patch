@@ -1,0 +1,611 @@
+diff --git a/Doc/library/ast.rst b/Doc/library/ast.rst
+--- a/Doc/library/ast.rst
++++ b/Doc/library/ast.rst
+@@ -1167,6 +1167,37 @@ Control flow
+             type_ignores=[])
+ 
+ 
++.. class:: TryStar(body, handlers, orelse, finalbody)
++
++   ``try`` blocks which are followed by ``except*`` clauses. The attributes are the
++   same as for :class:`Try` but the :class:`ExceptHandler` nodes in ``handlers``
++   are interpreted as ``except*`` blocks rather then ``except``.
++
++   .. doctest::
++
++        >>> print(ast.dump(ast.parse("""
++        ... try:
++        ...    ...
++        ... except* Exception:
++        ...    ...
++        ... """), indent=4))
++        Module(
++            body=[
++                TryStar(
++                    body=[
++                        Expr(
++                            value=Constant(value=Ellipsis))],
++                    handlers=[
++                        ExceptHandler(
++                            type=Name(id='Exception', ctx=Load()),
++                            body=[
++                                Expr(
++                                    value=Constant(value=Ellipsis))])],
++                    orelse=[],
++                    finalbody=[])],
++            type_ignores=[])
++
++
+ .. class:: ExceptHandler(type, name, body)
+ 
+    A single ``except`` clause. ``type`` is the exception type it will match,
+diff --git a/Doc/library/dis.rst b/Doc/library/dis.rst
+--- a/Doc/library/dis.rst
++++ b/Doc/library/dis.rst
+@@ -872,8 +872,10 @@ All of the following opcodes use their arguments.
+ 
+    .. versionadded:: 3.1
+ 
++
+ .. opcode:: JUMP_IF_NOT_EXC_MATCH (target)
+ 
++   Performs exception matching for ``except``.
+    Tests whether the second value on the stack is an exception matching TOS,
+    and jumps if it is not. Pops one value from the stack.
+ 
+@@ -883,6 +885,30 @@ All of the following opcodes use their arguments.
+       This opcode no longer pops the active exception.
+ 
+ 
++.. opcode:: JUMP_IF_NOT_EG_MATCH (target)
++
++   Performs exception matching for ``except*``. Applies ``split(TOS)`` on
++   the exception group representing TOS1. Jumps if no match is found.
++
++   Pops one item from the stack. If a match was found, pops the 3 items representing
++   the exception and pushes the 3 items representing the non-matching part of
++   the exception group, followed by the 3 items representing the matching part.
++   In other words, in case of a match it pops 4 items and pushes 6.
++
++   .. versionadded:: 3.11
++
++
++.. opcode:: PREP_RERAISE_STAR
++
++   Combines the raised and reraised exceptions list from TOS, into an exception
++   group to propagate from a try-except* block. Uses the original exception
++   group from TOS1 to reconstruct the structure of reraised exceptions. Pops
++   two items from the stack and pushes a triplet representing the exception to
++   reraise or three ``None`` if there isn't one.
++
++   .. versionadded:: 3.11
++
++
+ .. opcode:: JUMP_IF_TRUE_OR_POP (target)
+ 
+    If TOS is true, sets the bytecode counter to *target* and leaves TOS on the
+diff --git a/Doc/whatsnew/3.11.rst b/Doc/whatsnew/3.11.rst
+--- a/Doc/whatsnew/3.11.rst
++++ b/Doc/whatsnew/3.11.rst
+@@ -65,6 +65,8 @@ Summary -- Release highlights
+ 
+ .. PEP-sized items next.
+ 
++PEP-654: Exception Groups and ``except*``.
++(Contributed by Irit Katriel in :issue:`45292`.)
+ 
+ New Features
+ ============
+diff --git a/Lib/test/test_exception_variations.py b/Lib/test/test_exception_variations.py
+--- a/Lib/test/test_exception_variations.py
++++ b/Lib/test/test_exception_variations.py
+@@ -172,5 +172,283 @@ def test_nested_else(self):
+         self.assertTrue(hit_finally)
+         self.assertTrue(hit_except)
+ 
++
++class ExceptStarTestCases(unittest.TestCase):
++    def test_try_except_else_finally(self):
++        hit_except = False
++        hit_else = False
++        hit_finally = False
++
++        try:
++            raise Exception('nyaa!')
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_except)
++        self.assertTrue(hit_finally)
++        self.assertFalse(hit_else)
++
++    def test_try_except_else_finally_no_exception(self):
++        hit_except = False
++        hit_else = False
++        hit_finally = False
++
++        try:
++            pass
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++        finally:
++            hit_finally = True
++
++        self.assertFalse(hit_except)
++        self.assertTrue(hit_finally)
++        self.assertTrue(hit_else)
++
++    def test_try_except_finally(self):
++        hit_except = False
++        hit_finally = False
++
++        try:
++            raise Exception('yarr!')
++        except* BaseException:
++            hit_except = True
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_except)
++        self.assertTrue(hit_finally)
++
++    def test_try_except_finally_no_exception(self):
++        hit_except = False
++        hit_finally = False
++
++        try:
++            pass
++        except* BaseException:
++            hit_except = True
++        finally:
++            hit_finally = True
++
++        self.assertFalse(hit_except)
++        self.assertTrue(hit_finally)
++
++    def test_try_except(self):
++        hit_except = False
++
++        try:
++            raise Exception('ahoy!')
++        except* BaseException:
++            hit_except = True
++
++        self.assertTrue(hit_except)
++
++    def test_try_except_no_exception(self):
++        hit_except = False
++
++        try:
++            pass
++        except* BaseException:
++            hit_except = True
++
++        self.assertFalse(hit_except)
++
++    def test_try_except_else(self):
++        hit_except = False
++        hit_else = False
++
++        try:
++            raise Exception('foo!')
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++
++        self.assertFalse(hit_else)
++        self.assertTrue(hit_except)
++
++    def test_try_except_else_no_exception(self):
++        hit_except = False
++        hit_else = False
++
++        try:
++            pass
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++
++        self.assertFalse(hit_except)
++        self.assertTrue(hit_else)
++
++    def test_try_finally_no_exception(self):
++        hit_finally = False
++
++        try:
++            pass
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_finally)
++
++    def test_nested(self):
++        hit_finally = False
++        hit_inner_except = False
++        hit_inner_finally = False
++
++        try:
++            try:
++                raise Exception('inner exception')
++            except* BaseException:
++                hit_inner_except = True
++            finally:
++                hit_inner_finally = True
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_inner_except)
++        self.assertTrue(hit_inner_finally)
++        self.assertTrue(hit_finally)
++
++    def test_nested_else(self):
++        hit_else = False
++        hit_finally = False
++        hit_except = False
++        hit_inner_except = False
++        hit_inner_else = False
++
++        try:
++            try:
++                pass
++            except* BaseException:
++                hit_inner_except = True
++            else:
++                hit_inner_else = True
++
++            raise Exception('outer exception')
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++        finally:
++            hit_finally = True
++
++        self.assertFalse(hit_inner_except)
++        self.assertTrue(hit_inner_else)
++        self.assertFalse(hit_else)
++        self.assertTrue(hit_finally)
++        self.assertTrue(hit_except)
++
++    def test_nested_mixed1(self):
++        hit_except = False
++        hit_finally = False
++        hit_inner_except = False
++        hit_inner_finally = False
++
++        try:
++            try:
++                raise Exception('inner exception')
++            except* BaseException:
++                hit_inner_except = True
++            finally:
++                hit_inner_finally = True
++        except:
++            hit_except = True
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_inner_except)
++        self.assertTrue(hit_inner_finally)
++        self.assertFalse(hit_except)
++        self.assertTrue(hit_finally)
++
++    def test_nested_mixed2(self):
++        hit_except = False
++        hit_finally = False
++        hit_inner_except = False
++        hit_inner_finally = False
++
++        try:
++            try:
++                raise Exception('inner exception')
++            except:
++                hit_inner_except = True
++            finally:
++                hit_inner_finally = True
++        except* BaseException:
++            hit_except = True
++        finally:
++            hit_finally = True
++
++        self.assertTrue(hit_inner_except)
++        self.assertTrue(hit_inner_finally)
++        self.assertFalse(hit_except)
++        self.assertTrue(hit_finally)
++
++
++    def test_nested_else_mixed1(self):
++        hit_else = False
++        hit_finally = False
++        hit_except = False
++        hit_inner_except = False
++        hit_inner_else = False
++
++        try:
++            try:
++                pass
++            except* BaseException:
++                hit_inner_except = True
++            else:
++                hit_inner_else = True
++
++            raise Exception('outer exception')
++        except:
++            hit_except = True
++        else:
++            hit_else = True
++        finally:
++            hit_finally = True
++
++        self.assertFalse(hit_inner_except)
++        self.assertTrue(hit_inner_else)
++        self.assertFalse(hit_else)
++        self.assertTrue(hit_finally)
++        self.assertTrue(hit_except)
++
++    def test_nested_else_mixed2(self):
++        hit_else = False
++        hit_finally = False
++        hit_except = False
++        hit_inner_except = False
++        hit_inner_else = False
++
++        try:
++            try:
++                pass
++            except:
++                hit_inner_except = True
++            else:
++                hit_inner_else = True
++
++            raise Exception('outer exception')
++        except* BaseException:
++            hit_except = True
++        else:
++            hit_else = True
++        finally:
++            hit_finally = True
++
++        self.assertFalse(hit_inner_except)
++        self.assertTrue(hit_inner_else)
++        self.assertFalse(hit_else)
++        self.assertTrue(hit_finally)
++        self.assertTrue(hit_except)
++
++
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/Lib/test/test_grammar.py b/Lib/test/test_grammar.py
+--- a/Lib/test/test_grammar.py
++++ b/Lib/test/test_grammar.py
+@@ -1419,6 +1419,30 @@ def test_try(self):
+             compile("try:\n    pass\nexcept Exception as a.b:\n    pass", "?", "exec")
+             compile("try:\n    pass\nexcept Exception as a[b]:\n    pass", "?", "exec")
+ 
++    def test_try_star(self):
++        ### try_stmt: 'try': suite (except_star_clause : suite) + ['else' ':' suite]
++        ### except_star_clause: 'except*' expr ['as' NAME]
++        try:
++            1/0
++        except* ZeroDivisionError:
++            pass
++        else:
++            pass
++        try: 1/0
++        except* EOFError: pass
++        except* ZeroDivisionError as msg: pass
++        else: pass
++        try: 1/0
++        except* (EOFError, TypeError, ZeroDivisionError): pass
++        try: 1/0
++        except* (EOFError, TypeError, ZeroDivisionError) as msg: pass
++        try: pass
++        finally: pass
++        with self.assertRaises(SyntaxError):
++            compile("try:\n    pass\nexcept* Exception as a.b:\n    pass", "?", "exec")
++            compile("try:\n    pass\nexcept* Exception as a[b]:\n    pass", "?", "exec")
++            compile("try:\n    pass\nexcept*:\n    pass", "?", "exec")
++
+     def test_suite(self):
+         # simple_stmt | NEWLINE INDENT NEWLINE* (stmt NEWLINE*)+ DEDENT
+         if 1: pass
+diff --git a/Lib/test/test_sys_settrace.py b/Lib/test/test_sys_settrace.py
+--- a/Lib/test/test_sys_settrace.py
++++ b/Lib/test/test_sys_settrace.py
+@@ -1213,6 +1213,181 @@ def func():
+              (5, 'line'),
+              (5, 'return')])
+ 
++    def test_try_except_star_no_exception(self):
++
++        def func():
++            try:
++                2
++            except* Exception:
++                4
++            else:
++                6
++            finally:
++                8
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (6, 'line'),
++             (8, 'line'),
++             (8, 'return')])
++
++    def test_try_except_star_named_no_exception(self):
++
++        def func():
++            try:
++                2
++            except* Exception as e:
++                4
++            else:
++                6
++            finally:
++                8
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (6, 'line'),
++             (8, 'line'),
++             (8, 'return')])
++
++    def test_try_except_star_exception_caught(self):
++
++        def func():
++            try:
++                raise ValueError(2)
++            except* ValueError:
++                4
++            else:
++                6
++            finally:
++                8
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (2, 'exception'),
++             (3, 'line'),
++             (4, 'line'),
++             (8, 'line'),
++             (8, 'return')])
++
++    def test_try_except_star_named_exception_caught(self):
++
++        def func():
++            try:
++                raise ValueError(2)
++            except* ValueError as e:
++                4
++            else:
++                6
++            finally:
++                8
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (2, 'exception'),
++             (3, 'line'),
++             (4, 'line'),
++             (8, 'line'),
++             (8, 'return')])
++
++    def test_try_except_star_exception_not_caught(self):
++
++        def func():
++            try:
++                try:
++                    raise ValueError(3)
++                except* TypeError:
++                    5
++            except ValueError:
++                7
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (3, 'line'),
++             (3, 'exception'),
++             (4, 'line'),
++             (6, 'line'),
++             (7, 'line'),
++             (7, 'return')])
++
++    def test_try_except_star_named_exception_not_caught(self):
++
++        def func():
++            try:
++                try:
++                    raise ValueError(3)
++                except* TypeError as e:
++                    5
++            except ValueError:
++                7
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (3, 'line'),
++             (3, 'exception'),
++             (4, 'line'),
++             (6, 'line'),
++             (7, 'line'),
++             (7, 'return')])
++
++    def test_try_except_star_nested(self):
++
++        def func():
++            try:
++                try:
++                    raise ExceptionGroup(
++                        'eg',
++                        [ValueError(5), TypeError('bad type')])
++                except* TypeError as e:
++                    7
++                except* OSError:
++                    9
++                except* ValueError:
++                    raise
++            except* ValueError:
++                try:
++                    raise TypeError(14)
++                except* OSError:
++                    16
++                except* TypeError as e:
++                    18
++            return 0
++
++        self.run_and_compare(func,
++            [(0, 'call'),
++             (1, 'line'),
++             (2, 'line'),
++             (3, 'line'),
++             (4, 'line'),
++             (5, 'line'),
++             (3, 'line'),
++             (3, 'exception'),
++             (6, 'line'),
++             (7, 'line'),
++             (8, 'line'),
++             (10, 'line'),
++             (11, 'line'),
++             (12, 'line'),
++             (13, 'line'),
++             (14, 'line'),
++             (14, 'exception'),
++             (15, 'line'),
++             (17, 'line'),
++             (18, 'line'),
++             (19, 'line'),
++             (19, 'return')])
++
+ 
+ class SkipLineEventsTraceTestCase(TraceTestCase):
+     """Repeat the trace tests, but with per-line events skipped"""
+diff --git a/"Misc/NEWS.d/next/Core and Builtins/2021-11-22-13-05-32.bpo-45292.pfEouJ.rst" b/"Misc/NEWS.d/next/Core and Builtins/2021-11-22-13-05-32.bpo-45292.pfEouJ.rst"
+new file mode 100644
+--- /dev/null
++++ b/"Misc/NEWS.d/next/Core and Builtins/2021-11-22-13-05-32.bpo-45292.pfEouJ.rst"
+@@ -0,0 +1 @@
++Complete the :pep:`654` implementation: add ``except*``.
+\ No newline at end of file

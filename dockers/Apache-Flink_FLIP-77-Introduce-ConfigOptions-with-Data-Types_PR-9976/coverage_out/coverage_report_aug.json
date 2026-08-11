@@ -1,0 +1,106 @@
+{
+  "instance_id": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "files": {
+    "flink-core/src/main/java/org/apache/flink/configuration/ConfigOption.java": {
+      "kind": "java",
+      "lines_in_patch": 34,
+      "executable_lines_in_patch": 10,
+      "f2p_covered": 8,
+      "p2p_covered": 9,
+      "union_covered": 9,
+      "f2p_pct": 80.0,
+      "p2p_pct": 90.0,
+      "union_pct": 90.0
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/ConfigOptions.java": {
+      "kind": "java",
+      "lines_in_patch": 203,
+      "executable_lines_in_patch": 28,
+      "f2p_covered": 28,
+      "p2p_covered": 3,
+      "union_covered": 28,
+      "f2p_pct": 100.0,
+      "p2p_pct": 10.7,
+      "union_pct": 100.0
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/Configuration.java": {
+      "kind": "java",
+      "lines_in_patch": 262,
+      "executable_lines_in_patch": 152,
+      "f2p_covered": 126,
+      "p2p_covered": 60,
+      "union_covered": 134,
+      "f2p_pct": 82.9,
+      "p2p_pct": 39.5,
+      "union_pct": 88.2
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/DelegatingConfiguration.java": {
+      "kind": "java",
+      "lines_in_patch": 20,
+      "executable_lines_in_patch": 6,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": 0.0,
+      "p2p_pct": 0.0,
+      "union_pct": 0.0
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/ReadableConfig.java": {
+      "kind": "java",
+      "lines_in_patch": 53,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/StructuredOptionsSplitter.java": {
+      "kind": "java",
+      "lines_in_patch": 176,
+      "executable_lines_in_patch": 66,
+      "f2p_covered": 63,
+      "p2p_covered": 0,
+      "union_covered": 63,
+      "f2p_pct": 95.5,
+      "p2p_pct": 0.0,
+      "union_pct": 95.5
+    },
+    "flink-core/src/main/java/org/apache/flink/configuration/WritableConfig.java": {
+      "kind": "java",
+      "lines_in_patch": 40,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 788,
+    "executable_lines_in_patch": 262,
+    "f2p_covered": 225,
+    "p2p_covered": 72,
+    "union_covered": 234,
+    "f2p_pct": 85.9,
+    "p2p_pct": 27.5,
+    "union_pct": 89.3,
+    "coverage_complete": true,
+    "total_added_lines": 788,
+    "executable_to_added_ratio": 33.25
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

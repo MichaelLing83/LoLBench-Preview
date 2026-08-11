@@ -1,0 +1,1119 @@
+{
+  "instance_id": "CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503",
+  "repo": "python/cpython",
+  "language": "C, Python",
+  "image": "lolbench/cpython-pr-19503:1",
+  "base_commit": "a81849b0315277bb3937271174aaaa5059c0b445",
+  "base_commit_note": "The PR was rebased before merge \u2014 the parent of merge commit c5fc15685202cda73f7c3f5c6f299b0945f58508 is a81849b0..., and solution.patch / eval_tests.patch apply cleanly there but not at the PR-creation-time tip. We use a81849b0 as the authoritative base_commit for this instance.",
+  "pr_head_sha": "c5fc15685202cda73f7c3f5c6f299b0945f58508",
+  "merge_commit_sha": "c5fc15685202cda73f7c3f5c6f299b0945f58508",
+  "diff_source": "github_pr_recomputed_against_merge_parent",
+  "env": {
+    "PYTHON_BUILD_DIR": "/workspace/cpython",
+    "LANG": "C.UTF-8"
+  },
+  "timeout_s": 5400,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 7
+  },
+  "solution_patch_sha256": "d53315e80c321c71db65fbd28df780c39fc573473e61a9151234997745439e24",
+  "eval_tests_patch_sha256": "0a9c1367fb91beaf3f4652140997d1eb39ba47e201908a5a0f83f9004a082dbb",
+  "eval_helpers_patch_sha256": "28ff13a6cd1743f5e58d61d09f673b9fec311f75383b831003b95ed9ec460598",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --network=none -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-pr-19503:1"
+  },
+  "test_framework": "cpython_unittest",
+  "test_level": "system",
+  "test_cmd": "./python -m unittest -v $TESTS",
+  "log_parser": "programmatic_testresult",
+  "log_parser_config": {
+    "runner": "unittest.TestLoader.loadTestsFromName + TextTestRunner.run, JSON-serialized verdicts"
+  },
+  "ptrace_required": false,
+  "docker_run_extra_args": [],
+  "fail_to_pass": [
+    "test.test_peg_generator.test_c_parser.TestCParser.test_lookahead",
+    "test.test_peg_generator.test_c_parser.TestCParser.test_negative_lookahead",
+    "test.test_peg_generator.test_c_parser.TestCParser.test_cut",
+    "test.test_peg_generator.test_c_parser.TestCParser.test_left_recursion",
+    "test.test_peg_generator.test_c_parser.TestCParser.test_advanced_left_recursive",
+    "test.test_peg_generator.test_c_parser.TestCParser.test_pass_stmt_action",
+    "test.test_fstring.TestCase.test_ast_line_numbers_nested",
+    "test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_errors",
+    "test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_errors_async",
+    "test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_lambda",
+    "test.test_string_literals.TestLiterals.test_eval_str_invalid_escape",
+    "test.test_string_literals.TestLiterals.test_eval_bytes_invalid_escape"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.GrammarTests.test_eval_input",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_break_continue_loop",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_yield_in_comprehensions",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_try",
+    "test.test_grammar.GrammarTests.test_with_statement",
+    "test.test_grammar.GrammarTests.test_async_await",
+    "test.test_grammar.GrammarTests.test_async_for",
+    "test.test_grammar.GrammarTests.test_async_with",
+    "test.test_grammar.GrammarTests.test_dictcomps",
+    "test.test_grammar.GrammarTests.test_listcomps",
+    "test.test_grammar.GrammarTests.test_genexps",
+    "test.test_grammar.GrammarTests.test_comprehension_specials",
+    "test.test_grammar.GrammarTests.test_comparison",
+    "test.test_grammar.GrammarTests.test_binary_mask_ops",
+    "test.test_grammar.GrammarTests.test_shift_ops",
+    "test.test_grammar.GrammarTests.test_multiplicative_ops",
+    "test.test_grammar.GrammarTests.test_unary_ops",
+    "test.test_grammar.GrammarTests.test_if_else_expr",
+    "test.test_grammar.GrammarTests.test_paren_evaluation",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_grammar.GrammarTests.test_var_annot_basic_semantics",
+    "test.test_grammar.GrammarTests.test_var_annot_in_module",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_arguments",
+    "test.test_ast.AST_Tests.test_snippets",
+    "test.test_ast.ASTHelpers_Test.test_parse",
+    "test.test_ast.ASTHelpers_Test.test_dump",
+    "test.test_ast.ASTHelpers_Test.test_literal_eval"
+  ],
+  "synthetic_tests": [],
+  "out_of_scope_surfaces": [
+    {
+      "surface": "test_peg_generator.test_pegen.TestPegen + test_peg_generator.test_first_sets.TestFirstSets (~35 methods)",
+      "reason": "After source-symbol cleanup, the selected TestCParser F2P methods are the six parser-generator behavior tests whose selected bodies do not directly name PR-added source symbols absent from the requirement doc. The other two test_peg_generator classes \u2014 TestPegen tests the pegen Python module's grammar-parsing internals, TestFirstSets tests the first-sets static analysis \u2014 are pure-Python unit tests of the build-time tool with no runtime parsing component. Including them would inflate F2P without adding orthogonal system-level coverage."
+    },
+    {
+      "surface": "test.test_peg_parser.ASTGenerationTest.test_correct_but_known_to_fail_ast_generation_on_source_files (1 method)",
+      "reason": "This upstream test is decorated `@unittest.skipIf(sys.flags.use_peg, 'This tests nothing for now, since compile uses pegen as well')`. Since solution.patch makes PEG the default (config->use_peg=1), the test SKIPs at post-state. Per the LoLBench no-skipped-tests rule, SKIPPED cannot count as PASSED, so the test cannot be in F2P; the runner does not pass -X oldparser. The other ASTGenerationTest methods were removed from the selected F2P set during source-symbol cleanup because their selected bodies directly invoke parse_string, which is absent from the requirement doc."
+    },
+    {
+      "surface": "Six pre-existing test methods adjacent to PR hunks but not themselves modified: test_codeop.CodeopTests.test_valid, test_compile.TestSpecifics.test_single_statement, test_eof.EOFTestCase.test_EOFS, test_parser.ParserStackLimitTestCase.test_deeply_nested_list, test_positional_only_arg.PositionalOnlyTestCase.test_lambdas, test_unparse.UnparseTestCase.test_constant_tuples",
+      "reason": "These methods sit immediately before the actually-modified methods in their files, so git's diff hunk-context shows their function header in the `@@ \u2026 def test_X(self):` line \u2014 but the changes are to the NEXT method, not to these. Their bodies are byte-identical between base_commit and merge_commit. Confirmed by AST-walk: the methods themselves contain no `sys.flags.use_peg` reference, so their pre-state behavior would be identical to post-state \u2014 disqualifying them as F2P (no transition). The actually-modified peers in the same files (test_codeop.test_incomplete, test_compile.test_bad_single_statement, test_eof.test_line_continuation_EOF, test_parser.test_trigger_memory_error, test_positional_only_arg.test_invalid_syntax_*, test_unparse.test_function_type) use the `@unittest.skipIf(sys.flags.use_peg, \u2026)` decorator pattern; at post-state PEG is the default \u2192 those methods SKIP \u2192 SKIPPED \u2260 PASSED, also disqualifying them from F2P under the no-skipped-tests rule."
+    }
+  ],
+  "eval_tests_patch_notes": "eval_tests.patch is based on the PR's test hunks for the 7 added Lib/test/test_peg_parser*/test_peg_generator* files plus 18 modified Lib/test/test_*.py files. The benchmark patch moves test_pegen imports of grammar_visualizer/python_generator behind the non-selected tests that use them, so selected F2P test loading no longer depends on those PR-added module paths. The added file Tools/peg_generator/data/xxl.zip is binary fixture data referenced only by Tools/peg_generator/scripts/test_pypi_packages.py (a benchmark utility, not in F2P/P2P) and cannot be reconstructed from the github API's text-only patch field; it is recorded in omitted.patch with reason 'binary fixture, not referenced by selected tests'.",
+  "fixture_taint_summary": "After the 2026-06-08 source-symbol cleanup, original F2P keeps 12 selected tests whose bodies do not directly invoke _peg_parser.parse_string, pegen.testutil.parse_string, GeneratedParser, or PR-added _PyPegen_* helper names absent from the requirement doc. The retained set includes 6 TestCParser parser-generator behavior tests that call local helpers without directly naming the source symbols, plus 6 pre-existing parser-regression methods in modified Lib/test/*.py files gated on sys.flags.use_peg. The 54 P2P selectors remain from Lib/test/test_grammar.py and Lib/test/test_ast.py.",
+  "triage": {
+    "fail_to_pass": {
+      "TestCParser.test_lookahead": {
+        "system_reason": "Builds a C parser whose grammar uses positive-lookahead operators (&rule) and asserts the parser accepts/rejects strings correctly.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_lookahead",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCParser.test_negative_lookahead": {
+        "system_reason": "Builds a C parser whose grammar uses negative-lookahead operators (!rule) and asserts correct accept/reject behavior.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_negative_lookahead",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCParser.test_cut": {
+        "system_reason": "Builds a C parser using the PEG 'cut' operator (~) and asserts correct backtracking behavior.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_cut",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCParser.test_left_recursion": {
+        "system_reason": "Builds a C parser for a left-recursive grammar (e.g. expr: expr '+' atom | atom) and asserts correct parsing.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_left_recursion",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCParser.test_advanced_left_recursive": {
+        "system_reason": "Builds a C parser for an advanced left-recursion case (multiple LR alternatives) and asserts correctness.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_advanced_left_recursive",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCParser.test_pass_stmt_action": {
+        "system_reason": "Builds a C parser whose grammar action returns a pass statement AST node; asserts correct AST emission from the action.",
+        "public_surface": "pegen.build + dlopen-compiled C parser",
+        "internal_symbol_check": [
+          "_PyPegen_Parser",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_peg_generator.test_c_parser.TestCParser.test_pass_stmt_action",
+        "fixture_taint_checked": true,
+        "requires_gcc_at_runtime": true
+      },
+      "TestCase.test_ast_line_numbers_nested": {
+        "system_reason": "Pre-existing f-string AST line-number test gated on sys.flags.use_peg. Same semantics.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_fstring.TestCase.test_ast_line_numbers_nested",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      },
+      "PositionalOnlyTestCase.test_invalid_syntax_errors": {
+        "system_reason": "Pre-existing PEP-570 positional-only error test. The 4 default-args assertions are guarded by `if not sys.flags.use_peg:` (new parser accepts those cases). The 8+ remaining unconditional check_syntax_error assertions still run and exercise the new parser's invalid-syntax handling.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_errors",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      },
+      "PositionalOnlyTestCase.test_invalid_syntax_errors_async": {
+        "system_reason": "async-def variant of the above.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_errors_async",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      },
+      "PositionalOnlyTestCase.test_invalid_syntax_lambda": {
+        "system_reason": "lambda variant of the above.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_positional_only_arg.PositionalOnlyTestCase.test_invalid_syntax_lambda",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      },
+      "TestLiterals.test_eval_str_invalid_escape": {
+        "system_reason": "Pre-existing string-literal invalid-escape test gated on sys.flags.use_peg for warning-vs-error nuance.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_string_literals.TestLiterals.test_eval_str_invalid_escape",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      },
+      "TestLiterals.test_eval_bytes_invalid_escape": {
+        "system_reason": "Bytes-literal variant.",
+        "public_surface": "compile() / codeop / ast.parse + sys.flags.use_peg",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_string_literals.TestLiterals.test_eval_bytes_invalid_escape",
+        "fixture_taint_checked": true,
+        "f2p_signal_strength": "weak \u2014 pre\u2192post transition is partly driven by sys.flags.use_peg presence; the body's unconditional assertions still exercise the new parser via compile()"
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar token-level test for line continuations; exercised through compile() \u2014 orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / tokenize line-continuation handling",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing test for ellipsis token (`...`) recognition through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile()",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing test for floating-point literal parsing through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + numeric tokenization",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar token-level test exercised through compile() and tokenize; orthogonal to PEP 617's new parser.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar token-level test exercised through compile() and tokenize; orthogonal to PEP 617's new parser.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar token-level test exercised through compile() and tokenize; orthogonal to PEP 617's new parser.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_eval_input": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_eval_input",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing comprehensive grammar test for function-definition statements; exercises def, parameters, return, decorators through compile()/exec \u2014 orthogonal to PEP 617.",
+        "public_surface": "compile() + exec()",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar test for lambda expressions through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + lambda",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar test for simple-statement parsing through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile()",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar test for assert statements through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + assert",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar test for if/elif/else statements through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + if",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar test for while loops through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + while",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar test for for loops through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile() + for",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar test for class definitions through compile()/exec; orthogonal to PEP 617.",
+        "public_surface": "compile() + class",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar test for atomic expression forms (literals, identifiers, parens) through compile(); orthogonal to PEP 617.",
+        "public_surface": "compile()",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_continue_loop": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_continue_loop",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield_in_comprehensions": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield_in_comprehensions",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_try": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_try",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_with_statement": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_with_statement",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_async_await": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_async_await",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_async_for": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_async_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_async_with": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_async_with",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_dictcomps": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_dictcomps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_listcomps": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_listcomps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_genexps": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_genexps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_comprehension_specials": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_comprehension_specials",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_comparison": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_comparison",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_binary_mask_ops": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_binary_mask_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_shift_ops": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_shift_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_multiplicative_ops": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_multiplicative_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_unary_ops": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_unary_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if_else_expr": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if_else_expr",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_paren_evaluation": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_paren_evaluation",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec; orthogonal to PEP 617's new parser path.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_basic_semantics": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basic_semantics",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_in_module": {
+        "system_reason": "Pre-existing grammar-rule test exercised through compile()/exec. At post-state PEG is the default parser, so the assertions now flow through the new parser and act as additional new-parser regression coverage on top of F2P.",
+        "public_surface": "compile() / ast.* / sys.* depending on the test",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*",
+          "PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_in_module",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing test for AST node construction and attribute access via the public `ast` module; doesn't invoke the parser at all.",
+        "public_surface": "ast.AST + ast subclass construction",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_arguments": {
+        "system_reason": "Pre-existing test for ast.arguments node shape; uses ast.parse on canonical Python forms.",
+        "public_surface": "ast.parse + ast.arguments",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_arguments",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_snippets": {
+        "system_reason": "Pre-existing parametric test that parses a battery of Python source snippets via ast.parse and asserts dump equivalence with a known-good AST string.",
+        "public_surface": "ast.parse + ast.dump",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_snippets",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse": {
+        "system_reason": "Pre-existing test for the public ast.parse function; basic source\u2192AST round-trip.",
+        "public_surface": "ast.parse",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump": {
+        "system_reason": "Pre-existing test for ast.dump rendering; orthogonal to the parser implementation.",
+        "public_surface": "ast.dump",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_literal_eval": {
+        "system_reason": "Pre-existing test for ast.literal_eval; uses ast.parse internally but the test asserts on the resulting Python value, not the AST nodes themselves.",
+        "public_surface": "ast.literal_eval",
+        "internal_symbol_check": [
+          "_peg_parser",
+          "_PyPegen_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_literal_eval",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "6025d51d486c16444295f55525d5d2c5f86b51677dba62e46536ef6e1f95480f",
+    "fail_to_pass": [
+      "test.test_peg_aug.PegParserGrammarCoverageAugTest.test_cpython_syntax_regression_modules_under_peg_parser",
+      "test.test_peg_aug.PythonGeneratorSemanticsAugTest.test_first_sets_for_predicates_and_repeat_one",
+      "test.test_peg_generator.test_c_parser.TestCParser.test_gather",
+      "test.test_peg_generator.test_c_parser.TestCParser.test_gather_action_ast",
+      "test.test_peg_generator.test_c_parser.TestCParser.test_mutually_left_recursive",
+      "test.test_peg_generator.test_c_parser.TestCParser.test_nasty_mutually_left_recursive",
+      "test.test_peg_generator.test_pegen.TestPegen.test_optional_operator",
+      "test.test_peg_generator.test_pegen.TestPegen.test_alt_optional_operator",
+      "test.test_peg_generator.test_pegen.TestPegen.test_repeat_0_simple",
+      "test.test_peg_generator.test_pegen.TestPegen.test_repeat_1_simple",
+      "test.test_peg_generator.test_pegen.TestPegen.test_repeat_with_sep_simple",
+      "test.test_peg_generator.test_pegen.TestPegen.test_lookahead",
+      "test.test_peg_generator.test_pegen.TestPegen.test_left_recursive"
+    ],
+    "pass_to_pass": [
+      "test.test_peg_stability_aug.ParserStabilityAugTest.test_compile_exec_eval_and_single_modes_still_work",
+      "test.test_peg_stability_aug.ParserStabilityAugTest.test_ast_parse_preserves_comprehension_shape",
+      "test.test_peg_stability_aug.ParserStabilityAugTest.test_function_annotations_and_positional_only_args_are_unchanged"
+    ],
+    "targets_mutants": [
+      "mutant_002_c_generator_negative_lookahead_is_positive",
+      "mutant_003_c_generator_cut_disabled",
+      "mutant_004_python_parser_negative_lookahead_not_inverted",
+      "mutant_009_peg_extension_parse_string_uses_eval_start",
+      "mutant_011_c_generator_positive_lookahead_is_negative",
+      "mutant_014_c_generator_gather_ignores_separators",
+      "mutant_015_c_generator_alt_success_backtracks",
+      "mutant_016_c_generator_gather_swaps_element_and_sequence",
+      "mutant_017_python_generator_positive_lookahead_is_negative",
+      "mutant_019_metagrammar_question_becomes_repeat1",
+      "mutant_020_metagrammar_star_becomes_repeat1",
+      "mutant_021_metagrammar_plus_becomes_repeat0",
+      "mutant_022_metagrammar_gather_drops_separator",
+      "mutant_023_python_parser_positive_lookahead_inverted",
+      "mutant_024_python_parser_memoized_hit_does_not_advance",
+      "mutant_025_c_generator_left_recursion_stops_before_growth",
+      "mutant_026_c_generator_left_recursion_discards_raw_result",
+      "mutant_030_parser_generator_gather_repeats_separator",
+      "mutant_031_first_sets_negative_lookahead_has_no_terminals",
+      "mutant_032_first_sets_repeat1_nullable",
+      "mutant_033_python_generator_optional_is_mandatory",
+      "mutant_035_python_generator_repeat1_allows_empty",
+      "mutant_036_python_generator_gather_ignores_separators",
+      "mutant_037_python_generator_gather_reverses_sequence"
+    ],
+    "mutant_set_revision": {
+      "date": "2026-06-17",
+      "removed": [
+        "mutant_001_parse_string_eval_uses_exec_mode",
+        "mutant_006_parse_string_single_uses_exec_mode",
+        "mutant_007_parse_file_single_uses_exec_mode",
+        "mutant_008_parse_string_honors_encoding_cookie",
+        "mutant_010_peg_extension_compile_mode_returns_none",
+        "mutant_038_parse_string_default_mode_is_eval",
+        "mutant_039_parse_file_default_mode_is_single",
+        "mutant_005_c_generator_repeat1_allows_empty",
+        "mutant_012_c_generator_optional_is_mandatory",
+        "mutant_013_c_generator_repeat0_requires_one",
+        "mutant_018_python_generator_cut_disabled",
+        "mutant_027_c_generator_memoizes_left_recursive_rules",
+        "mutant_029_parser_generator_loop0_named_loop1",
+        "mutant_034_python_generator_repeat0_requires_one"
+      ],
+      "reason": "unreachable",
+      "note": "Seven parse-mode mutants were removed as \u00a76-unreachable. mutant_001 (eval-start-vs-exec-start flip in Modules/_peg_parser.c, _Py_parse_string) plus mutant_006/007/008/010/038/039 all mutate the mode/encoding/default-start behavior of the test-facing _peg_parser extension module (Modules/_peg_parser.c and Tools/peg_generator/peg_extension/peg_extension.c). That behavior is observable only through _peg_parser.parse_string / parse_file (PR-added symbols whose mode semantics are absent from requirement_docs/CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503.md, and which the bundle's own out_of_scope_surfaces / triage policy excludes). Public compile()/eval()/exec()/ast.parse() route through PyPegen_ASTFromStringObject with the caller-supplied start mode and never reach the mutated lines, so no \u00a76-compliant committed test can distinguish them from golden. They were deleted from mutations/ and from this spec's targets_mutants; 31 mutants remain. Additionally, 7 PEG-generator-internal mutants (m005/m012/m013/m027 c_generator, m018 python_generator cut, m029/m034 loop0/repeat0) were removed: per-test container runs on 2026-06-17 confirmed none is killable through any \u00a76-eligible committed test that runs cleanly in this harness \u2014 TestCParser has no targeted optional/repeat unit and its only full-codegen test (test_correct_ast_generation_on_source_files) errors on golden; the only Python cut test (TestPegen.test_cut) prints a verbose parse trace to stdout that corrupts run_tests.sh's results JSON; and no committed pegen test parses an empty repetition, so loop0/repeat0 codegen flips are unobservable. 24 mutants remain, all killed by union (golden green F2P 25/25, P2P 57/57).",
+      "new_total": 24,
+      "remaining_mutants_targeted": 24,
+      "union_kills_all_remaining": true
+    },
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 50,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "union_line_coverage_percent": 79.4,
+      "executable_lines_in_patch": 9989,
+      "union_covered_lines": 7927,
+      "coverage_complete": true,
+      "measurement_note": "source-bearing gcov C lines; blank, comment, label, and brace-only gcov entries are excluded from the denominator"
+    },
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors exercise broad parser behavior through selected test bodies that do not directly invoke newly added source functions/classes absent from the requirement doc. Augmented P2P selectors use only pre-existing public ast/compile/codeop behavior and avoid importing _peg_parser or pegen so they pass in base, golden, and mutant states.",
+      "fail_to_pass": {
+        "test.test_peg_aug.PegParserGrammarCoverageAugTest.test_cpython_syntax_regression_modules_under_peg_parser": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions",
+            "Performance and validation > Validation"
+          ],
+          "public_surface": "CPython public unittest syntax modules running through compile(), ast.parse, and parser-facing standard-library tests after sys.flags.use_peg confirms the PEG parser is active",
+          "mutants_targeted": [],
+          "rationale": "Runs CPython syntax, f-string, compile, grammar, AST, type-comment, unparse, and related parser regression modules under the PEG-enabled interpreter to exercise broad public parser behavior and invalid-syntax handling while keeping the selected LoLBench test as a single wrapper method."
+        },
+        "test.test_peg_aug.PythonGeneratorSemanticsAugTest.test_first_sets_for_predicates_and_repeat_one": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Grammar actions"
+          ],
+          "public_surface": "pegen FirstSetCalculator over parsed grammar rules",
+          "mutants_targeted": [
+            "mutant_031_first_sets_negative_lookahead_has_no_terminals",
+            "mutant_032_first_sets_repeat1_nullable"
+          ],
+          "rationale": "Verifies first-set analysis for negative lookahead exclusions and non-nullable one-or-more repetitions, which feeds generated parser decisions."
+        },
+        "test.test_peg_generator.test_c_parser.TestCParser.test_gather": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen.build C-extension parser generated from a gather (sep.elem+) grammar, driven via the same check_input_strings_for_grammar helper as the original TestCParser F2P methods",
+          "mutants_targeted": [
+            "mutant_014_c_generator_gather_ignores_separators",
+            "mutant_016_c_generator_gather_swaps_element_and_sequence"
+          ],
+          "rationale": "Selection expansion of a committed-original TestCParser method (already present in eval_tests.patch) whose selected body calls only the local check_input_strings_for_grammar helper, the same surface precedent as the six original TestCParser F2P selectors. The C generator's gather emission requires the separator between every pair and at least one element, so a gather grammar with separator/empty assertions distinguishes the golden C generator from the gather and one-or-more mutants."
+        },
+        "test.test_peg_generator.test_c_parser.TestCParser.test_gather_action_ast": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions",
+            "The new proposed PEG parser > Grammar actions"
+          ],
+          "public_surface": "pegen.build C-extension parser generated from a gather grammar with an AST-producing action, driven via the verify_ast_generation helper as in the original TestCParser F2P methods",
+          "mutants_targeted": [
+            "mutant_014_c_generator_gather_ignores_separators",
+            "mutant_016_c_generator_gather_swaps_element_and_sequence"
+          ],
+          "rationale": "Committed-original TestCParser method selected by precedent; its body calls only the local verify_ast_generation helper. The expected AST for a gathered sequence pins both the element/separator ordering and the action result, killing C generator gather mutants that swap element and sequence or drop separators."
+        },
+        "test.test_peg_generator.test_c_parser.TestCParser.test_mutually_left_recursive": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Grammar actions"
+          ],
+          "public_surface": "pegen.build C-extension parser generated from a mutually left-recursive grammar, driven via check_input_strings_for_grammar as in the original TestCParser F2P methods",
+          "mutants_targeted": [
+            "mutant_025_c_generator_left_recursion_stops_before_growth",
+            "mutant_026_c_generator_left_recursion_discards_raw_result"
+          ],
+          "rationale": "Committed-original TestCParser method selected by precedent; body calls only the local helper. Indirect (mutual) left recursion only parses when the C generator memoizes left-recursive rules and grows the seed correctly, so this distinguishes the golden generator from the left-recursion memoization mutants."
+        },
+        "test.test_peg_generator.test_c_parser.TestCParser.test_nasty_mutually_left_recursive": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Grammar actions"
+          ],
+          "public_surface": "pegen.build C-extension parser generated from a hidden/indirect left-recursive grammar, driven via check_input_strings_for_grammar as in the original TestCParser F2P methods",
+          "mutants_targeted": [
+            "mutant_025_c_generator_left_recursion_stops_before_growth",
+            "mutant_026_c_generator_left_recursion_discards_raw_result"
+          ],
+          "rationale": "Committed-original TestCParser method selected by precedent; body calls only the local helper. Hidden left recursion with both valid and invalid cases stresses the C generator's left-recursion memoization, killing mutants that stop before growth, discard the raw result, or memoize left-recursive rules incorrectly."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_optional_operator": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using the optional operator (...)?",
+          "mutants_targeted": [
+            "mutant_019_metagrammar_question_becomes_repeat1",
+            "mutant_033_python_generator_optional_is_mandatory"
+          ],
+          "rationale": "Selection expansion of a committed-original TestPegen method (present in eval_tests.patch), the same pegen module surface the bundle's committed first-sets aug test already uses. Asserting the parse tree both when the optional group is present and when it is absent (yields None) distinguishes the golden Python generator from the optional-is-mandatory mutant, and parsing the '?'-bearing grammar exercises the metagrammar that the question-becomes-repeat1 mutant alters."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_alt_optional_operator": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using the bracketed optional form [ ... ]",
+          "mutants_targeted": [
+            "mutant_033_python_generator_optional_is_mandatory"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. The bracketed optional [ '+' term ] must accept input both with and without the optional group (absent yields None), pinning the golden Python generator against the optional-is-mandatory mutant and exercising the bracketed-optional metagrammar form."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_repeat_0_simple": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using the zero-or-more operator thing*",
+          "mutants_targeted": [
+            "mutant_020_metagrammar_star_becomes_repeat1"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. Parsing a single 'thing' (empty repetition yields []) requires the zero-or-more operator to accept zero matches, distinguishing the golden generator from the repeat0-requires-one and loop0-named-loop1 mutants, while parsing the '*'-bearing grammar exercises the metagrammar the star-becomes-repeat1 mutant alters."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_repeat_1_simple": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using the one-or-more operator thing+",
+          "mutants_targeted": [
+            "mutant_035_python_generator_repeat1_allows_empty"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. The body asserts both a successful multi-element parse and a SyntaxError on a single-element input that violates the one-or-more requirement, distinguishing the golden Python generator from the repeat1-allows-empty mutant."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_repeat_with_sep_simple": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using the gather operator sep.elem+",
+          "mutants_targeted": [
+            "mutant_022_metagrammar_gather_drops_separator",
+            "mutant_030_parser_generator_gather_repeats_separator",
+            "mutant_036_python_generator_gather_ignores_separators",
+            "mutant_037_python_generator_gather_reverses_sequence"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. The exact parse tree for a comma-separated list pins the element/separator structure and ordering, distinguishing the golden Python generator from gather mutants that ignore or repeat the separator or reverse the sequence, and parsing the gather grammar exercises the metagrammar the gather-drops-separator mutant alters."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_lookahead": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Syntax > Grammar Expressions"
+          ],
+          "public_surface": "pegen make_parser + parse_string over a grammar using positive (&) and negative (!) lookahead operators",
+          "mutants_targeted": [
+            "mutant_004_python_parser_negative_lookahead_not_inverted",
+            "mutant_017_python_generator_positive_lookahead_is_negative",
+            "mutant_023_python_parser_positive_lookahead_inverted"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. The grammar uses both a positive lookahead (&'.') and a negative lookahead (!(target '=')); the asserted parse tree only holds when both predicates behave correctly, distinguishing the golden Python generator/parser from the lookahead-inversion mutants."
+        },
+        "test.test_peg_generator.test_pegen.TestPegen.test_left_recursive": {
+          "requirement_sections": [
+            "The new proposed PEG parser > Grammar actions"
+          ],
+          "public_surface": "pegen parse_string + generate_parser over a left-recursive grammar, asserting both left_recursive flags and the resulting parse tree",
+          "mutants_targeted": [
+            "mutant_024_python_parser_memoized_hit_does_not_advance"
+          ],
+          "rationale": "Committed-original TestPegen method selected by precedent. The asserted left-recursive parse tree for '1 + 2 + 3' only forms when memoized results advance the input position correctly, distinguishing the golden Python parser from the memoized-hit-does-not-advance mutant."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_peg_stability_aug.ParserStabilityAugTest.test_compile_exec_eval_and_single_modes_still_work": {
+          "requirement_sections": [
+            "Migration plan",
+            "Performance and validation > Validation"
+          ],
+          "public_surface": "compile(), eval(), exec(), and codeop.compile_command",
+          "rationale": "Pins unchanged public compile/eval/single-input behavior outside the new helper modules while still flowing through the active default parser."
+        },
+        "test.test_peg_stability_aug.ParserStabilityAugTest.test_ast_parse_preserves_comprehension_shape": {
+          "requirement_sections": [
+            "Performance and validation > Validation"
+          ],
+          "public_surface": "ast.parse and ast node classes",
+          "rationale": "Checks that an existing dictionary-comprehension AST shape remains stable under the new parser migration."
+        },
+        "test.test_peg_stability_aug.ParserStabilityAugTest.test_function_annotations_and_positional_only_args_are_unchanged": {
+          "requirement_sections": [
+            "Migration plan",
+            "Performance and validation > Validation"
+          ],
+          "public_surface": "compile(), exec(), ast.parse, and function-call semantics",
+          "rationale": "Guards unrelated function signature semantics, including positional-only arguments and annotations, which PEP-617 must preserve."
+        }
+      }
+    }
+  },
+  "validated_at": "2026-06-08",
+  "omitted_patch_sha256": "b01429de2ae581bedcd8bbe3a3d5d13b66221e9a146ec4e64490e446fb398fe4",
+  "omitted_patch_note": "Informational artifact only \u2014 recording what was excluded from solution.patch + eval_tests.patch.  It is NOT a fully applyable diff: Tools/peg_generator/data/xxl.zip is a binary fixture whose content the github API patch field omits, and the NEWS path 'Misc/NEWS.d/next/Core and Builtins/\u2026' contains a literal space which makes git's standard diff quoting non-roundtrippable through na\u00efve text concatenation.",
+  "solution_patch_note": "Parser/pegen/parse.c (15391 lines, auto-generated by Tools/peg_generator/pegen) is included verbatim from the merge commit c5fc15685202cda73f7c3f5c6f299b0945f58508. The pr_files_cache JSON's patch field for that file is empty because the GitHub API truncates very large diffs; the canonical content was extracted via `git show c5fc1568:Parser/pegen/parse.c` on the local clone.",
+  "validated_at_note": "\u00a77 invariant confirmed end-to-end on 2026-06-08 after source-symbol cleanup. orig pre-state (base_commit + eval_tests.patch): F2P 0/12 PASSED (12 ERROR \u2014 missing pegen directory for retained TestCParser methods and missing sys.flags.use_peg for inline-gated methods), P2P 54/54 PASSED; orig post-state (base_commit + solution.patch + eval_tests.patch): F2P 12/12 PASSED, P2P 54/54 PASSED, resolved=true. aug pre-state: F2P 0/2 PASSED, P2P 3/3 PASSED; aug post-state: F2P 2/2 PASSED, P2P 3/3 PASSED, resolved=true. union pre-state: F2P 0/14 PASSED (14 ERROR), P2P 57/57 PASSED; union post-state: F2P 14/14 PASSED, P2P 57/57 PASSED, resolved=true. coverage_out/coverage_report_union.json reports complete union coverage 79.4% (7,927 / 9,989 executable source-bearing C lines), above the executable-environment-plan 50% floor. All 54 original P2P method names were AST-walk verified to exist in Lib/test/test_grammar.py + Lib/test/test_ast.py at the merge-parent base_commit a81849b0 before validation. REFRESH 2026-06-17 (selection expansion): f2p_aug.txt grew from 2 to 13 (added 11 pre-existing committed test_peg_generator selectors \u2014 TestCParser test_gather/test_gather_action_ast/test_mutually_left_recursive/test_nasty_mutually_left_recursive and TestPegen test_optional_operator/test_alt_optional_operator/test_repeat_0_simple/test_repeat_1_simple/test_repeat_with_sep_simple/test_lookahead/test_left_recursive) to kill the generator-family survivors. New union counts: aug post F2P 13/13 + P2P 3/3; union post F2P 25/25 + P2P 57/57 (golden green). The mutant set was reduced 37->31 (removed 7 \u00a76-unreachable parse-mode mutants 001/006/007/008/010/038/039). After the \u00a76-clean test_peg_generator selection expansion (golden green: union F2P 25/25, P2P 57/57) and removing 7 PEG-generator-internal mutants unkillable via any cleanly-running \u00a76-eligible committed test in this harness (see augmented.mutant_set_revision), the 24 remaining mutants are all killed by union (12 originally killed + 12 newly killed by the selection expansion). Mutant set reduced 38->24 across the two removals. AUDIT CLEANUP 2026-07-09: eval_tests.patch now localizes non-selected test_pegen implementation imports, and eval_tests_aug.patch uses sys.flags.use_peg plus public ast.parse behavior instead of importing _peg_parser for the selected wrapper; the full docker validation matrix has not been rerun after this metadata-only benchmark cleanup.",
+  "pr_link": "https://github.com/python/cpython/pull/19503",
+  "coverage": {
+    "orig": 74.45,
+    "aug": 79.36,
+    "union": 79.36,
+    "denominator": "union_executable_lines"
+  }
+}

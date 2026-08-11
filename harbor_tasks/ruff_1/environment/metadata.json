@@ -1,0 +1,23 @@
+{
+  "instance_id": "ruff_1",
+  "source_instance_id": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "source_slug": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "docker_slug": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "dockerhub_image": "smartdub26/lolbench:ruff_1-1.0.0",
+  "dockerhub_digest": "sha256:67c0c3dc371a960118442b10e971b7785fae9420e0c73de8c4445321ae025f17",
+  "project": "ruff",
+  "repo": "astral-sh/ruff",
+  "requirement_doc": "https://github.com/astral-sh/ruff/issues/8368",
+  "pr_link": "https://github.com/astral-sh/ruff/pull/9599",
+  "base_commit": "b21ba71ef4b897cbb9e3c402f081887b650b6448",
+  "merge_commit": "0f8a5831469ed7d066cb0849d574551f0b4e33f8",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

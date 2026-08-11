@@ -1,0 +1,23 @@
+# Overlay image for CPython PR-19503 (PEP 617) aug/union validation.
+#
+# Builds FROM the existing eval image and re-copies ONLY the eval-side
+# bundle files that changed during the selection-expansion augmentation
+# (f2p_aug.txt + spec.json with the expanded augmented.fail_to_pass and
+# triage).  The CPython source tree and the pre-built ./python from the
+# base image are untouched; run_tests.sh applies the mounted patch and
+# does an incremental `make` per run.  No CPython rebuild here.
+ARG OVERLAY_BASE=lolbench/cpython-pr-19503:1
+FROM ${OVERLAY_BASE}
+
+COPY spec.json \
+     f2p.txt \
+     p2p.txt \
+     f2p_aug.txt \
+     p2p_aug.txt \
+     eval_tests.patch \
+     eval_tests_aug.patch \
+     run_tests.sh \
+     /opt/lolbench/private/
+RUN chmod +x /opt/lolbench/private/run_tests.sh
+
+ENTRYPOINT ["/opt/lolbench/private/run_tests.sh"]

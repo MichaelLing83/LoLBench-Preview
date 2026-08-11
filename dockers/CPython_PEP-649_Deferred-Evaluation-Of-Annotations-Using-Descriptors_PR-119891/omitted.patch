@@ -1,0 +1,32 @@
+diff --git a/Doc/howto/descriptor.rst b/Doc/howto/descriptor.rst
+index b29488be39..67e981f9c5 100644
+--- a/Doc/howto/descriptor.rst
++++ b/Doc/howto/descriptor.rst
+@@ -1366,11 +1366,15 @@ Using the non-data descriptor protocol, a pure Python version of
+         def __call__(self, *args, **kwds):
+             return self.f(*args, **kwds)
+ 
++        @property
++        def __annotations__(self):
++            return self.f.__annotations__
++
+ The :func:`functools.update_wrapper` call adds a ``__wrapped__`` attribute
+ that refers to the underlying function.  Also it carries forward
+ the attributes necessary to make the wrapper look like the wrapped
+-function: :attr:`~function.__name__`, :attr:`~function.__qualname__`,
+-:attr:`~function.__doc__`, and :attr:`~function.__annotations__`.
++function, including :attr:`~function.__name__`, :attr:`~function.__qualname__`,
++and :attr:`~function.__doc__`.
+ 
+ .. testcode::
+     :hide:
+diff --git a/Misc/NEWS.d/next/Library/2024-06-11-07-17-25.gh-issue-119180.iH-2zy.rst b/Misc/NEWS.d/next/Library/2024-06-11-07-17-25.gh-issue-119180.iH-2zy.rst
+new file mode 100644
+index 0000000000..f24d7bd6b9
+--- /dev/null
++++ b/Misc/NEWS.d/next/Library/2024-06-11-07-17-25.gh-issue-119180.iH-2zy.rst
+@@ -0,0 +1,4 @@
++As part of implementing :pep:`649` and :pep:`749`, add a new module
++``annotationlib``. Add support for unresolved forward references in
++annotations to :mod:`dataclasses`, :class:`typing.TypedDict`, and
++:class:`typing.NamedTuple`.

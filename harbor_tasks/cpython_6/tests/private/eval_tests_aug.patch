@@ -1,0 +1,79 @@
+diff --git a/Lib/test/test_pep646_aug.py b/Lib/test/test_pep646_aug.py
+new file mode 100644
+index 0000000000..0abcc8fce9
+--- /dev/null
++++ b/Lib/test/test_pep646_aug.py
+@@ -0,0 +1,73 @@
++import io
++import unittest
++
++from test import test_pep646_syntax
++
++
++class VariadicGenericsAugmentedTest(unittest.TestCase):
++
++    def test_pep646_syntax_doctest_examples(self):
++        test_pep646_syntax.test_main(verbose=False)
++
++    def test_starred_vararg_annotation_runtime_value(self):
++        ns = {}
++        exec(
++            "from typing import TypeVarTuple\n"
++            "Ts = TypeVarTuple('Ts')\n"
++            "def f(*args: *Ts):\n"
++            "    pass\n",
++            ns,
++        )
++
++        annotation = ns["f"].__annotations__["args"]
++        self.assertNotIsInstance(annotation, tuple)
++        self.assertEqual(repr(annotation), "*Ts")
++
++    def test_future_starred_vararg_annotation_string(self):
++        ns = {}
++        exec(
++            "from __future__ import annotations\n"
++            "from typing import TypeVarTuple\n"
++            "Ts = TypeVarTuple('Ts')\n"
++            "def f(*args: *Ts):\n"
++            "    pass\n",
++            ns,
++        )
++
++        self.assertEqual(ns["f"].__annotations__["args"], "*Ts")
++
++    def test_plain_vararg_annotation_still_uses_value(self):
++        ns = {}
++        exec(
++            "def f(*args: int):\n"
++            "    pass\n",
++            ns,
++        )
++
++        self.assertIs(ns["f"].__annotations__["args"], int)
++
++    def test_existing_grammar_suite_still_passes(self):
++        stream = io.StringIO()
++        suite = unittest.defaultTestLoader.loadTestsFromName("test.test_grammar")
++        result = unittest.TextTestRunner(
++            stream=stream,
++            verbosity=0,
++            buffer=False,
++        ).run(suite)
++
++        self.assertTrue(result.wasSuccessful(), stream.getvalue())
++
++    def test_existing_compile_suite_still_passes(self):
++        stream = io.StringIO()
++        suite = unittest.defaultTestLoader.loadTestsFromName("test.test_compile")
++        result = unittest.TextTestRunner(
++            stream=stream,
++            verbosity=0,
++            buffer=False,
++        ).run(suite)
++
++        self.assertTrue(result.wasSuccessful(), stream.getvalue())
++
++
++if __name__ == "__main__":
++    unittest.main()

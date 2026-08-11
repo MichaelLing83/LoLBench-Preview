@@ -1,0 +1,78 @@
+{
+  "instance_id": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "files_in_scope": [
+    "Lib/tomllib/__init__.py",
+    "Lib/tomllib/_parser.py",
+    "Lib/tomllib/_re.py",
+    "Lib/tomllib/_types.py"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/tomllib/__init__.py",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 3,
+      "f2p_covered": 3,
+      "p2p_covered": 0,
+      "union_covered": 3
+    },
+    {
+      "file": "Lib/tomllib/_parser.py",
+      "lines_in_patch": 691,
+      "executable_lines_in_patch": 466,
+      "f2p_covered": 306,
+      "p2p_covered": 0,
+      "union_covered": 306
+    },
+    {
+      "file": "Lib/tomllib/_re.py",
+      "lines_in_patch": 107,
+      "executable_lines_in_patch": 35,
+      "f2p_covered": 29,
+      "p2p_covered": 0,
+      "union_covered": 29
+    },
+    {
+      "file": "Lib/tomllib/_types.py",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 4,
+      "f2p_covered": 4,
+      "p2p_covered": 0,
+      "union_covered": 4
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py \u2014 Python files in solution.patch (Lib/tomllib/*.py). Python/stdlib_module_names.h (+1 line) is not Python-executable and is excluded.",
+    "lines_in_patch_total": 818,
+    "lines_in_patch_total_all": 819,
+    "lines_in_patch_python": 818,
+    "executable_lines_in_patch": 508,
+    "f2p_covered": 342,
+    "p2p_covered": 0,
+    "union_covered": 342,
+    "f2p_pct": 67.3,
+    "p2p_pct": 0.0,
+    "union_pct": 67.3,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "6P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "3P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_json": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

@@ -1,0 +1,2071 @@
+{
+  "instance_id": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0615/",
+  "requirement_doc_title": "PEP 615 \u2014 Support for the IANA Time Zone Database in the Standard Library",
+  "pr_link": "https://github.com/python/cpython/pull/19909",
+  "pr_number": 19909,
+  "merge_commit": "62972d9d73e83d6eea157617cc69500ffec9e3f0",
+  "base_commit": "6e8cda91d92da72800d891b2fc2073ecbc134d98",
+  "base_commit_note": "PR-19909 was squash-merged into main on 2020-05-16; the merge commit 62972d9d73e83d6eea157617cc69500ffec9e3f0 has a single parent 6e8cda91d92da72800d891b2fc2073ecbc134d98, and diffing against that parent isolates the PR contribution from ~3 months of unrelated drift on main. Using merge_parent (6e8cda91\u2026) for consistency with prior CPython instances. Same pattern as PEP-617 / PEP-634 / PEP-654 / PEP-669 / PEP-680.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_str",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_repr",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_key_attribute",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_bad_keys",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_unambiguous",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_utc",
+    "test.test_zoneinfo.test_zoneinfo.WeirdZoneTest.test_one_transition",
+    "test.test_zoneinfo.test_zoneinfo.WeirdZoneTest.test_one_zone_dst",
+    "test.test_zoneinfo.test_zoneinfo.TZStrTest.test_tzstr_localized",
+    "test.test_zoneinfo.test_zoneinfo.TZStrTest.test_invalid_tzstr",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoCacheTest.test_strong_refs",
+    "test.test_zoneinfo.test_zoneinfo.ZoneInfoPickleTest.test_from_file",
+    "test.test_zoneinfo.test_zoneinfo.TzPathTest.test_env_variable",
+    "test.test_zoneinfo.test_zoneinfo.TzPathTest.test_reset_tzpath_kwarg",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_str",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_repr",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_key_attribute",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_keys",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_keys_paths",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_zones",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_fromutc_errors",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_unambiguous",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_utc",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_folds_and_gaps",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_folds_from_utc",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_time_variable_offset",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_time_fixed_offset",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_fold_mutate",
+    "test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_one_transition",
+    "test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_one_zone_dst",
+    "test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_no_tz_str",
+    "test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_empty_zone",
+    "test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_fixed_offset_phantom_transition",
+    "test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_tzstr_localized",
+    "test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_tzstr_from_utc",
+    "test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_invalid_tzstr",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_strong_refs",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_no_cache",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_clear_cache_explicit_none",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoPickleTest.test_cache_hit",
+    "test.test_zoneinfo.test_zoneinfo.CZoneInfoPickleTest.test_from_file",
+    "test.test_zoneinfo.test_zoneinfo.CCallingConventionTest.test_from_file",
+    "test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_cache_location",
+    "test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_gc_tracked"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_eval_input",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_break_continue_loop",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_break_in_finally",
+    "test.test_grammar.GrammarTests.test_continue_in_finally",
+    "test.test_grammar.GrammarTests.test_return_in_finally",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+    "test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_AST_garbage_collection",
+    "test.test_ast.AST_Tests.test_slice",
+    "test.test_ast.AST_Tests.test_from_import",
+    "test.test_ast.AST_Tests.test_realtype",
+    "test.test_ast.AST_Tests.test_base_classes",
+    "test.test_ast.AST_Tests.test_field_attr_existence",
+    "test.test_ast.AST_Tests.test_arguments",
+    "test.test_ast.AST_Tests.test_field_attr_writable",
+    "test.test_ast.AST_Tests.test_classattrs",
+    "test.test_ast.AST_Tests.test_isinstance",
+    "test.test_ast.AST_Tests.test_subclasses",
+    "test.test_ast.AST_Tests.test_module",
+    "test.test_ast.AST_Tests.test_nodeclasses",
+    "test.test_ast.AST_Tests.test_no_fields",
+    "test.test_ast.AST_Tests.test_empty_yield_from",
+    "test.test_ast.AST_Tests.test_invalid_identifier",
+    "test.test_ast.AST_Tests.test_invalid_constant",
+    "test.test_ast.ASTHelpers_Test.test_parse",
+    "test.test_ast.ASTHelpers_Test.test_parse_in_error",
+    "test.test_ast.ASTHelpers_Test.test_dump",
+    "test.test_ast.ASTHelpers_Test.test_dump_indent",
+    "test.test_ast.ASTHelpers_Test.test_dump_incomplete",
+    "test.test_ast.ASTHelpers_Test.test_copy_location",
+    "test.test_ast.ASTHelpers_Test.test_fix_missing_locations",
+    "test.test_ast.ASTHelpers_Test.test_increment_lineno",
+    "test.test_ast.ASTHelpers_Test.test_iter_fields",
+    "test.test_ast.ASTHelpers_Test.test_iter_child_nodes",
+    "test.test_ast.ASTHelpers_Test.test_get_docstring",
+    "test.test_ast.ASTHelpers_Test.test_get_docstring_none",
+    "test.test_ast.ConstantTests.test_singletons",
+    "test.test_ast.ConstantTests.test_literal_eval",
+    "test.test_ast.ConstantTests.test_validation",
+    "test.test_ast.ConstantTests.test_values",
+    "test.test_ast.ConstantTests.test_assign_to_constant",
+    "test.test_ast.EndPositionTests.test_lambda",
+    "test.test_ast.EndPositionTests.test_func_def",
+    "test.test_ast.EndPositionTests.test_call",
+    "test.test_ast.EndPositionTests.test_class_def",
+    "test.test_ast.EndPositionTests.test_multi_line_str",
+    "test.test_sys.SysModuleTest.test_sys_flags",
+    "test.test_sys.SysModuleTest.test_getframe",
+    "test.test_module.ModuleTests.test_uninitialized",
+    "test.test_module.ModuleTests.test_module_getattr",
+    "test.test_module.ModuleTests.test_module_dir",
+    "test.test_module.ModuleTests.test_no_docstring",
+    "test.test_module.ModuleTests.test_reinit",
+    "test.test_module.ModuleTests.test_ascii_docstring",
+    "test.test_module.ModuleTests.test_unicode_docstring",
+    "test.test_module.ModuleTests.test_module_getattr_errors",
+    "test.test_module.ModuleTests.test_module_dir_errors",
+    "test.test_module.ModuleTests.test_dont_clear_dict",
+    "test.test_module.ModuleTests.test_weakref",
+    "test.test_module.ModuleTests.test_missing_getattr"
+  ],
+  "solution_patch_sha256": "3a8ad31b038c849f1d19740d141700e5b73c53e1ce3470b0253caf86fddf0c91",
+  "eval_tests_patch_sha256": "54239320a94754380b4344b69ed78a3f3ddf9ba30845841a89df3be40a4427c3",
+  "omitted_patch_sha256": "fa9844a3cb509eb25c32ea762cd5f1a130547e07683952dfd2afd348d59c2f7c",
+  "eval_tests_patch_notes": "eval_tests.patch contains the entire Lib/test/test_zoneinfo/ subtree added by PR-19909: test_zoneinfo.py (~1994 lines, the canonical PEP 615 test suite, with both Py-impl and C-impl test classes), _support.py (helper, exposes get_modules() that imports both the C-accelerated and pure-Python copies), __init__.py + __main__.py (package + runner), data/zoneinfo_data.json (LZMA-compressed TZif fixture data), data/update_test_data.py (a helper script, not a test). No existing test files outside test_zoneinfo/ are modified.",
+  "omitted_patch_notes": "omitted.patch holds 10 files of Windows / CI / docs glue not relevant to runtime test execution: PCbuild/_zoneinfo.vcxproj + .filters (MSBuild), PCbuild/pcbuild.{proj,sln} (PCbuild), PCbuild/lib.pyproj + readme.txt, Tools/msi/lib/lib_files.wxs (MSI installer), .travis.yml, .github/workflows/coverage.yml (CI config), Misc/requirements-test.txt. None affect the eval container.",
+  "fixture_taint_summary": "44 F2P selectors all from the NEW Lib/test/test_zoneinfo/test_zoneinfo.py. Expanded per the 50% coverage rule (Codex round 1 + post-coverage rule).\n  - 14 Py-impl tests (ZoneInfoTest x6, WeirdZoneTest x2, TZStrTest x2, ZoneInfoCacheTest x1, ZoneInfoPickleTest x1, TzPathTest x2) \u2014 exercise Lib/zoneinfo/*.py through public zoneinfo.ZoneInfo + pickle + TZPATH.\n  - 28 C-impl tests (CZoneInfoTest x12 incl. unique test_fold_mutate, CWeirdZoneTest x5, CTZStrTest x3, CZoneInfoCacheTest x3, CZoneInfoPickleTest x2, CCallingConventionTest x1) \u2014 same public API but routed through Modules/_zoneinfo.c.\n  - 2 ExtensionBuiltTest sentinels \u2014 prove the C extension is actually loaded.\nPre-state: both Lib/zoneinfo/ and Modules/_zoneinfo.c missing \u2192 test_zoneinfo.py raises ModuleNotFoundError at module import \u2192 all 44 ERROR identically.\n89 P2P spread across 4 untouched files: ~33 test_grammar + ~38 test_ast + 2 test_sys (test_sys_flags + test_getframe via allowlisted sys._getframe) + 12 test_module (module-object machinery). Ratio P2P/F2P = 2.02\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "ZoneInfoTest.test_str": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_str",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoTest.test_repr": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_repr",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoTest.test_key_attribute": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_key_attribute",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoTest.test_bad_keys": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_bad_keys",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoTest.test_unambiguous": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_unambiguous",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoTest.test_utc": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoTest.test_utc",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "WeirdZoneTest.test_one_transition": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.WeirdZoneTest.test_one_transition",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "WeirdZoneTest.test_one_zone_dst": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.WeirdZoneTest.test_one_zone_dst",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "TZStrTest.test_tzstr_localized": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.TZStrTest.test_tzstr_localized",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "TZStrTest.test_invalid_tzstr": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.TZStrTest.test_invalid_tzstr",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoCacheTest.test_strong_refs": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoCacheTest.test_strong_refs",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "ZoneInfoPickleTest.test_from_file": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ZoneInfoPickleTest.test_from_file",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "TzPathTest.test_env_variable": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.TzPathTest.test_env_variable",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "TzPathTest.test_reset_tzpath_kwarg": {
+        "system_reason": "Exercises zoneinfo's pure-Python impl (Lib/zoneinfo/_zoneinfo.py) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.TzPathTest.test_reset_tzpath_kwarg",
+        "fixture_taint_checked": true,
+        "implementation_lane": "py"
+      },
+      "CZoneInfoTest.test_str": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_str",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_repr": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_repr",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_key_attribute": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_key_attribute",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_bad_keys": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_keys",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_bad_keys_paths": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_keys_paths",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_bad_zones": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_bad_zones",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_fromutc_errors": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_fromutc_errors",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_unambiguous": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_unambiguous",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_utc": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_utc",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_folds_and_gaps": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_folds_and_gaps",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_folds_from_utc": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_folds_from_utc",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_time_variable_offset": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_time_variable_offset",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_time_fixed_offset": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_time_fixed_offset",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoTest.test_fold_mutate": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoTest.test_fold_mutate",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CWeirdZoneTest.test_one_transition": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_one_transition",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CWeirdZoneTest.test_one_zone_dst": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_one_zone_dst",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CWeirdZoneTest.test_no_tz_str": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_no_tz_str",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CWeirdZoneTest.test_empty_zone": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_empty_zone",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CWeirdZoneTest.test_fixed_offset_phantom_transition": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CWeirdZoneTest.test_fixed_offset_phantom_transition",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CTZStrTest.test_tzstr_localized": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_tzstr_localized",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CTZStrTest.test_tzstr_from_utc": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_tzstr_from_utc",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CTZStrTest.test_invalid_tzstr": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CTZStrTest.test_invalid_tzstr",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoCacheTest.test_strong_refs": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_strong_refs",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoCacheTest.test_no_cache": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_no_cache",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoCacheTest.test_clear_cache_explicit_none": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoCacheTest.test_clear_cache_explicit_none",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoPickleTest.test_cache_hit": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoPickleTest.test_cache_hit",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CZoneInfoPickleTest.test_from_file": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CZoneInfoPickleTest.test_from_file",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "CCallingConventionTest.test_from_file": {
+        "system_reason": "Exercises zoneinfo's C accelerator (Modules/_zoneinfo.c) through the public ZoneInfo / cache / tzpath / TZ-string / pickle public API.",
+        "public_surface": "zoneinfo.ZoneInfo / .key / .clear_cache / .from_file / TZPATH / reset_tzpath / pickle",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.CCallingConventionTest.test_from_file",
+        "fixture_taint_checked": true,
+        "implementation_lane": "c"
+      },
+      "ExtensionBuiltTest.test_cache_location": {
+        "system_reason": "C-accelerator presence sentinel. Introspects py_zoneinfo.ZoneInfo._weak_cache attribute and gc.is_tracked(c_zoneinfo.ZoneInfo) to ensure the C extension was actually loaded; closes the Codex M1 loophole (without these sentinels, the C-class selectors would silently pass against the pure-Python fallback if the agent shipped only Lib/zoneinfo/*.py). Private symbol references explicitly allowlisted in public_surface_allowlist[1].",
+        "public_surface": "zoneinfo.ZoneInfo (C vs Py sentinel) + gc.is_tracked + introspected `_weak_cache`",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [
+          "py_zoneinfo.ZoneInfo._weak_cache (sentinel)",
+          "c_zoneinfo.ZoneInfo._weak_cache (absence check)"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_cache_location",
+        "fixture_taint_checked": true,
+        "implementation_lane": "ext-built-sentinel"
+      },
+      "ExtensionBuiltTest.test_gc_tracked": {
+        "system_reason": "C-accelerator presence sentinel. Introspects py_zoneinfo.ZoneInfo._weak_cache attribute and gc.is_tracked(c_zoneinfo.ZoneInfo) to ensure the C extension was actually loaded; closes the Codex M1 loophole (without these sentinels, the C-class selectors would silently pass against the pure-Python fallback if the agent shipped only Lib/zoneinfo/*.py). Private symbol references explicitly allowlisted in public_surface_allowlist[1].",
+        "public_surface": "zoneinfo.ZoneInfo (C vs Py sentinel) + gc.is_tracked + introspected `_weak_cache`",
+        "internal_symbol_check": [
+          "zoneinfo._zoneinfo._*",
+          "zoneinfo._common._*",
+          "zoneinfo._tzpath._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [
+          "py_zoneinfo.ZoneInfo._weak_cache (sentinel)",
+          "c_zoneinfo.ZoneInfo._weak_cache (absence check)"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_gc_tracked",
+        "fixture_taint_checked": true,
+        "implementation_lane": "ext-built-sentinel"
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_eval_input": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_eval_input",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_continue_loop": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_continue_loop",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_in_finally": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_in_finally",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_continue_in_finally": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_in_finally",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return_in_finally": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return_in_finally",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_syntax_errors": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_simple_exec": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_garbage_collection": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_garbage_collection",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_slice": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_slice",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_from_import": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_from_import",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_realtype": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_realtype",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_base_classes": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_base_classes",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_field_attr_existence": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_field_attr_existence",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_arguments": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_arguments",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_field_attr_writable": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_field_attr_writable",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_classattrs": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_classattrs",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_isinstance": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_isinstance",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_subclasses": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_subclasses",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_module": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_module",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_nodeclasses": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_nodeclasses",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_no_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_no_fields",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_empty_yield_from": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_empty_yield_from",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_invalid_identifier": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_invalid_identifier",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_invalid_constant": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_invalid_constant",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse_in_error": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse_in_error",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump_indent": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump_indent",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump_incomplete": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump_incomplete",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_copy_location": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_copy_location",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_fix_missing_locations": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_fix_missing_locations",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_increment_lineno": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_increment_lineno",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_iter_fields": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_iter_fields",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_iter_child_nodes": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_iter_child_nodes",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_get_docstring": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_get_docstring",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_get_docstring_none": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_get_docstring_none",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_singletons": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_singletons",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_literal_eval": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_literal_eval",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_validation": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_validation",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_values": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_values",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_assign_to_constant": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_assign_to_constant",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_lambda": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_lambda",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_func_def": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_func_def",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_call": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_call",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_class_def": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_class_def",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_multi_line_str": {
+        "system_reason": "Pre-existing public-ast test. test_ast.py is NOT modified by this PR.",
+        "public_surface": "public ast module",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_multi_line_str",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_sys_flags": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.* public API",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_sys_flags",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_getframe": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR. Uses sys._getframe (allowlisted; see public_surface_allowlist[0]).",
+        "public_surface": "sys.* public API + sys._getframe (allowlisted)",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [
+          "sys._getframe"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_getframe",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_uninitialized": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_uninitialized",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_getattr": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_getattr",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_dir": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_dir",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_no_docstring": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_no_docstring",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_reinit": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_reinit",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_ascii_docstring": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_ascii_docstring",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_unicode_docstring": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_unicode_docstring",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_getattr_errors": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_getattr_errors",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_module_dir_errors": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_module_dir_errors",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_dont_clear_dict": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_dont_clear_dict",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_weakref": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_weakref",
+        "fixture_taint_checked": true
+      },
+      "ModuleTests.test_missing_getattr": {
+        "system_reason": "Pre-existing module-object machinery test. Behaviorally adjacent to PR-19909.",
+        "public_surface": "types.ModuleType + module attribute / dir() semantics",
+        "internal_symbol_check": [
+          "zoneinfo._*",
+          "_zoneinfo.*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_module.ModuleTests.test_missing_getattr",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "zoneinfo._zoneinfo._* / zoneinfo._common._* / zoneinfo._tzpath._* / top-level _zoneinfo.*",
+      "reason": "Implementation-internal helpers inside the new zoneinfo package (zoneinfo._common.load_data, zoneinfo._zoneinfo._strong_cache, zoneinfo._tzpath._reset_tzpath, etc.) AND the top-level C extension module `_zoneinfo` (imported by Lib/zoneinfo/__init__.py via `from _zoneinfo import ZoneInfo`). Per the LoLBench Python public-surface rule, `_`-prefixed names are private. None of the 44 F2P methods reach into these symbols as an API; the 2 ExtensionBuiltTest selectors introspect `_weak_cache` and `gc.is_tracked` as a C-accelerator-presence sentinel, recorded explicitly in public_surface_allowlist."
+    }
+  ],
+  "public_surface_allowlist": [
+    {
+      "symbol": "sys._getframe",
+      "rationale": "Documented in https://docs.python.org/3/library/sys.html#sys._getframe as a CPython implementation detail and the canonical Python-level way to access the running frame. Despite the leading underscore (which LoLBench treats as 'private by default'), sys._getframe is widely used in tracing/profiling/debugging frameworks. Referenced by one P2P selector: test_sys.SysModuleTest.test_getframe (pre-existing test_sys test, unmodified by this PR). The agent does NOT need to re-implement sys._getframe; it's pre-existing CPython infrastructure the PR doesn't change.",
+      "tests": [
+        "test.test_sys.SysModuleTest.test_getframe"
+      ]
+    },
+    {
+      "symbol": "py_zoneinfo.ZoneInfo._weak_cache / gc.is_tracked(c_zoneinfo.ZoneInfo)",
+      "rationale": "C-accelerator presence sentinel. Per Codex round 1 M1, the C-class F2P selectors (CZoneInfoTest.*, CWeirdZoneTest.*, etc.) by themselves do not prove the C extension was actually built \u2014 c_zoneinfo can silently fall back to the pure-Python impl via Lib/zoneinfo/__init__.py's `from _zoneinfo import ZoneInfo` exception handler. The 2 ExtensionBuiltTest F2P selectors close that loophole: they introspect implementation-internal differences (Py-impl ZoneInfo has a `_weak_cache` attribute and is tracked by gc; C-impl ZoneInfo has neither). If the agent ships only the pure-Python files, c_zoneinfo == py_zoneinfo and these tests FAIL. The `_weak_cache` attribute and `gc.is_tracked` are explicitly allowlisted for this sentinel purpose; they are not part of the documented public API.",
+      "tests": [
+        "test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_cache_location",
+        "test.test_zoneinfo.test_zoneinfo.ExtensionBuiltTest.test_gc_tracked"
+      ],
+      "policy_decision": "The benchmark INTENTIONALLY scores 'C accelerator must be present'. PR-19909 ships both a pure-Python implementation AND a C accelerator; shipping only the pure-Python files would leave a major fraction of Modules/_zoneinfo.c (~2695 lines, the bulk of the patch) unimplemented. The 2 ExtensionBuiltTest sentinels enforce this by detecting whether c_zoneinfo silently fell back to the pure-Python impl. They are accepted as a deliberate sentinel exception, not as a normal public-API F2P \u2014 their `system_reason` in spec.json.triage and the README \u00a73.4 mark them as sentinels, and this allowlist entry justifies the private-symbol references."
+    }
+  ],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; the new Modules/_zoneinfo.c extension is added via configure.ac and built by setup.py during `make`)",
+    "runtime_caps": "--network=none, default seccomp (no SYS_PTRACE needed)"
+  },
+  "validated_at": "2026-05-21",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "bb95a6dd5bf6532e73b7b2fc470ea41ed6c438b56ada327824bf0588b1d8cc28",
+    "f2p_aug_sha256": "773f1b1fa16ca5f68297271d87a5bd5125299d3682a12e845c6307d599c035c6",
+    "p2p_aug_sha256": "c99ea17bd6f611d01af44cc75bb518e93b1da81cdda3b14845cf2024d56c9983",
+    "fail_to_pass": [
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzdata_fallback_uses_zoneinfo_package_namespace",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_reset_tzpath_uses_sysconfig_default_when_environment_unset"
+    ],
+    "pass_to_pass": [
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fixed_timezone_arithmetic_is_unchanged",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fold_flag_is_preserved_for_plain_datetime",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_pickle_roundtrip_for_builtin_timezone_is_unchanged",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_sysconfig_public_paths_are_unchanged"
+    ],
+    "targets_mutants": [
+      "mutant_001_py_primary_constructor_bypasses_weak_cache",
+      "mutant_002_c_no_cache_uses_primary_cache",
+      "mutant_003_py_from_file_is_picklable",
+      "mutant_004_c_from_file_is_picklable",
+      "mutant_005_py_clear_cache_only_keys_clears_all",
+      "mutant_006_c_clear_cache_only_keys_keeps_strong_cache",
+      "mutant_007_str_returns_repr_for_keyed_zones",
+      "mutant_008_no_cache_pickle_unpickles_through_cache",
+      "mutant_009_tzpath_search_order_reversed",
+      "mutant_010_env_tzpath_splits_on_directory_separator",
+      "mutant_011_reset_tzpath_explicit_sequence_ignored",
+      "mutant_012_tzdata_fallback_omits_zoneinfo_package",
+      "mutant_013_tzif_v2_read_as_v1",
+      "mutant_014_dst_fallback_uses_zero_offset",
+      "mutant_015_fold_transition_offsets_swapped",
+      "mutant_016_zoneinfo_not_found_not_keyerror",
+      "mutant_017_path_traversal_key_allowed",
+      "mutant_018_default_tzpath_ignores_sysconfig"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 86.3,
+      "augmented_line_coverage_percent": 88.0,
+      "union_line_coverage_percent": 88.0,
+      "executable_lines_in_patch": 1647,
+      "union_covered_lines": 1449,
+      "coverage_complete": true,
+      "measurement_note": "Hybrid coverage combines coverage.py over Lib/zoneinfo/*.py and gcovr over Modules/_zoneinfo.c. The C parser excludes gcovr rows marked gcovr/noncode so comments and braces are not counted as executable lines."
+    },
+    "synthetic_tests": [
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzdata_fallback_uses_zoneinfo_package_namespace",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract",
+      "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_reset_tzpath_uses_sysconfig_default_when_environment_unset",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fixed_timezone_arithmetic_is_unchanged",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fold_flag_is_preserved_for_plain_datetime",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_pickle_roundtrip_for_builtin_timezone_is_unchanged",
+      "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_sysconfig_public_paths_are_unchanged"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors drive the documented public zoneinfo module surface: ZoneInfo constructors, clear_cache, TZPATH/reset_tzpath, tzdata fallback, string/error behavior, pickle protocol, and datetime tzinfo methods. The tests reuse only the existing public CPython test fixture data to make TZif inputs deterministic across hosts. Augmented P2P selectors avoid importing zoneinfo and pin pre-existing datetime, pickle, and sysconfig behavior promised unchanged by Backwards Compatibility.",
+      "fail_to_pass": {
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_constructor_cache_and_targeted_clear_cache_contracts": {
+          "requirement_sections": [
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Deliberate cache invalidation"
+          ],
+          "public_surface": "zoneinfo.ZoneInfo primary constructor, ZoneInfo.no_cache(), ZoneInfo.clear_cache(only_keys=...), and ZoneInfo.key through both Python and C implementation lanes.",
+          "mutants_targeted": [
+            "mutant_001_py_primary_constructor_bypasses_weak_cache",
+            "mutant_002_c_no_cache_uses_primary_cache",
+            "mutant_005_py_clear_cache_only_keys_clears_all",
+            "mutant_006_c_clear_cache_only_keys_keeps_strong_cache"
+          ],
+          "rationale": "PEP 615 requires identical primary-constructor calls to return the same live object, no_cache to bypass that cache, and targeted cache invalidation to remove only requested keys from every cache lane."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_from_file_and_no_cache_pickle_contracts": {
+          "requirement_sections": [
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Pickle serialization"
+          ],
+          "public_surface": "zoneinfo.ZoneInfo.no_cache(), ZoneInfo.from_file(), pickle.dumps(), and pickle.loads() with sys.modules[\"zoneinfo\"] bound to the selected public module lane.",
+          "mutants_targeted": [
+            "mutant_003_py_from_file_is_picklable",
+            "mutant_004_c_from_file_is_picklable",
+            "mutant_008_no_cache_pickle_unpickles_through_cache"
+          ],
+          "rationale": "PEP 615 specifies that from_file objects cannot be pickled and that no_cache objects pickle through the non-cache constructor rather than the primary cache."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzpath_order_env_reset_and_key_validation": {
+          "requirement_sections": [
+            "Proposal > Sources for time zone data > System time zone information",
+            "Proposal > Search path configuration > Environment variables",
+            "Proposal > Search path configuration > ``reset_tzpath`` function"
+          ],
+          "public_surface": "zoneinfo.reset_tzpath(), zoneinfo.TZPATH, PYTHONTZPATH, and ZoneInfo(key) search through configured TZPATH directories.",
+          "mutants_targeted": [
+            "mutant_009_tzpath_search_order_reversed",
+            "mutant_010_env_tzpath_splits_on_directory_separator",
+            "mutant_011_reset_tzpath_explicit_sequence_ignored",
+            "mutant_017_path_traversal_key_allowed"
+          ],
+          "rationale": "PEP 615 requires TZPATH to preserve search order, parse PYTHONTZPATH with os.pathsep, honor explicit reset_tzpath sequences, and reject keys that escape the configured root."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_tzdata_fallback_uses_zoneinfo_package_namespace": {
+          "requirement_sections": [
+            "Proposal > Sources for time zone data > The ``tzdata`` Python package"
+          ],
+          "public_surface": "ZoneInfo(key) fallback to a normal importlib.resources package rooted at tzdata.zoneinfo when TZPATH is empty.",
+          "mutants_targeted": [
+            "mutant_012_tzdata_fallback_omits_zoneinfo_package"
+          ],
+          "rationale": "PEP 615 specifies that, after system TZPATH lookup, ZoneInfo searches the first-party tzdata package under tzdata.zoneinfo; the test installs a temporary public package with only that namespace."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_future_tzif_rules_dst_and_fold_semantics": {
+          "requirement_sections": [
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Behavior during data updates"
+          ],
+          "public_surface": "ZoneInfo(key), ZoneInfo.from_file(), datetime.utcoffset(), datetime.dst(), and datetime.fold on public datetime objects.",
+          "mutants_targeted": [
+            "mutant_013_tzif_v2_read_as_v1",
+            "mutant_014_dst_fallback_uses_zero_offset",
+            "mutant_015_fold_transition_offsets_swapped"
+          ],
+          "rationale": "PEP 615 requires eagerly loaded TZif data, correct POSIX footer rules for future dates, correct inferred DST offsets, and correct fold-sensitive offsets for repeated hours."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_string_representation_and_not_found_keyerror_contract": {
+          "requirement_sections": [
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > Constructors",
+            "Proposal > The ``zoneinfo.ZoneInfo`` class > String representation"
+          ],
+          "public_surface": "str(ZoneInfo(key)), repr(ZoneInfo(key)), and catching ZoneInfo(\"Invalid/Zone\") through KeyError.",
+          "mutants_targeted": [
+            "mutant_007_str_returns_repr_for_keyed_zones",
+            "mutant_016_zoneinfo_not_found_not_keyerror"
+          ],
+          "rationale": "PEP 615 requires str() to return the key for keyed zones and ZoneInfoNotFoundError to be a KeyError subclass when no data source contains the key."
+        },
+        "test.test_zoneinfo.test_zoneinfo_aug.ZoneInfoAugTest.test_reset_tzpath_uses_sysconfig_default_when_environment_unset": {
+          "requirement_sections": [
+            "Proposal > Search path configuration > Compile-time options",
+            "Proposal > Search path configuration > ``reset_tzpath`` function"
+          ],
+          "public_surface": "zoneinfo.reset_tzpath(), zoneinfo.TZPATH, PYTHONTZPATH absence, and sysconfig.get_config_var(\"TZPATH\").",
+          "mutants_targeted": [
+            "mutant_018_default_tzpath_ignores_sysconfig"
+          ],
+          "rationale": "PEP 615 requires reset_tzpath() to fall back to the compile-time TZPATH from sysconfig when PYTHONTZPATH is unset."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fixed_timezone_arithmetic_is_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "datetime.timezone, datetime.datetime arithmetic, and astimezone() with fixed offsets.",
+          "rationale": "PEP 615 adds zoneinfo as a new time zone implementation without changing pre-existing fixed-offset datetime.timezone arithmetic and conversion semantics."
+        },
+        "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_datetime_fold_flag_is_preserved_for_plain_datetime": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "datetime.datetime.replace(fold=...) and equality for plain datetime instances.",
+          "rationale": "The new ZoneInfo fold handling must not change the existing PEP 495 fold flag behavior on ordinary datetime objects without zoneinfo."
+        },
+        "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_pickle_roundtrip_for_builtin_timezone_is_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "pickle roundtrip of datetime.datetime using the pre-existing datetime.timezone class.",
+          "rationale": "ZoneInfo adds its own pickle protocol but must not disturb pickling of existing datetime objects and fixed-offset time zones."
+        },
+        "test.test_zoneinfo_stability_aug.ZoneInfoStabilityAugTest.test_sysconfig_public_paths_are_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "sysconfig.get_paths() and sysconfig.get_config_var(\"prefix\") public APIs.",
+          "rationale": "PEP 615 adds a TZPATH sysconfig variable, but existing sysconfig path and variable queries must continue to behave as before."
+        }
+      }
+    },
+    "validation_status": {
+      "status": "validated",
+      "validated_at": "2026-05-21",
+      "validate_sh": {
+        "status": "passed",
+        "output_dir": "validation_out",
+        "suites": {
+          "orig": {
+            "pre": {
+              "f2p": "0P/0F/44E/0S",
+              "p2p": "89P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "44P/0F/0E/0S",
+              "p2p": "89P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "aug": {
+            "pre": {
+              "f2p": "0P/0F/7E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "7P/0F/0E/0S",
+              "p2p": "4P/0F/0E/0S",
+              "resolved": true
+            }
+          },
+          "union": {
+            "pre": {
+              "f2p": "0P/0F/51E/0S",
+              "p2p": "93P/0F/0E/0S",
+              "resolved": false
+            },
+            "post": {
+              "f2p": "51P/0F/0E/0S",
+              "p2p": "93P/0F/0E/0S",
+              "resolved": true
+            }
+          }
+        },
+        "mutants": {
+          "status": "passed",
+          "total": 18,
+          "killed_by_augmented_f2p": 18,
+          "p2p_clean": 18,
+          "suite": "union"
+        }
+      },
+      "coverage": {
+        "status": "passed",
+        "orig_union_line_coverage_percent": 86.3,
+        "augmented_union_line_coverage_percent": 88.0,
+        "minimum_line_coverage_percent": 80,
+        "coverage_report": "coverage_out/coverage_report_union.json",
+        "coverage_complete": true
+      }
+    },
+    "validated_at": "2026-05-21"
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-base:1",
+  "pr_head_sha": "ac56fcc66f984401799df6ea350bf16b548e742c",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-base:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 86.34,
+    "aug": 87.98,
+    "union": 87.98,
+    "denominator": "union_executable_lines"
+  }
+}

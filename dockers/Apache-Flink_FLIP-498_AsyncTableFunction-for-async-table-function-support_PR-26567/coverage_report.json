@@ -1,0 +1,402 @@
+{
+  "instance_id": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "files": {
+    "flink-core/src/main/java/org/apache/flink/api/java/typeutils/TypeExtractionUtils.java": {
+      "kind": "java",
+      "lines_in_patch": 25,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/ExecutionConfigOptions.java": {
+      "kind": "java",
+      "lines_in_patch": 44,
+      "executable_lines_in_patch": 25,
+      "f2p_covered": 25,
+      "p2p_covered": 0,
+      "union_covered": 25,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-common/src/main/java/org/apache/flink/table/functions/UserDefinedFunctionHelper.java": {
+      "kind": "java",
+      "lines_in_patch": 31,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/FunctionMappingExtractor.java": {
+      "kind": "java",
+      "lines_in_patch": 23,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/TypeInferenceExtractor.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/SystemTypeInference.java": {
+      "kind": "java",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/catalog/FunctionCatalogOperatorTable.java": {
+      "kind": "java",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGenerator.java": {
+      "kind": "java",
+      "lines_in_patch": 106,
+      "executable_lines_in_patch": 26,
+      "f2p_covered": 23,
+      "p2p_covered": 0,
+      "union_covered": 23,
+      "f2p_pct": 88.5,
+      "p2p_pct": 0.0,
+      "union_pct": 88.5
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/expressions/converter/FunctionDefinitionConvertRule.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/functions/bridging/BridgingSqlFunction.java": {
+      "kind": "java",
+      "lines_in_patch": 4,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecAsyncCorrelate.java": {
+      "kind": "java",
+      "lines_in_patch": 155,
+      "executable_lines_in_patch": 35,
+      "f2p_covered": 35,
+      "p2p_covered": 0,
+      "union_covered": 35,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecAsyncCorrelate.java": {
+      "kind": "java",
+      "lines_in_patch": 93,
+      "executable_lines_in_patch": 8,
+      "f2p_covered": 8,
+      "p2p_covered": 0,
+      "union_covered": 8,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/logical/FlinkLogicalTableFunctionScan.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCalc.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCorrelate.java": {
+      "kind": "java",
+      "lines_in_patch": 95,
+      "executable_lines_in_patch": 17,
+      "f2p_covered": 17,
+      "p2p_covered": 0,
+      "union_covered": 17,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRule.java": {
+      "kind": "java",
+      "lines_in_patch": 9,
+      "executable_lines_in_patch": 4,
+      "f2p_covered": 3,
+      "p2p_covered": 0,
+      "union_covered": 3,
+      "f2p_pct": 75.0,
+      "p2p_pct": 0.0,
+      "union_pct": 75.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRule.java": {
+      "kind": "java",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 6,
+      "f2p_covered": 6,
+      "p2p_covered": 0,
+      "union_covered": 6,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/PythonCorrelateSplitRule.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/RemoteCorrelateSplitRule.java": {
+      "kind": "java",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCalcRule.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCorrelateRule.java": {
+      "kind": "java",
+      "lines_in_patch": 142,
+      "executable_lines_in_patch": 49,
+      "f2p_covered": 47,
+      "p2p_covered": 0,
+      "union_covered": 47,
+      "f2p_pct": 95.9,
+      "p2p_pct": 0.0,
+      "union_pct": 95.9
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalConstantTableFunctionScanRule.java": {
+      "kind": "java",
+      "lines_in_patch": 14,
+      "executable_lines_in_patch": 5,
+      "f2p_covered": 5,
+      "p2p_covered": 0,
+      "union_covered": 5,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncTableUtil.java": {
+      "kind": "java",
+      "lines_in_patch": 67,
+      "executable_lines_in_patch": 16,
+      "f2p_covered": 14,
+      "p2p_covered": 0,
+      "union_covered": 14,
+      "f2p_pct": 87.5,
+      "p2p_pct": 0.0,
+      "union_pct": 87.5
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncUtil.java": {
+      "kind": "java",
+      "lines_in_patch": 190,
+      "executable_lines_in_patch": 38,
+      "f2p_covered": 34,
+      "p2p_covered": 0,
+      "union_covered": 34,
+      "f2p_pct": 89.5,
+      "p2p_pct": 0.0,
+      "union_pct": 89.5
+    },
+    "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/ExecNodeMetadataUtil.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/ExpressionReducer.scala": {
+      "kind": "other",
+      "lines_in_patch": 2,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/calls/BridgingFunctionGenUtil.scala": {
+      "kind": "other",
+      "lines_in_patch": 32,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/FlinkStreamRuleSets.scala": {
+      "kind": "other",
+      "lines_in_patch": 7,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/PythonCalcSplitRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 4,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcSplitRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 11,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCallFinder.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitPythonConditionFromJoinRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitRemoteConditionFromJoinRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCalcRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 1,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCorrelateRule.scala": {
+      "kind": "other",
+      "lines_in_patch": 8,
+      "note": "skipped: not a measurable source file"
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/AsyncFunctionRunner.java": {
+      "kind": "java",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/DelegatingAsyncResultFuture.java": {
+      "kind": "java",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0,
+      "f2p_pct": null,
+      "p2p_pct": null,
+      "union_pct": null
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/AsyncCorrelateRunner.java": {
+      "kind": "java",
+      "lines_in_patch": 159,
+      "executable_lines_in_patch": 55,
+      "f2p_covered": 47,
+      "p2p_covered": 0,
+      "union_covered": 47,
+      "f2p_pct": 85.5,
+      "p2p_pct": 0.0,
+      "union_pct": 85.5
+    },
+    "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/DelegatingAsyncTableResultFuture.java": {
+      "kind": "java",
+      "lines_in_patch": 38,
+      "executable_lines_in_patch": 16,
+      "f2p_covered": 16,
+      "p2p_covered": 0,
+      "union_covered": 16,
+      "f2p_pct": 100.0,
+      "p2p_pct": 0.0,
+      "union_pct": 100.0
+    }
+  },
+  "summary": {
+    "lines_in_patch_total": 1231,
+    "executable_lines_in_patch": 308,
+    "f2p_covered": 288,
+    "p2p_covered": 0,
+    "union_covered": 288,
+    "f2p_pct": 93.5,
+    "p2p_pct": 0.0,
+    "union_pct": 93.5,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_jacoco": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_jacoco": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

@@ -1,0 +1,362 @@
+import ast
+import keyword
+import symtable
+import unittest
+from collections import namedtuple
+from dataclasses import dataclass, field
+
+
+class PatternMatchingAugmentedTests(unittest.TestCase):
+    def test_soft_keywords_and_standard_library_match_args(self):
+        self.assertFalse(keyword.iskeyword("match"))
+        self.assertFalse(keyword.iskeyword("case"))
+        self.assertTrue(keyword.issoftkeyword("match"))
+        self.assertTrue(keyword.issoftkeyword("case"))
+        self.assertTrue(keyword.issoftkeyword("_"))
+
+        Point = namedtuple("Point", "x y")
+        self.assertEqual(Point.__match_args__, ("x", "y"))
+
+        def match_namedtuple(value):
+            match value:
+                case Point(x, y):
+                    return x, y
+                case _:
+                    return None
+
+        self.assertEqual(match_namedtuple(Point(3, 4)), (3, 4))
+
+        @dataclass
+        class Item:
+            visible: int
+            hidden: int = field(init=False, default=9)
+
+        self.assertEqual(Item.__match_args__, ("visible",))
+
+        def match_dataclass(value):
+            match value:
+                case Item(visible):
+                    return visible
+                case _:
+                    return None
+
+        self.assertEqual(match_dataclass(Item(11)), 11)
+
+    def test_builtin_and_subclass_self_match_patterns(self):
+        def match_int(value):
+            match value:
+                case int(bound):
+                    return bound
+                case _:
+                    return None
+
+        self.assertEqual(match_int(3), 3)
+
+        class MyInt(int):
+            pass
+
+        def match_subclass(value):
+            match value:
+                case MyInt(bound):
+                    return bound
+                case _:
+                    return None
+
+        result = match_subclass(MyInt(7))
+        self.assertIs(type(result), MyInt)
+        self.assertEqual(result, 7)
+
+    def test_sequence_and_mapping_pattern_runtime_contracts(self):
+        def sequence_result(value):
+            match value:
+                case ["a", "b"]:
+                    return "sequence"
+                case _:
+                    return "other"
+
+        self.assertEqual(sequence_result(["a", "b"]), "sequence")
+        self.assertEqual(sequence_result("ab"), "other")
+        self.assertEqual(sequence_result(b"ab"), "other")
+        self.assertEqual(sequence_result(bytearray(b"ab")), "other")
+
+        def fixed_sequence_result(value):
+            match value:
+                case [1, 2]:
+                    return "two"
+                case _:
+                    return "other"
+
+        self.assertEqual(fixed_sequence_result([1, 2]), "two")
+        self.assertEqual(fixed_sequence_result([1, 2, 3]), "other")
+
+        def mapping_result(value):
+            match value:
+                case {"x": bound}:
+                    return bound
+                case _:
+                    return None
+
+        self.assertEqual(mapping_result({"x": 1}), 1)
+        self.assertEqual(mapping_result({"x": 1, "y": 2}), 1)
+
+    def test_class_pattern_match_args_and_duplicate_keywords(self):
+        class Point:
+            __match_args__ = ("x", "y")
+
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+
+        def match_point(value):
+            match value:
+                case Point(x, y):
+                    return x, y
+                case _:
+                    return None
+
+        self.assertEqual(match_point(Point(5, 8)), (5, 8))
+
+        duplicate_keyword = """
+def f(value):
+    match value:
+        case Point(x=1, x=2):
+            return True
+"""
+        with self.assertRaises(SyntaxError):
+            compile(duplicate_keyword, "<duplicate class keyword>", "exec")
+
+    def test_literal_singletons_guards_and_bindings(self):
+        class EqualsNone:
+            def __eq__(self, other):
+                return other is None
+
+        def classify_singleton(value):
+            match value:
+                case None:
+                    return "none"
+                case _:
+                    return "other"
+
+        self.assertEqual(classify_singleton(EqualsNone()), "other")
+
+        def guard_true(value):
+            match value:
+                case 1 if True:
+                    return "guarded"
+                case 1:
+                    return "fallback"
+                case _:
+                    return "other"
+
+        def guard_false(value):
+            match value:
+                case 1 if False:
+                    return "guarded"
+                case 1:
+                    return "fallback"
+                case _:
+                    return "other"
+
+        self.assertEqual(guard_true(1), "guarded")
+        self.assertEqual(guard_false(1), "fallback")
+
+        def as_pattern(value):
+            match value:
+                case (1, y) as pair:
+                    return pair, y
+                case _:
+                    return None
+
+        self.assertEqual(as_pattern((1, 2)), ((1, 2), 2))
+
+        def capture_pattern(value):
+            match value:
+                case captured:
+                    return captured
+
+        self.assertEqual(capture_pattern("bound"), "bound")
+
+    def test_static_pattern_validation_rules(self):
+        nonfinal_irrefutable = """
+def f(value):
+    match value:
+        case captured:
+            return captured
+        case 1:
+            return "one"
+"""
+        with self.assertRaises(SyntaxError):
+            compile(nonfinal_irrefutable, "<nonfinal irrefutable>", "exec")
+
+        duplicate_capture = """
+def f(value):
+    match value:
+        case (x, x):
+            return x
+"""
+        with self.assertRaises(SyntaxError):
+            compile(duplicate_capture, "<duplicate capture>", "exec")
+
+        inconsistent_or_bindings = """
+def f(value):
+    match value:
+        case [x] | [x, y]:
+            return x
+"""
+        with self.assertRaises(SyntaxError):
+            compile(inconsistent_or_bindings, "<inconsistent or bindings>", "exec")
+
+        wildcard_source = """
+def f(value):
+    match value:
+        case _:
+            return 1
+"""
+        table = symtable.symtable(wildcard_source, "<wildcard>", "exec")
+        function_table = table.get_children()[0]
+        locals_in_function = {
+            symbol.get_name()
+            for symbol in function_table.get_symbols()
+            if symbol.is_local()
+        }
+        self.assertNotIn("_", locals_in_function)
+
+    def test_ast_validation_rejects_match_without_cases(self):
+        tree = ast.Module(
+            body=[
+                ast.Match(
+                    subject=ast.Constant(value=1),
+                    cases=[],
+                )
+            ],
+            type_ignores=[],
+        )
+        ast.fix_missing_locations(tree)
+        with self.assertRaises(ValueError):
+            compile(tree, "<empty match cases>", "exec")
+
+    def test_parser_accepts_and_rejects_pattern_grammar_forms(self):
+        def case_source(pattern, guard=""):
+            return (
+                "def f(subject):\n"
+                "    match subject:\n"
+                f"        case {pattern}{guard}:\n"
+                "            return 1\n"
+            )
+
+        valid_patterns = [
+            "None",
+            "True",
+            "False",
+            "0",
+            "-1",
+            "1.5",
+            "-2.5",
+            "3j",
+            "-4j",
+            "1 + 2j",
+            "1 - 2j",
+            "-1 + 2j",
+            "'text'",
+            "b'bytes'",
+            "name",
+            "_",
+            "Color.RED",
+            "pkg.mod.VALUE",
+            "(Color.RED)",
+            "((1))",
+            "[]",
+            "[x]",
+            "[x,]",
+            "[first, second]",
+            "[head, *tail]",
+            "[*prefix, last]",
+            "[first, *middle, last]",
+            "()",
+            "(x,)",
+            "(x, y)",
+            "x, y",
+            "{}",
+            "{'x': x}",
+            "{1: one, 2: two}",
+            "{Color.RED: value}",
+            "{'x': x, **rest}",
+            "{**rest}",
+            "{'x': [a, b], 'y': C(z)}",
+            "C()",
+            "C(x)",
+            "C(x, y)",
+            "C(attr=x)",
+            "C(x, attr=y)",
+            "pkg.mod.C(1, attr=2)",
+            "C([a, *b], {'x': y})",
+            "1 | 2 | 3",
+            "[1] | (1,)",
+            "[x] | (x,)",
+            "(1 | 2) as value",
+            "[x] as value",
+        ]
+
+        valid_sources = [case_source(pattern) for pattern in valid_patterns]
+        valid_sources.extend(
+            [
+                (
+                    "def f(a, b):\n"
+                    "    match a, b:\n"
+                    "        case (1, 2):\n"
+                    "            return 1\n"
+                ),
+                (
+                    "def f(subject):\n"
+                    "    match subject:\n"
+                    "        case 1 if subject:\n"
+                    "            return 1\n"
+                    "        case _:\n"
+                    "            return 2\n"
+                ),
+                (
+                    "def f(subject):\n"
+                    "    match subject:\n"
+                    "        case [first, second] | (first, second):\n"
+                    "            return first, second\n"
+                ),
+            ]
+        )
+
+        for source in valid_sources:
+            with self.subTest(kind="valid", source=source):
+                compile(source, "<valid pattern grammar>", "exec")
+
+        invalid_patterns = [
+            "*rest",
+            "**rest",
+            "...",
+            "+1",
+            ".value",
+            "C(,)",
+            "C(a=)",
+            "C(x=1, x=2)",
+            "{'x': }",
+            "{'x': x, **_}",
+            "{**rest, 'x': value}",
+            "[*x, *y]",
+            "[x,, y]",
+            "1 | x",
+            "x | y",
+            "[x, x]",
+            "_ as _",
+        ]
+
+        for pattern in invalid_patterns:
+            source = case_source(pattern)
+            with self.subTest(kind="invalid", source=source):
+                try:
+                    compile(source, "<invalid pattern grammar>", "exec")
+                except SyntaxError:
+                    pass
+                else:
+                    self.fail(f"accepted invalid pattern: {pattern}")
+
+
+if __name__ == "__main__":
+    unittest.main()

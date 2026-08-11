@@ -1,0 +1,2307 @@
+diff --git a/flink-core/src/main/java/org/apache/flink/api/java/typeutils/TypeExtractionUtils.java b/flink-core/src/main/java/org/apache/flink/api/java/typeutils/TypeExtractionUtils.java
+--- a/flink-core/src/main/java/org/apache/flink/api/java/typeutils/TypeExtractionUtils.java
++++ b/flink-core/src/main/java/org/apache/flink/api/java/typeutils/TypeExtractionUtils.java
+@@ -34,6 +34,7 @@
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.List;
++import java.util.Optional;
+ 
+ import static org.apache.flink.shaded.asm9.org.objectweb.asm.Type.getConstructorDescriptor;
+ import static org.apache.flink.shaded.asm9.org.objectweb.asm.Type.getMethodDescriptor;
+@@ -373,4 +374,28 @@ public static void validateLambdaType(Class<?> baseClass, Type t) {
+                             + "Otherwise the type has to be specified explicitly using type information.");
+         }
+     }
++
++    /**
++     * Will return true if the type of the given generic class type matches clazz.
++     *
++     * @param clazz The generic class to check against
++     * @param type The type to be checked
++     */
++    public static boolean isGenericOfClass(Class<?> clazz, Type type) {
++        Optional<ParameterizedType> parameterized = getParameterizedType(type);
++        return clazz.equals(type)
++                || parameterized.isPresent() && clazz.equals(parameterized.get().getRawType());
++    }
++
++    /**
++     * Returns an optional of a ParameterizedType, if that's what the type is.
++     *
++     * @param type The type to check
++     * @return optional which is present if the type is a ParameterizedType
++     */
++    public static Optional<ParameterizedType> getParameterizedType(Type type) {
++        return Optional.of(type)
++                .filter(p -> p instanceof ParameterizedType)
++                .map(ParameterizedType.class::cast);
++    }
+ }
+diff --git a/flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/ExecutionConfigOptions.java b/flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/ExecutionConfigOptions.java
+--- a/flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/ExecutionConfigOptions.java
++++ b/flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/api/config/ExecutionConfigOptions.java
+@@ -422,7 +422,7 @@ public class ExecutionConfigOptions {
+                     .intType()
+                     .defaultValue(10)
+                     .withDescription(
+-                            "The max number of async i/o operation that the async lookup join can trigger.");
++                            "The max number of async i/o operation that the async scalar function can trigger.");
+ 
+     @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
+     public static final ConfigOption<Duration> TABLE_EXEC_ASYNC_SCALAR_TIMEOUT =
+@@ -456,6 +456,49 @@ public class ExecutionConfigOptions {
+                             "The max number of async retry attempts to make before task "
+                                     + "execution is failed.");
+ 
++    // ------------------------------------------------------------------------
++    //  Async Table Function
++    // ------------------------------------------------------------------------
++    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
++    public static final ConfigOption<Integer> TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS =
++            key("table.exec.async-table.max-concurrent-operations")
++                    .intType()
++                    .defaultValue(10)
++                    .withDescription(
++                            "The max number of concurrent async i/o operations that the async table function can trigger.");
++
++    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
++    public static final ConfigOption<Duration> TABLE_EXEC_ASYNC_TABLE_TIMEOUT =
++            key("table.exec.async-table.timeout")
++                    .durationType()
++                    .defaultValue(Duration.ofMinutes(3))
++                    .withDescription(
++                            "The async timeout for the asynchronous operation to complete, including any retries which may occur.");
++
++    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
++    public static final ConfigOption<RetryStrategy> TABLE_EXEC_ASYNC_TABLE_RETRY_STRATEGY =
++            key("table.exec.async-table.retry-strategy")
++                    .enumType(RetryStrategy.class)
++                    .defaultValue(RetryStrategy.FIXED_DELAY)
++                    .withDescription(
++                            "Restart strategy which will be used, FIXED_DELAY by default.");
++
++    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
++    public static final ConfigOption<Duration> TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY =
++            key("table.exec.async-table.retry-delay")
++                    .durationType()
++                    .defaultValue(Duration.ofMillis(100))
++                    .withDescription("The delay to wait before trying again.");
++
++    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
++    public static final ConfigOption<Integer> TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES =
++            key("table.exec.async-table.max-retries")
++                    .intType()
++                    .defaultValue(3)
++                    .withDescription(
++                            "The max number of async retry attempts to make before task "
++                                    + "execution is failed.");
++
+     // ------------------------------------------------------------------------
+     //  Async ML_PREDICT Options
+     // ------------------------------------------------------------------------
+diff --git a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/functions/UserDefinedFunctionHelper.java b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/functions/UserDefinedFunctionHelper.java
+--- a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/functions/UserDefinedFunctionHelper.java
++++ b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/functions/UserDefinedFunctionHelper.java
+@@ -48,13 +48,17 @@
+ import java.lang.reflect.ParameterizedType;
+ import java.lang.reflect.Type;
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.HashSet;
+ import java.util.List;
++import java.util.Optional;
+ import java.util.Set;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.stream.Collectors;
+ 
+ import static org.apache.flink.api.java.typeutils.TypeExtractionUtils.getAllDeclaredMethods;
++import static org.apache.flink.api.java.typeutils.TypeExtractionUtils.getParameterizedType;
++import static org.apache.flink.api.java.typeutils.TypeExtractionUtils.isGenericOfClass;
+ import static org.apache.flink.util.Preconditions.checkState;
+ 
+ /**
+@@ -477,11 +481,12 @@ private static void validateImplementationMethods(
+             validateImplementationMethod(functionClass, false, false, SCALAR_EVAL);
+         } else if (AsyncScalarFunction.class.isAssignableFrom(functionClass)) {
+             validateImplementationMethod(functionClass, false, false, ASYNC_SCALAR_EVAL);
+-            validateAsyncImplementationMethod(functionClass, ASYNC_SCALAR_EVAL);
++            validateAsyncImplementationMethod(functionClass, false, ASYNC_SCALAR_EVAL);
+         } else if (TableFunction.class.isAssignableFrom(functionClass)) {
+             validateImplementationMethod(functionClass, true, false, TABLE_EVAL);
+         } else if (AsyncTableFunction.class.isAssignableFrom(functionClass)) {
+             validateImplementationMethod(functionClass, true, false, ASYNC_TABLE_EVAL);
++            validateAsyncImplementationMethod(functionClass, true, ASYNC_TABLE_EVAL);
+         } else if (AggregateFunction.class.isAssignableFrom(functionClass)) {
+             validateImplementationMethod(functionClass, true, false, AGGREGATE_ACCUMULATE);
+             validateImplementationMethod(functionClass, true, true, AGGREGATE_RETRACT);
+@@ -541,7 +546,9 @@ private static void validateImplementationMethod(
+     }
+ 
+     private static void validateAsyncImplementationMethod(
+-            Class<? extends UserDefinedFunction> clazz, String... methodNameOptions) {
++            Class<? extends UserDefinedFunction> clazz,
++            boolean verifyFutureContainsCollection,
++            String... methodNameOptions) {
+         final Set<String> nameSet = new HashSet<>(Arrays.asList(methodNameOptions));
+         final List<Method> methods = getAllDeclaredMethods(clazz);
+         for (Method method : methods) {
+@@ -558,18 +565,31 @@ private static void validateAsyncImplementationMethod(
+             if (method.getParameterCount() >= 1) {
+                 Type firstParam = method.getGenericParameterTypes()[0];
+                 firstParam = ExtractionUtils.resolveVariableWithClassContext(clazz, firstParam);
+-                if (CompletableFuture.class.equals(firstParam)
+-                        || firstParam instanceof ParameterizedType
+-                                && CompletableFuture.class.equals(
+-                                        ((ParameterizedType) firstParam).getRawType())) {
+-                    foundParam = true;
++                if (isGenericOfClass(CompletableFuture.class, firstParam)) {
++                    Optional<ParameterizedType> parameterized = getParameterizedType(firstParam);
++                    if (!verifyFutureContainsCollection) {
++                        foundParam = true;
++                    } else if (parameterized.isPresent()
++                            && parameterized.get().getActualTypeArguments().length > 0) {
++                        Type firstTypeArgument = parameterized.get().getActualTypeArguments()[0];
++                        if (isGenericOfClass(Collection.class, firstTypeArgument)) {
++                            foundParam = true;
++                        }
++                    }
+                 }
+             }
+             if (!foundParam) {
+-                throw new ValidationException(
+-                        String.format(
+-                                "Method '%s' of function class '%s' must have a first argument of type java.util.concurrent.CompletableFuture.",
+-                                method.getName(), clazz.getName()));
++                if (!verifyFutureContainsCollection) {
++                    throw new ValidationException(
++                            String.format(
++                                    "Method '%s' of function class '%s' must have a first argument of type java.util.concurrent.CompletableFuture.",
++                                    method.getName(), clazz.getName()));
++                } else {
++                    throw new ValidationException(
++                            String.format(
++                                    "Method '%s' of function class '%s' must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.",
++                                    method.getName(), clazz.getName()));
++                }
+             }
+         }
+     }
+diff --git a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/FunctionMappingExtractor.java b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/FunctionMappingExtractor.java
+--- a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/FunctionMappingExtractor.java
++++ b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/FunctionMappingExtractor.java
+@@ -35,6 +35,7 @@
+ import java.lang.reflect.ParameterizedType;
+ import java.lang.reflect.Type;
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+@@ -43,6 +44,7 @@
+ import java.util.concurrent.CompletableFuture;
+ import java.util.stream.Stream;
+ 
++import static org.apache.flink.api.java.typeutils.TypeExtractionUtils.getParameterizedType;
+ import static org.apache.flink.table.types.extraction.ExtractionUtils.collectAnnotationsOfClass;
+ import static org.apache.flink.table.types.extraction.ExtractionUtils.collectAnnotationsOfMethod;
+ import static org.apache.flink.table.types.extraction.ExtractionUtils.extractionError;
+@@ -208,7 +210,8 @@ static MethodVerification createParameterVerification(boolean requireAccumulator
+      * Verification that checks a method by parameters (arguments only) with mandatory {@link
+      * CompletableFuture}.
+      */
+-    static MethodVerification createParameterAndCompletableFutureVerification(Class<?> baseClass) {
++    static MethodVerification createParameterAndCompletableFutureVerification(
++            Class<?> baseClass, boolean verifyFutureContainsCollection) {
+         return (method, state, arguments, result) -> {
+             checkNoState(state);
+             checkScalarArgumentsOnly(arguments);
+@@ -220,12 +223,29 @@ static MethodVerification createParameterAndCompletableFutureVerification(Class<
+             final Class<?> resultClass = result.toClass();
+             Type genericType = method.getGenericParameterTypes()[0];
+             genericType = resolveVariableWithClassContext(baseClass, genericType);
+-            if (!(genericType instanceof ParameterizedType)) {
++            Optional<ParameterizedType> parameterized = getParameterizedType(genericType);
++            if (!parameterized.isPresent()) {
+                 throw extractionError(
+                         "The method '%s' needs generic parameters for the CompletableFuture at position %d.",
+                         method.getName(), 0);
+             }
+-            final Type returnType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
++            // If verifyFutureContainsCollection is given, it is assumed to be a generic parameters
++            // of argumentClass, also at the position genericPos
++            final Type returnType;
++            if (verifyFutureContainsCollection) {
++                Type nestedGenericType = parameterized.get().getActualTypeArguments()[0];
++                Optional<ParameterizedType> nestedParameterized =
++                        getParameterizedType(nestedGenericType);
++                if (!nestedParameterized.isPresent()
++                        || !nestedParameterized.get().getRawType().equals(Collection.class)) {
++                    throw extractionError(
++                            "The method '%s' expects nested generic type CompletableFuture<Collection> for the %d arg.",
++                            method.getName(), 0);
++                }
++                returnType = nestedParameterized.get().getActualTypeArguments()[0];
++            } else {
++                returnType = parameterized.get().getActualTypeArguments()[0];
++            }
+             Class<?> returnTypeClass = getClassFromType(returnType);
+             // Parameters should be validated using strict autoboxing.
+             // For return types, we can be more flexible as the UDF should know what it declared.
+diff --git a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/TypeInferenceExtractor.java b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/TypeInferenceExtractor.java
+--- a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/TypeInferenceExtractor.java
++++ b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/extraction/TypeInferenceExtractor.java
+@@ -106,7 +106,7 @@ public static TypeInference forAsyncScalarFunction(
+                         null,
+                         null,
+                         createOutputFromGenericInMethod(0, 0, true),
+-                        createParameterAndCompletableFutureVerification(function));
++                        createParameterAndCompletableFutureVerification(function, false));
+         return extractTypeInference(mappingExtractor, false);
+     }
+ 
+@@ -172,7 +172,7 @@ public static TypeInference forAsyncTableFunction(
+                         null,
+                         null,
+                         createOutputFromGenericInClass(AsyncTableFunction.class, 0, true),
+-                        createParameterAndCompletableFutureVerification(function));
++                        createParameterAndCompletableFutureVerification(function, true));
+         return extractTypeInference(mappingExtractor, false);
+     }
+ 
+diff --git a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/SystemTypeInference.java b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/SystemTypeInference.java
+--- a/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/SystemTypeInference.java
++++ b/flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/SystemTypeInference.java
+@@ -208,7 +208,9 @@ private static TypeStrategy deriveSystemOutputStrategy(
+             FunctionKind functionKind,
+             @Nullable List<StaticArgument> staticArgs,
+             TypeStrategy outputStrategy) {
+-        if (functionKind != FunctionKind.TABLE && functionKind != FunctionKind.PROCESS_TABLE) {
++        if (functionKind != FunctionKind.TABLE
++                && functionKind != FunctionKind.PROCESS_TABLE
++                && functionKind != FunctionKind.ASYNC_TABLE) {
+             return outputStrategy;
+         }
+         return new SystemOutputStrategy(functionKind, staticArgs, outputStrategy);
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/catalog/FunctionCatalogOperatorTable.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/catalog/FunctionCatalogOperatorTable.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/catalog/FunctionCatalogOperatorTable.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/catalog/FunctionCatalogOperatorTable.java
+@@ -190,7 +190,9 @@ private boolean verifyFunctionKind(
+ 
+         final FunctionKind kind = definition.getKind();
+ 
+-        if (kind == FunctionKind.TABLE || kind == FunctionKind.PROCESS_TABLE) {
++        if (kind == FunctionKind.TABLE
++                || kind == FunctionKind.ASYNC_TABLE
++                || kind == FunctionKind.PROCESS_TABLE) {
+             return true;
+         } else if (kind == FunctionKind.SCALAR
+                 || kind == FunctionKind.ASYNC_SCALAR
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGenerator.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGenerator.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGenerator.java
+@@ -0,0 +1,106 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.codegen;
++
++import org.apache.flink.configuration.ReadableConfig;
++import org.apache.flink.streaming.api.functions.async.AsyncFunction;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.functions.FunctionKind;
++import org.apache.flink.table.planner.functions.bridging.BridgingSqlFunction;
++import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
++import org.apache.flink.table.runtime.generated.GeneratedFunction;
++import org.apache.flink.table.types.logical.RowType;
++
++import org.apache.calcite.rex.RexCall;
++import org.apache.calcite.rex.RexVisitorImpl;
++
++import java.util.Optional;
++
++/**
++ * Generates an {@link AsyncFunction} which can be used to evaluate correlate invocations from an
++ * async table function.
++ */
++public class AsyncCorrelateCodeGenerator {
++
++    public static GeneratedFunction<AsyncFunction<RowData, Object>> generateFunction(
++            String name,
++            RowType inputType,
++            RowType returnType,
++            RexCall invocation,
++            ReadableConfig tableConfig,
++            ClassLoader classLoader) {
++        CodeGeneratorContext ctx = new CodeGeneratorContext(tableConfig, classLoader);
++        String processCode =
++                generateProcessCode(ctx, inputType, invocation, CodeGenUtils.DEFAULT_INPUT1_TERM());
++        return FunctionCodeGenerator.generateFunction(
++                ctx,
++                name,
++                getFunctionClass(),
++                processCode,
++                returnType,
++                inputType,
++                CodeGenUtils.DEFAULT_INPUT1_TERM(),
++                JavaScalaConversionUtil.toScala(Optional.empty()),
++                JavaScalaConversionUtil.toScala(Optional.empty()),
++                CodeGenUtils.DEFAULT_COLLECTOR_TERM(),
++                CodeGenUtils.DEFAULT_CONTEXT_TERM());
++    }
++
++    @SuppressWarnings("unchecked")
++    private static Class<AsyncFunction<RowData, Object>> getFunctionClass() {
++        return (Class<AsyncFunction<RowData, Object>>) (Object) AsyncFunction.class;
++    }
++
++    private static String generateProcessCode(
++            CodeGeneratorContext ctx, RowType inputType, RexCall invocation, String inputTerm) {
++        invocation.accept(new AsyncCorrelateFunctionsValidator());
++
++        ExprCodeGenerator exprGenerator =
++                new ExprCodeGenerator(ctx, false)
++                        .bindInput(
++                                inputType,
++                                inputTerm,
++                                JavaScalaConversionUtil.toScala(Optional.empty()));
++
++        GeneratedExpression invocationExprs = exprGenerator.generateExpression(invocation);
++        return invocationExprs.code();
++    }
++
++    private static class AsyncCorrelateFunctionsValidator extends RexVisitorImpl<Void> {
++        public AsyncCorrelateFunctionsValidator() {
++            super(true);
++        }
++
++        @Override
++        public Void visitCall(RexCall call) {
++            super.visitCall(call);
++
++            if (call.getOperator() instanceof BridgingSqlFunction
++                    && ((BridgingSqlFunction) call.getOperator()).getDefinition().getKind()
++                            != FunctionKind.ASYNC_TABLE) {
++                throw new CodeGenException(
++                        "Invalid use of function "
++                                + call.getOperator()
++                                + "."
++                                + "Code generation should only be done with async table calls");
++            }
++            return null;
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/expressions/converter/FunctionDefinitionConvertRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/expressions/converter/FunctionDefinitionConvertRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/expressions/converter/FunctionDefinitionConvertRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/expressions/converter/FunctionDefinitionConvertRule.java
+@@ -58,6 +58,7 @@ public Optional<RexNode> convert(CallExpression call, ConvertContext context) {
+             case SCALAR:
+             case ASYNC_SCALAR:
+             case TABLE:
++            case ASYNC_TABLE:
+                 final List<RexNode> args =
+                         call.getChildren().stream()
+                                 .map(context::toRexNode)
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/functions/bridging/BridgingSqlFunction.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/functions/bridging/BridgingSqlFunction.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/functions/bridging/BridgingSqlFunction.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/functions/bridging/BridgingSqlFunction.java
+@@ -126,13 +126,16 @@ public static BridgingSqlFunction of(
+                 functionKind == FunctionKind.SCALAR
+                         || functionKind == FunctionKind.ASYNC_SCALAR
+                         || functionKind == FunctionKind.TABLE
++                        || functionKind == FunctionKind.ASYNC_TABLE
+                         || functionKind == FunctionKind.PROCESS_TABLE,
+                 "Scalar or table function kind expected.");
+ 
+         final TypeInference systemTypeInference =
+                 SystemTypeInference.of(functionKind, typeInference);
+ 
+-        if (functionKind == FunctionKind.TABLE || functionKind == FunctionKind.PROCESS_TABLE) {
++        if (functionKind == FunctionKind.TABLE
++                || functionKind == FunctionKind.ASYNC_TABLE
++                || functionKind == FunctionKind.PROCESS_TABLE) {
+             return new BridgingSqlFunction.WithTableFunction(
+                     dataTypeFactory,
+                     typeFactory,
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecAsyncCorrelate.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecAsyncCorrelate.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecAsyncCorrelate.java
+@@ -0,0 +1,155 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.nodes.exec.common;
++
++import org.apache.flink.api.dag.Transformation;
++import org.apache.flink.configuration.ReadableConfig;
++import org.apache.flink.streaming.api.functions.async.AsyncFunction;
++import org.apache.flink.streaming.api.operators.OneInputStreamOperatorFactory;
++import org.apache.flink.streaming.api.operators.async.AsyncWaitOperatorFactory;
++import org.apache.flink.streaming.api.transformations.OneInputTransformation;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.data.conversion.DataStructureConverter;
++import org.apache.flink.table.data.conversion.DataStructureConverters;
++import org.apache.flink.table.planner.calcite.FlinkTypeFactory;
++import org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGenerator;
++import org.apache.flink.table.planner.delegation.PlannerBase;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecEdge;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeBase;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeConfig;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeContext;
++import org.apache.flink.table.planner.plan.nodes.exec.InputProperty;
++import org.apache.flink.table.planner.plan.nodes.exec.SingleTransformationTranslator;
++import org.apache.flink.table.planner.plan.nodes.exec.utils.ExecNodeUtil;
++import org.apache.flink.table.planner.plan.utils.AsyncTableUtil;
++import org.apache.flink.table.planner.plan.utils.FunctionCallUtil;
++import org.apache.flink.table.runtime.generated.GeneratedFunction;
++import org.apache.flink.table.runtime.operators.correlate.async.AsyncCorrelateRunner;
++import org.apache.flink.table.runtime.operators.join.FlinkJoinType;
++import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
++import org.apache.flink.table.types.logical.LogicalType;
++import org.apache.flink.table.types.logical.RowType;
++import org.apache.flink.table.types.utils.TypeConversions;
++
++import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
++
++import org.apache.calcite.rex.RexCall;
++
++import java.util.List;
++
++import static org.apache.flink.util.Preconditions.checkArgument;
++
++/** Base class for exec Async Correlate. */
++public class CommonExecAsyncCorrelate extends ExecNodeBase<RowData>
++        implements SingleTransformationTranslator<RowData> {
++
++    public static final String ASYNC_CORRELATE_TRANSFORMATION = "async-correlate";
++
++    public static final String FIELD_NAME_JOIN_TYPE = "joinType";
++    public static final String FIELD_NAME_FUNCTION_CALL = "functionCall";
++
++    @JsonProperty(FIELD_NAME_JOIN_TYPE)
++    private final FlinkJoinType joinType;
++
++    @JsonProperty(FIELD_NAME_FUNCTION_CALL)
++    private final RexCall invocation;
++
++    public CommonExecAsyncCorrelate(
++            int id,
++            ExecNodeContext context,
++            ReadableConfig persistedConfig,
++            FlinkJoinType joinType,
++            RexCall invocation,
++            List<InputProperty> inputProperties,
++            RowType outputType,
++            String description) {
++        super(id, context, persistedConfig, inputProperties, outputType, description);
++        checkArgument(inputProperties.size() == 1);
++        this.joinType = joinType;
++        this.invocation = invocation;
++    }
++
++    @Override
++    protected Transformation<RowData> translateToPlanInternal(
++            PlannerBase planner, ExecNodeConfig config) {
++        final ExecEdge inputEdge = getInputEdges().get(0);
++        final Transformation<RowData> inputTransform =
++                (Transformation<RowData>) inputEdge.translateToPlan(planner);
++        final OneInputTransformation<RowData, RowData> transform =
++                createAsyncOneInputTransformation(
++                        inputTransform, config, planner.getFlinkContext().getClassLoader());
++
++        return transform;
++    }
++
++    private OneInputTransformation<RowData, RowData> createAsyncOneInputTransformation(
++            Transformation<RowData> inputTransform,
++            ExecNodeConfig config,
++            ClassLoader classLoader) {
++        final ExecEdge inputEdge = getInputEdges().get(0);
++        RowType inputRowType =
++                RowType.of(inputEdge.getOutputType().getChildren().toArray(new LogicalType[0]));
++
++        InternalTypeInfo<RowData> asyncOperatorResultTypeInfo =
++                InternalTypeInfo.of(getOutputType());
++        OneInputStreamOperatorFactory<RowData, RowData> factory =
++                getAsyncFunctionOperator(config, classLoader, inputRowType);
++        return ExecNodeUtil.createOneInputTransformation(
++                inputTransform,
++                createTransformationMeta(ASYNC_CORRELATE_TRANSFORMATION, config),
++                factory,
++                asyncOperatorResultTypeInfo,
++                inputTransform.getParallelism(),
++                false);
++    }
++
++    private OneInputStreamOperatorFactory<RowData, RowData> getAsyncFunctionOperator(
++            ExecNodeConfig config, ClassLoader classLoader, RowType inputRowType) {
++
++        RowType resultTypeInfo = (RowType) FlinkTypeFactory.toLogicalType(invocation.getType());
++
++        GeneratedFunction<AsyncFunction<RowData, Object>> generatedFunction =
++                AsyncCorrelateCodeGenerator.generateFunction(
++                        "AsyncTableFunction",
++                        inputRowType,
++                        resultTypeInfo,
++                        invocation,
++                        config,
++                        classLoader);
++        DataStructureConverter<RowData, Object> fetcherConverter =
++                cast(
++                        DataStructureConverters.getConverter(
++                                TypeConversions.fromLogicalToDataType(
++                                        FlinkTypeFactory.toLogicalType(invocation.getType()))));
++        AsyncCorrelateRunner func = new AsyncCorrelateRunner(generatedFunction, fetcherConverter);
++        FunctionCallUtil.AsyncOptions options = AsyncTableUtil.getAsyncOptions(config);
++        return new AsyncWaitOperatorFactory<>(
++                func,
++                options.asyncTimeout,
++                options.asyncBufferCapacity,
++                options.asyncOutputMode,
++                AsyncTableUtil.getResultRetryStrategy(config));
++    }
++
++    @SuppressWarnings("unchecked")
++    private DataStructureConverter<RowData, Object> cast(
++            DataStructureConverter<Object, Object> converter) {
++        return (DataStructureConverter<RowData, Object>) (Object) converter;
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecAsyncCorrelate.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecAsyncCorrelate.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecAsyncCorrelate.java
+@@ -0,0 +1,93 @@
++package org.apache.flink.table.planner.plan.nodes.exec.stream;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import org.apache.flink.FlinkVersion;
++import org.apache.flink.configuration.ReadableConfig;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNode;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeContext;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeMetadata;
++import org.apache.flink.table.planner.plan.nodes.exec.InputProperty;
++import org.apache.flink.table.planner.plan.nodes.exec.common.CommonExecAsyncCorrelate;
++import org.apache.flink.table.runtime.operators.join.FlinkJoinType;
++import org.apache.flink.table.types.logical.RowType;
++
++import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
++import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
++
++import org.apache.calcite.rex.RexCall;
++import org.apache.calcite.rex.RexNode;
++
++import java.util.Collections;
++import java.util.List;
++
++import static org.apache.flink.table.planner.plan.nodes.exec.common.CommonExecAsyncCorrelate.ASYNC_CORRELATE_TRANSFORMATION;
++
++/**
++ * Stream {@link ExecNode} which matches along with join a Java/Scala user defined table function.
++ */
++@ExecNodeMetadata(
++        name = "stream-exec-async-correlate",
++        version = 1,
++        producedTransformations = ASYNC_CORRELATE_TRANSFORMATION,
++        minPlanVersion = FlinkVersion.v2_2,
++        minStateVersion = FlinkVersion.v2_2)
++public class StreamExecAsyncCorrelate extends CommonExecAsyncCorrelate
++        implements StreamExecNode<RowData> {
++
++    public StreamExecAsyncCorrelate(
++            ReadableConfig tableConfig,
++            FlinkJoinType joinType,
++            RexCall invocation,
++            InputProperty inputProperty,
++            RowType outputType,
++            String description) {
++        this(
++                ExecNodeContext.newNodeId(),
++                ExecNodeContext.newContext(StreamExecAsyncCorrelate.class),
++                ExecNodeContext.newPersistedConfig(StreamExecAsyncCorrelate.class, tableConfig),
++                joinType,
++                invocation,
++                Collections.singletonList(inputProperty),
++                outputType,
++                description);
++    }
++
++    @JsonCreator
++    public StreamExecAsyncCorrelate(
++            @JsonProperty(FIELD_NAME_ID) int id,
++            @JsonProperty(FIELD_NAME_TYPE) ExecNodeContext context,
++            @JsonProperty(FIELD_NAME_CONFIGURATION) ReadableConfig persistedConfig,
++            @JsonProperty(FIELD_NAME_JOIN_TYPE) FlinkJoinType joinType,
++            @JsonProperty(FIELD_NAME_FUNCTION_CALL) RexNode invocation,
++            @JsonProperty(FIELD_NAME_INPUT_PROPERTIES) List<InputProperty> inputProperties,
++            @JsonProperty(FIELD_NAME_OUTPUT_TYPE) RowType outputType,
++            @JsonProperty(FIELD_NAME_DESCRIPTION) String description) {
++        super(
++                id,
++                context,
++                persistedConfig,
++                joinType,
++                (RexCall) invocation,
++                inputProperties,
++                outputType,
++                description);
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/logical/FlinkLogicalTableFunctionScan.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/logical/FlinkLogicalTableFunctionScan.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/logical/FlinkLogicalTableFunctionScan.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/logical/FlinkLogicalTableFunctionScan.java
+@@ -101,6 +101,7 @@ public boolean matches(RelOptRuleCall call) {
+             }
+             final boolean isTableFunction =
+                     functionDefinition.getKind() == FunctionKind.TABLE
++                            || functionDefinition.getKind() == FunctionKind.ASYNC_TABLE
+                             || functionDefinition.getKind() == FunctionKind.PROCESS_TABLE;
+             return isTableFunction && !(functionDefinition instanceof TemporalTableFunction);
+         }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCalc.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCalc.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCalc.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCalc.java
+@@ -22,7 +22,7 @@
+ import org.apache.flink.table.planner.plan.nodes.exec.ExecNode;
+ import org.apache.flink.table.planner.plan.nodes.exec.InputProperty;
+ import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecAsyncCalc;
+-import org.apache.flink.table.planner.plan.utils.AsyncScalarUtil;
++import org.apache.flink.table.planner.plan.utils.AsyncUtil;
+ 
+ import org.apache.calcite.plan.RelOptCluster;
+ import org.apache.calcite.plan.RelTraitSet;
+@@ -70,7 +70,7 @@ public ExecNode<?> translateToExecNode() {
+             throw new IllegalStateException(
+                     "The condition of StreamPhysicalAsyncCalc should be null.");
+         }
+-        if (projection.stream().filter(AsyncScalarUtil::containsAsyncCall).count() > 1) {
++        if (projection.stream().filter(AsyncUtil::containsAsyncCall).count() > 1) {
+             throw new IllegalStateException(
+                     "Only a single async projection is allowed in StreamPhysicalAsyncCalc.");
+         }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCorrelate.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCorrelate.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/physical/stream/StreamPhysicalAsyncCorrelate.java
+@@ -0,0 +1,95 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.nodes.physical.stream;
++
++import org.apache.flink.table.api.TableException;
++import org.apache.flink.table.planner.calcite.FlinkTypeFactory;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNode;
++import org.apache.flink.table.planner.plan.nodes.exec.InputProperty;
++import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecAsyncCorrelate;
++import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalTableFunctionScan;
++import org.apache.flink.table.planner.plan.utils.JoinTypeUtil;
++import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
++
++import org.apache.calcite.plan.RelOptCluster;
++import org.apache.calcite.plan.RelTraitSet;
++import org.apache.calcite.rel.RelNode;
++import org.apache.calcite.rel.core.JoinRelType;
++import org.apache.calcite.rel.type.RelDataType;
++import org.apache.calcite.rex.RexCall;
++import org.apache.calcite.rex.RexNode;
++
++import java.util.List;
++import java.util.Optional;
++
++import static org.apache.flink.table.planner.utils.ShortcutUtils.unwrapTableConfig;
++
++/** Stream physical RelNode for {@link org.apache.flink.table.functions.AsyncScalarFunction}. */
++public class StreamPhysicalAsyncCorrelate extends StreamPhysicalCorrelateBase {
++    private final RelOptCluster cluster;
++    private final FlinkLogicalTableFunctionScan scan;
++    private final Optional<List<RexNode>> projections;
++    private final Optional<RexNode> condition;
++    private final JoinRelType joinType;
++
++    public StreamPhysicalAsyncCorrelate(
++            RelOptCluster cluster,
++            RelTraitSet traitSet,
++            RelNode inputRel,
++            FlinkLogicalTableFunctionScan scan,
++            Optional<List<RexNode>> projections,
++            Optional<RexNode> condition,
++            RelDataType outputRowType,
++            JoinRelType joinType) {
++        super(
++                cluster,
++                traitSet,
++                inputRel,
++                scan,
++                JavaScalaConversionUtil.toScala(condition),
++                outputRowType,
++                joinType);
++        this.cluster = cluster;
++        this.scan = scan;
++        this.projections = projections;
++        this.condition = condition;
++        this.joinType = joinType;
++    }
++
++    @Override
++    public RelNode copy(RelTraitSet traitSet, RelNode newChild, RelDataType outputType) {
++        return new StreamPhysicalAsyncCorrelate(
++                cluster, traitSet, newChild, scan, projections, condition, outputType, joinType);
++    }
++
++    @Override
++    public ExecNode<?> translateToExecNode() {
++        if (projections.isPresent() || condition.isPresent()) {
++            throw new TableException(
++                    "Currently Async correlate does not support projections or conditions.");
++        }
++        return new StreamExecAsyncCorrelate(
++                unwrapTableConfig(this),
++                JoinTypeUtil.getFlinkJoinType(joinType),
++                (RexCall) scan.getCall(),
++                InputProperty.DEFAULT,
++                FlinkTypeFactory.toLogicalRowType(getRowType()),
++                getRelDetailedDescription());
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCalcSplitRule.java
+@@ -18,8 +18,9 @@
+ 
+ package org.apache.flink.table.planner.plan.rules.logical;
+ 
++import org.apache.flink.table.functions.FunctionKind;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCalc;
+-import org.apache.flink.table.planner.plan.utils.AsyncScalarUtil;
++import org.apache.flink.table.planner.plan.utils.AsyncUtil;
+ import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
+ 
+ import org.apache.calcite.plan.RelOptRule;
+@@ -41,7 +42,8 @@
+  */
+ public class AsyncCalcSplitRule {
+ 
+-    private static final RemoteCalcCallFinder ASYNC_CALL_FINDER = new AsyncRemoteCalcCallFinder();
++    private static final RemoteCallFinder ASYNC_CALL_FINDER =
++            new AsyncUtil.AsyncRemoteCallFinder(FunctionKind.ASYNC_SCALAR);
+     public static final RelOptRule SPLIT_CONDITION =
+             new RemoteCalcSplitConditionRule(ASYNC_CALL_FINDER);
+     public static final RelOptRule SPLIT_PROJECT =
+@@ -66,56 +68,15 @@ public class AsyncCalcSplitRule {
+                             Optional.of(
+                                     "AsyncScalarFunction not supported for non inner join condition")));
+ 
+-    /**
+-     * An Async implementation of {@link RemoteCalcCallFinder} which finds uses of {@link
+-     * org.apache.flink.table.functions.AsyncScalarFunction}.
+-     */
+-    public static class AsyncRemoteCalcCallFinder implements RemoteCalcCallFinder {
+-        @Override
+-        public boolean containsRemoteCall(RexNode node) {
+-            return AsyncScalarUtil.containsAsyncCall(node);
+-        }
+-
+-        @Override
+-        public boolean containsNonRemoteCall(RexNode node) {
+-            return AsyncScalarUtil.containsNonAsyncCall(node);
+-        }
+-
+-        @Override
+-        public boolean isRemoteCall(RexNode node) {
+-            return AsyncScalarUtil.isAsyncCall(node);
+-        }
+-
+-        @Override
+-        public boolean isNonRemoteCall(RexNode node) {
+-            return AsyncScalarUtil.isNonAsyncCall(node);
+-        }
+-
+-        @Override
+-        public String getName() {
+-            return "Async";
+-        }
+-
+-        @Override
+-        public boolean equals(Object obj) {
+-            return obj != null && this.getClass() == obj.getClass();
+-        }
+-
+-        @Override
+-        public int hashCode() {
+-            return this.getClass().hashCode();
+-        }
+-    }
+-
+     private static boolean hasNestedCalls(List<RexNode> projects) {
+         return projects.stream()
+-                .filter(AsyncScalarUtil::containsAsyncCall)
++                .filter(AsyncUtil::containsAsyncCall)
+                 .filter(expr -> expr instanceof RexCall)
+                 .map(expr -> (RexCall) expr)
+                 .anyMatch(
+                         rexCall ->
+                                 rexCall.getOperands().stream()
+-                                        .anyMatch(AsyncScalarUtil::containsAsyncCall));
++                                        .anyMatch(AsyncUtil::containsAsyncCall));
+     }
+ 
+     /**
+@@ -130,7 +91,7 @@ private static boolean hasNestedCalls(List<RexNode> projects) {
+      */
+     public static class AsyncCalcSplitNestedRule extends RemoteCalcSplitRuleBase<Void> {
+ 
+-        public AsyncCalcSplitNestedRule(RemoteCalcCallFinder callFinder) {
++        public AsyncCalcSplitNestedRule(RemoteCallFinder callFinder) {
+             super("AsyncCalcSplitNestedRule", callFinder);
+         }
+ 
+@@ -182,7 +143,7 @@ public SplitComponents split(RexProgram program, ScalarFunctionSplitter splitter
+     public static class AsyncCalcSplitOnePerCalcRule
+             extends RemoteCalcSplitProjectionRuleBase<AsyncCalcSplitOnePerCalcRule.State> {
+ 
+-        public AsyncCalcSplitOnePerCalcRule(RemoteCalcCallFinder callFinder) {
++        public AsyncCalcSplitOnePerCalcRule(RemoteCallFinder callFinder) {
+             super("AsyncCalcSplitOnePerCalcRule", callFinder);
+         }
+ 
+@@ -204,7 +165,7 @@ public boolean matches(RelOptRuleCall call) {
+ 
+         @Override
+         public boolean needConvert(RexProgram program, RexNode node, Option<State> matchState) {
+-            if (AsyncScalarUtil.containsAsyncCall(node) && !matchState.get().foundMatch) {
++            if (AsyncUtil.containsAsyncCall(node) && !matchState.get().foundMatch) {
+                 matchState.get().foundMatch = true;
+                 return true;
+             }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/AsyncCorrelateSplitRule.java
+@@ -18,10 +18,11 @@
+ 
+ package org.apache.flink.table.planner.plan.rules.logical;
+ 
++import org.apache.flink.table.functions.FunctionKind;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCalc;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCorrelate;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalTableFunctionScan;
+-import org.apache.flink.table.planner.plan.rules.logical.AsyncCalcSplitRule.AsyncRemoteCalcCallFinder;
++import org.apache.flink.table.planner.plan.utils.AsyncUtil;
+ 
+ import org.apache.calcite.plan.RelOptRule;
+ 
+@@ -33,8 +34,13 @@
+  */
+ public class AsyncCorrelateSplitRule {
+ 
+-    private static final RemoteCalcCallFinder ASYNC_CALL_FINDER = new AsyncRemoteCalcCallFinder();
++    private static final RemoteCallFinder ASYNC_SCALAR_CALL_FINDER =
++            new AsyncUtil.AsyncRemoteCallFinder(FunctionKind.ASYNC_SCALAR);
++    private static final RemoteCallFinder ASYNC_TABLE_CALL_FINDER =
++            new AsyncUtil.AsyncRemoteCallFinder(FunctionKind.ASYNC_TABLE);
+ 
+-    public static final RelOptRule INSTANCE =
+-            RemoteCorrelateSplitRule.Config.createDefault(ASYNC_CALL_FINDER).toRule();
++    public static final RelOptRule CORRELATE_SPLIT_ASYNC_SCALAR =
++            RemoteCorrelateSplitRule.Config.createDefault(ASYNC_SCALAR_CALL_FINDER).toRule();
++    public static final RelOptRule CORRELATE_SPLIT_ASYNC_TABLE =
++            RemoteCorrelateSplitRule.Config.createDefault(ASYNC_TABLE_CALL_FINDER).toRule();
+ }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/PythonCorrelateSplitRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/PythonCorrelateSplitRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/PythonCorrelateSplitRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/PythonCorrelateSplitRule.java
+@@ -33,6 +33,5 @@
+ public class PythonCorrelateSplitRule {
+ 
+     public static final RelOptRule INSTANCE =
+-            RemoteCorrelateSplitRule.Config.createDefault(new PythonRemoteCalcCallFinder())
+-                    .toRule();
++            RemoteCorrelateSplitRule.Config.createDefault(new PythonRemoteCallFinder()).toRule();
+ }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/RemoteCorrelateSplitRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/RemoteCorrelateSplitRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/RemoteCorrelateSplitRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/logical/RemoteCorrelateSplitRule.java
+@@ -58,9 +58,9 @@
+  */
+ @Value.Enclosing
+ public class RemoteCorrelateSplitRule extends RelRule<RemoteCorrelateSplitRule.Config> {
+-    private final RemoteCalcCallFinder callFinder;
++    private final RemoteCallFinder callFinder;
+ 
+-    RemoteCorrelateSplitRule(Config config, RemoteCalcCallFinder callFinder) {
++    RemoteCorrelateSplitRule(Config config, RemoteCallFinder callFinder) {
+         super(config);
+         this.callFinder = callFinder;
+     }
+@@ -137,7 +137,7 @@ public RexNode visitCall(RexCall call) {
+                                 call.getOperands().stream()
+                                         .map(x -> x.accept(this))
+                                         .collect(Collectors.toList());
+-                        return rexBuilder.makeCall(call.getOperator(), newProjects);
++                        return rexBuilder.makeCall(call.getType(), call.getOperator(), newProjects);
+                     }
+ 
+                     @Override
+@@ -351,9 +351,9 @@ public int hashCode() {
+     @Value.Immutable(singleton = false)
+     public interface Config extends RelRule.Config {
+ 
+-        public abstract RemoteCalcCallFinder callFinder();
++        public abstract RemoteCallFinder callFinder();
+ 
+-        static RemoteCorrelateSplitRule.Config createDefault(RemoteCalcCallFinder callFinder) {
++        static RemoteCorrelateSplitRule.Config createDefault(RemoteCallFinder callFinder) {
+             return ImmutableRemoteCorrelateSplitRule.Config.builder()
+                     .callFinder(callFinder)
+                     .build()
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCalcRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCalcRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCalcRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCalcRule.java
+@@ -21,7 +21,7 @@
+ import org.apache.flink.table.planner.plan.nodes.FlinkConventions;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCalc;
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalAsyncCalc;
+-import org.apache.flink.table.planner.plan.utils.AsyncScalarUtil;
++import org.apache.flink.table.planner.plan.utils.AsyncUtil;
+ 
+ import org.apache.calcite.plan.RelOptRule;
+ import org.apache.calcite.plan.RelOptRuleCall;
+@@ -49,7 +49,7 @@ protected StreamPhysicalAsyncCalcRule(Config config) {
+     public boolean matches(RelOptRuleCall call) {
+         FlinkLogicalCalc calc = call.rel(0);
+         RexProgram program = calc.getProgram();
+-        return program.getExprList().stream().anyMatch(AsyncScalarUtil::containsAsyncCall);
++        return program.getExprList().stream().anyMatch(AsyncUtil::containsAsyncCall);
+     }
+ 
+     @Override
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCorrelateRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCorrelateRule.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalAsyncCorrelateRule.java
+@@ -0,0 +1,142 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.rules.physical.stream;
++
++import org.apache.flink.table.functions.FunctionKind;
++import org.apache.flink.table.planner.plan.nodes.FlinkConventions;
++import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCalc;
++import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCorrelate;
++import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalTableFunctionScan;
++import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalAsyncCorrelate;
++import org.apache.flink.table.planner.plan.utils.AsyncUtil;
++
++import org.apache.calcite.plan.RelOptRule;
++import org.apache.calcite.plan.RelOptRuleCall;
++import org.apache.calcite.plan.RelTraitSet;
++import org.apache.calcite.plan.volcano.RelSubset;
++import org.apache.calcite.rel.RelNode;
++import org.apache.calcite.rel.convert.ConverterRule;
++import org.apache.calcite.rex.RexNode;
++
++import java.util.List;
++import java.util.Optional;
++import java.util.stream.Collectors;
++
++/**
++ * A physical rule for identifying logical correlates containing {@link
++ * org.apache.flink.table.functions.AsyncTableFunction} calls and converting them to physical {@link
++ * StreamPhysicalAsyncCorrelate} RelNodes.
++ */
++public class StreamPhysicalAsyncCorrelateRule extends ConverterRule {
++
++    public static final RelOptRule INSTANCE =
++            new StreamPhysicalAsyncCorrelateRule(
++                    Config.INSTANCE.withConversion(
++                            FlinkLogicalCorrelate.class,
++                            FlinkConventions.LOGICAL(),
++                            FlinkConventions.STREAM_PHYSICAL(),
++                            "StreamPhysicalAsyncCorrelateRule"));
++
++    protected StreamPhysicalAsyncCorrelateRule(Config config) {
++        super(config);
++    }
++
++    // find only calc and table function
++    private boolean findAsyncTableFunction(RelNode node) {
++        if (node instanceof FlinkLogicalTableFunctionScan) {
++            FlinkLogicalTableFunctionScan scan = (FlinkLogicalTableFunctionScan) node;
++            return AsyncUtil.isAsyncCall(scan.getCall(), FunctionKind.ASYNC_TABLE);
++        } else if (node instanceof FlinkLogicalCalc) {
++            FlinkLogicalCalc calc = (FlinkLogicalCalc) node;
++            RelNode child = ((RelSubset) calc.getInput()).getOriginal();
++            return findAsyncTableFunction(child);
++        }
++        return false;
++    }
++
++    @Override
++    public boolean matches(RelOptRuleCall call) {
++        FlinkLogicalCorrelate correlate = call.rel(0);
++        RelNode right = ((RelSubset) correlate.getRight()).getOriginal();
++        return findAsyncTableFunction(right);
++    }
++
++    @Override
++    public RelNode convert(RelNode rel) {
++        FlinkLogicalCorrelate correlate = (FlinkLogicalCorrelate) rel;
++        RelTraitSet traitSet = rel.getTraitSet().replace(FlinkConventions.STREAM_PHYSICAL());
++        RelNode convInput =
++                RelOptRule.convert(correlate.getInput(0), FlinkConventions.STREAM_PHYSICAL());
++        RelNode right = correlate.getInput(1);
++        return convertToCorrelate(
++                right, correlate, traitSet, convInput, Optional.empty(), Optional.empty());
++    }
++
++    public RelNode convertToCorrelate(
++            RelNode relNode,
++            FlinkLogicalCorrelate correlate,
++            RelTraitSet traitSet,
++            RelNode convInput,
++            Optional<List<RexNode>> projections,
++            Optional<RexNode> condition) {
++        if (relNode instanceof RelSubset) {
++            RelSubset rel = (RelSubset) relNode;
++            return convertToCorrelate(
++                    rel.getRelList().get(0),
++                    correlate,
++                    traitSet,
++                    convInput,
++                    projections,
++                    condition);
++        } else if (relNode instanceof FlinkLogicalCalc) {
++            FlinkLogicalCalc calc = (FlinkLogicalCalc) relNode;
++            RelNode tableScan = StreamPhysicalCorrelateRule.getTableScan(calc);
++            FlinkLogicalCalc newCalc = StreamPhysicalCorrelateRule.getMergedCalc(calc);
++            // The projections are not handled here or in the base version, so currently we match
++            // that functionality.
++            return convertToCorrelate(
++                    tableScan,
++                    correlate,
++                    traitSet,
++                    convInput,
++                    Optional.ofNullable(
++                            newCalc.getProgram().getProjectList() == null
++                                    ? null
++                                    : newCalc.getProgram().getProjectList().stream()
++                                            .map(newCalc.getProgram()::expandLocalRef)
++                                            .collect(Collectors.toList())),
++                    Optional.ofNullable(
++                            newCalc.getProgram().getCondition() == null
++                                    ? null
++                                    : newCalc.getProgram()
++                                            .expandLocalRef(newCalc.getProgram().getCondition())));
++        } else {
++            FlinkLogicalTableFunctionScan scan = (FlinkLogicalTableFunctionScan) relNode;
++            return new StreamPhysicalAsyncCorrelate(
++                    correlate.getCluster(),
++                    traitSet,
++                    convInput,
++                    scan,
++                    projections,
++                    condition,
++                    correlate.getRowType(),
++                    correlate.getJoinType());
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalConstantTableFunctionScanRule.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalConstantTableFunctionScanRule.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalConstantTableFunctionScanRule.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalConstantTableFunctionScanRule.java
+@@ -23,6 +23,7 @@
+ import org.apache.flink.table.functions.FunctionKind;
+ import org.apache.flink.table.planner.plan.nodes.FlinkConventions;
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalTableFunctionScan;
++import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalAsyncCorrelate;
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalCorrelate;
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalProcessTableFunction;
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalValues;
+@@ -38,6 +39,8 @@
+ import org.apache.calcite.rex.RexUtil;
+ import org.immutables.value.Value;
+ 
++import java.util.Optional;
++
+ import scala.Option;
+ 
+ /**
+@@ -110,6 +113,17 @@ public void onMatch(RelOptRuleCall call) {
+                             Option.empty(),
+                             scan.getRowType(),
+                             JoinRelType.INNER);
++        } else if (function.getKind() == FunctionKind.ASYNC_TABLE) {
++            replacement =
++                    new StreamPhysicalAsyncCorrelate(
++                            cluster,
++                            traitSet,
++                            values,
++                            scan,
++                            Optional.empty(),
++                            Optional.empty(),
++                            scan.getRowType(),
++                            JoinRelType.INNER);
+         } else if (function.getKind() == FunctionKind.PROCESS_TABLE) {
+             replacement =
+                     new StreamPhysicalProcessTableFunction(
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncScalarUtil.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncScalarUtil.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncScalarUtil.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncScalarUtil.java
+@@ -23,13 +23,7 @@
+ import org.apache.flink.streaming.util.retryable.AsyncRetryStrategies;
+ import org.apache.flink.table.api.config.ExecutionConfigOptions;
+ import org.apache.flink.table.data.RowData;
+-import org.apache.flink.table.functions.FunctionDefinition;
+-import org.apache.flink.table.functions.FunctionKind;
+ import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeConfig;
+-import org.apache.flink.table.planner.utils.ShortcutUtils;
+-
+-import org.apache.calcite.rex.RexCall;
+-import org.apache.calcite.rex.RexNode;
+ 
+ import java.time.Duration;
+ 
+@@ -39,46 +33,6 @@
+ /** Contains utilities for {@link org.apache.flink.table.functions.AsyncScalarFunction}. */
+ public class AsyncScalarUtil extends FunctionCallUtil {
+ 
+-    /**
+-     * Checks whether it contains the specified kind of async function call in the specified node.
+-     *
+-     * @param node the RexNode to check
+-     * @return true if it contains an async function call in the specified node.
+-     */
+-    public static boolean containsAsyncCall(RexNode node) {
+-        return node.accept(new FunctionFinder(true, true));
+-    }
+-
+-    /**
+-     * Checks whether it contains non-async function call in the specified node.
+-     *
+-     * @param node the RexNode to check
+-     * @return true if it contains a non-async function call in the specified node.
+-     */
+-    public static boolean containsNonAsyncCall(RexNode node) {
+-        return node.accept(new FunctionFinder(false, true));
+-    }
+-
+-    /**
+-     * Checks whether the specified node is the specified kind of async function call.
+-     *
+-     * @param node the RexNode to check
+-     * @return true if the specified node is an async function call.
+-     */
+-    public static boolean isAsyncCall(RexNode node) {
+-        return node.accept(new FunctionFinder(true, false));
+-    }
+-
+-    /**
+-     * Checks whether the specified node is a non-async function call.
+-     *
+-     * @param node the RexNode to check
+-     * @return true if the specified node is a non-async function call.
+-     */
+-    public static boolean isNonAsyncCall(RexNode node) {
+-        return node.accept(new FunctionFinder(false, false));
+-    }
+-
+     /**
+      * Gets the options required to run the operator.
+      *
+@@ -111,33 +65,4 @@ public static AsyncRetryStrategy<RowData> getResultRetryStrategy(ExecNodeConfig
+         }
+         return AsyncRetryStrategies.NO_RETRY_STRATEGY;
+     }
+-
+-    private static class FunctionFinder extends RexDefaultVisitor<Boolean> {
+-
+-        private final boolean findAsyncCall;
+-        private final boolean recursive;
+-
+-        public FunctionFinder(boolean findAsyncCall, boolean recursive) {
+-            this.findAsyncCall = findAsyncCall;
+-            this.recursive = recursive;
+-        }
+-
+-        @Override
+-        public Boolean visitNode(RexNode rexNode) {
+-            return false;
+-        }
+-
+-        private boolean isImmediateAsyncCall(RexCall call) {
+-            FunctionDefinition definition = ShortcutUtils.unwrapFunctionDefinition(call);
+-            return definition != null && definition.getKind() == FunctionKind.ASYNC_SCALAR;
+-        }
+-
+-        @Override
+-        public Boolean visitCall(RexCall call) {
+-            boolean isImmediateAsyncCall = isImmediateAsyncCall(call);
+-            return findAsyncCall == isImmediateAsyncCall
+-                    || (recursive
+-                            && call.getOperands().stream().anyMatch(node -> node.accept(this)));
+-        }
+-    }
+ }
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncTableUtil.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncTableUtil.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncTableUtil.java
+@@ -0,0 +1,67 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.utils;
++
++import org.apache.flink.streaming.api.datastream.AsyncDataStream;
++import org.apache.flink.streaming.api.functions.async.AsyncRetryStrategy;
++import org.apache.flink.streaming.util.retryable.AsyncRetryStrategies;
++import org.apache.flink.table.api.config.ExecutionConfigOptions;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeConfig;
++
++import java.time.Duration;
++
++import static org.apache.flink.table.runtime.operators.calc.async.RetryPredicates.ANY_EXCEPTION;
++import static org.apache.flink.table.runtime.operators.calc.async.RetryPredicates.EMPTY_RESPONSE;
++
++/** Contains utilities for {@link org.apache.flink.table.functions.AsyncTableFunction}. */
++public class AsyncTableUtil extends FunctionCallUtil {
++
++    /**
++     * Gets the options required to run the operator.
++     *
++     * @param config The config from which to fetch the options
++     * @return Extracted options
++     */
++    public static AsyncOptions getAsyncOptions(ExecNodeConfig config) {
++        return new AsyncOptions(
++                config.get(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS),
++                config.get(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_TIMEOUT).toMillis(),
++                false,
++                AsyncDataStream.OutputMode.ORDERED);
++    }
++
++    @SuppressWarnings("unchecked")
++    public static AsyncRetryStrategy<RowData> getResultRetryStrategy(ExecNodeConfig config) {
++        ExecutionConfigOptions.RetryStrategy retryStrategy =
++                config.get(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_STRATEGY);
++        Duration retryDelay = config.get(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY);
++        int retryMaxAttempts =
++                config.get(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES);
++        // Only fixed delay is allowed at the moment, so just ignore the config.
++        if (retryStrategy == ExecutionConfigOptions.RetryStrategy.FIXED_DELAY) {
++            return new AsyncRetryStrategies.FixedDelayRetryStrategyBuilder<RowData>(
++                            retryMaxAttempts, retryDelay.toMillis())
++                    .ifResult(EMPTY_RESPONSE)
++                    .ifException(ANY_EXCEPTION)
++                    .build();
++        }
++        return AsyncRetryStrategies.NO_RETRY_STRATEGY;
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncUtil.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncUtil.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/AsyncUtil.java
+@@ -0,0 +1,190 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.plan.utils;
++
++import org.apache.flink.table.functions.FunctionDefinition;
++import org.apache.flink.table.functions.FunctionKind;
++import org.apache.flink.table.planner.plan.rules.logical.RemoteCallFinder;
++import org.apache.flink.table.planner.utils.ShortcutUtils;
++import org.apache.flink.util.Preconditions;
++
++import org.apache.calcite.rex.RexCall;
++import org.apache.calcite.rex.RexNode;
++
++/** Utility class for working with async function calls in RexNodes. */
++public class AsyncUtil {
++
++    /**
++     * Checks whether it contains the specified kind of async function call in the specified node.
++     *
++     * @param node the RexNode to check
++     * @return true if it contains an async function call in the specified node.
++     */
++    public static boolean containsAsyncCall(RexNode node, FunctionKind functionKind) {
++        Preconditions.checkArgument(
++                functionKind == FunctionKind.ASYNC_SCALAR
++                        || functionKind == FunctionKind.ASYNC_TABLE);
++        return node.accept(new FunctionFinder(true, true, functionKind));
++    }
++
++    /** Variant that checks for any async call. */
++    public static boolean containsAsyncCall(RexNode node) {
++        return node.accept(new FunctionFinder(true, true, null));
++    }
++
++    /**
++     * Checks whether it contains a function call in the node that is not the async kind specified.
++     *
++     * @param node the RexNode to check
++     * @return true if it contains a non-async function call in the specified node.
++     */
++    public static boolean containsNonAsyncCall(RexNode node, FunctionKind functionKind) {
++        Preconditions.checkArgument(
++                functionKind == FunctionKind.ASYNC_SCALAR
++                        || functionKind == FunctionKind.ASYNC_TABLE);
++        return node.accept(new FunctionFinder(false, true, functionKind));
++    }
++
++    /** Variant that checks that it contains a function call not of any async type. */
++    public static boolean containsNonAsyncCall(RexNode node) {
++        return node.accept(new FunctionFinder(false, true, null));
++    }
++
++    /**
++     * Checks whether the specified node is the specified kind of async function call.
++     *
++     * @param node the RexNode to check
++     * @return true if the specified node is an async function call.
++     */
++    public static boolean isAsyncCall(RexNode node, FunctionKind functionKind) {
++        Preconditions.checkArgument(
++                functionKind == FunctionKind.ASYNC_SCALAR
++                        || functionKind == FunctionKind.ASYNC_TABLE);
++        return node.accept(new FunctionFinder(true, false, functionKind));
++    }
++
++    /** Variant that checks for any async call. */
++    public static boolean isAsyncCall(RexNode node) {
++        return node.accept(new FunctionFinder(true, false, null));
++    }
++
++    /**
++     * Checks whether the node is a function call, not of the specified async type.
++     *
++     * @param node the RexNode to check
++     * @return true if the specified node is a non-async function call.
++     */
++    public static boolean isNonAsyncCall(RexNode node, FunctionKind functionKind) {
++        Preconditions.checkArgument(
++                functionKind == FunctionKind.ASYNC_SCALAR
++                        || functionKind == FunctionKind.ASYNC_TABLE);
++        return node.accept(new FunctionFinder(false, false, functionKind));
++    }
++
++    /** Variant that checks that it is a function call not of any async type. */
++    public static boolean isNonAsyncCall(RexNode node) {
++        return node.accept(new FunctionFinder(false, false, null));
++    }
++
++    private static class FunctionFinder extends RexDefaultVisitor<Boolean> {
++
++        private final boolean findAsyncCall;
++        private final boolean recursive;
++        private final FunctionKind functionKind;
++
++        public FunctionFinder(boolean findAsyncCall, boolean recursive, FunctionKind functionKind) {
++            this.findAsyncCall = findAsyncCall;
++            this.recursive = recursive;
++            this.functionKind = functionKind;
++        }
++
++        @Override
++        public Boolean visitNode(RexNode rexNode) {
++            return false;
++        }
++
++        private boolean isImmediateAsyncCall(RexCall call) {
++            FunctionDefinition definition = ShortcutUtils.unwrapFunctionDefinition(call);
++            return definition != null
++                    && ((functionKind != null && definition.getKind() == functionKind)
++                            || (functionKind == null
++                                    && (definition.getKind() == FunctionKind.ASYNC_SCALAR
++                                            || definition.getKind() == FunctionKind.ASYNC_TABLE)));
++        }
++
++        @Override
++        public Boolean visitCall(RexCall call) {
++            boolean isImmediateAsyncCall = isImmediateAsyncCall(call);
++            return findAsyncCall == isImmediateAsyncCall
++                    || (recursive
++                            && call.getOperands().stream().anyMatch(node -> node.accept(this)));
++        }
++    }
++
++    /**
++     * An Async implementation of {@link RemoteCallFinder} which finds uses of {@link
++     * org.apache.flink.table.functions.AsyncScalarFunction} and {@link
++     * org.apache.flink.table.functions.AsyncTableFunction}.
++     */
++    public static class AsyncRemoteCallFinder implements RemoteCallFinder {
++
++        private final FunctionKind functionKind;
++
++        public AsyncRemoteCallFinder(FunctionKind functionKind) {
++            this.functionKind = functionKind;
++        }
++
++        @Override
++        public boolean containsRemoteCall(RexNode node) {
++            return containsAsyncCall(node, functionKind);
++        }
++
++        @Override
++        public boolean containsNonRemoteCall(RexNode node) {
++            return containsNonAsyncCall(node, functionKind);
++        }
++
++        @Override
++        public boolean isRemoteCall(RexNode node) {
++            return isAsyncCall(node, functionKind);
++        }
++
++        @Override
++        public boolean isNonRemoteCall(RexNode node) {
++            return isNonAsyncCall(node, functionKind);
++        }
++
++        @Override
++        public String getName() {
++            return "Async";
++        }
++
++        @Override
++        public boolean equals(Object obj) {
++            return obj != null
++                    && this.getClass() == obj.getClass()
++                    && functionKind == ((AsyncRemoteCallFinder) obj).functionKind;
++        }
++
++        @Override
++        public int hashCode() {
++            return this.getClass().hashCode();
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/ExecNodeMetadataUtil.java b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/ExecNodeMetadataUtil.java
+--- a/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/ExecNodeMetadataUtil.java
++++ b/flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/utils/ExecNodeMetadataUtil.java
+@@ -49,6 +49,7 @@
+ import org.apache.flink.table.planner.plan.nodes.exec.batch.BatchExecValues;
+ import org.apache.flink.table.planner.plan.nodes.exec.batch.BatchExecWindowTableFunction;
+ import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecAsyncCalc;
++import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecAsyncCorrelate;
+ import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecCalc;
+ import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecChangelogNormalize;
+ import org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecCorrelate;
+@@ -170,6 +171,7 @@ private ExecNodeMetadataUtil() {
+                     add(StreamExecPythonCalc.class);
+                     add(StreamExecAsyncCalc.class);
+                     add(StreamExecProcessTableFunction.class);
++                    add(StreamExecAsyncCorrelate.class);
+                     add(StreamExecPythonCorrelate.class);
+                     add(StreamExecPythonGroupAggregate.class);
+                     add(StreamExecPythonGroupWindowAggregate.class);
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/ExpressionReducer.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/ExpressionReducer.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/ExpressionReducer.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/ExpressionReducer.scala
+@@ -27,7 +27,7 @@ import org.apache.flink.table.planner.calcite.FlinkTypeFactory
+ import org.apache.flink.table.planner.codegen.FunctionCodeGenerator.generateFunction
+ import org.apache.flink.table.planner.codegen.JsonGenerateUtils.isJsonFunctionOperand
+ import org.apache.flink.table.planner.functions.sql.FlinkSqlOperatorTable.{JSON_ARRAY, JSON_OBJECT}
+-import org.apache.flink.table.planner.plan.utils.{AsyncScalarUtil, ConstantFoldingUtil}
++import org.apache.flink.table.planner.plan.utils.{AsyncUtil, ConstantFoldingUtil}
+ import org.apache.flink.table.planner.plan.utils.PythonUtil.containsPythonCall
+ import org.apache.flink.table.planner.utils.JavaScalaConversionUtil.toScala
+ import org.apache.flink.table.planner.utils.Logging
+@@ -266,7 +266,7 @@ class ExpressionReducer(
+         // Skip expressions that contain python or async functions because it's quite expensive to
+         // call async UDFs during optimization phase. They will be optimized during the runtime.
+         case (_, e)
+-            if containsPythonCall(e) || AsyncScalarUtil.containsAsyncCall(e) ||
++            if containsPythonCall(e) || AsyncUtil.containsAsyncCall(e) ||
+               !ConstantFoldingUtil.supportsConstantFolding(e) =>
+           nonReducibleExprs += e
+           None
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/calls/BridgingFunctionGenUtil.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/calls/BridgingFunctionGenUtil.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/calls/BridgingFunctionGenUtil.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/codegen/calls/BridgingFunctionGenUtil.scala
+@@ -36,18 +36,19 @@ import org.apache.flink.table.planner.utils.JavaScalaConversionUtil.toScala
+ import org.apache.flink.table.runtime.collector.WrappingCollector
+ import org.apache.flink.table.runtime.functions.DefaultExpressionEvaluator
+ import org.apache.flink.table.runtime.generated.GeneratedFunction
+-import org.apache.flink.table.runtime.operators.join.lookup.DelegatingResultFuture
++import org.apache.flink.table.runtime.operators.correlate.async.DelegatingAsyncTableResultFuture
+ import org.apache.flink.table.types.DataType
+ import org.apache.flink.table.types.extraction.ExtractionUtils.primitiveToWrapper
+ import org.apache.flink.table.types.inference.{CallContext, TypeInference, TypeInferenceUtil}
+ import org.apache.flink.table.types.logical.{LogicalType, LogicalTypeRoot, RowType}
+ import org.apache.flink.table.types.logical.RowType.RowField
+ import org.apache.flink.table.types.logical.utils.LogicalTypeCasts.supportsAvoidingCast
+ import org.apache.flink.table.types.logical.utils.LogicalTypeChecks.isCompositeType
++import org.apache.flink.table.types.utils.DataTypeUtils
+ import org.apache.flink.table.types.utils.DataTypeUtils.{isInternal, validateInputDataType, validateOutputDataType}
+ import org.apache.flink.util.Preconditions
+ 
+-import AsyncCodeGenerator.DEFAULT_DELEGATING_FUTURE_TERM
++import AsyncCodeGenerator.{generateFunction, DEFAULT_DELEGATING_FUTURE_TERM}
+ 
+ import java.util.concurrent.CompletableFuture
+ 
+@@ -152,7 +153,12 @@ object BridgingFunctionGenUtil {
+         contextTerm
+       )
+     } else if (udf.getKind == FunctionKind.ASYNC_TABLE) {
+-      generateAsyncTableFunctionCall(functionTerm, externalOperands, returnType, skipIfArgsNull)
++      generateAsyncTableFunctionCall(
++        functionTerm,
++        externalOperands,
++        returnType,
++        outputDataType,
++        skipIfArgsNull)
+     } else if (udf.getKind == FunctionKind.ASYNC_SCALAR) {
+       generateAsyncScalarFunctionCall(
+         ctx,
+@@ -205,37 +211,47 @@ object BridgingFunctionGenUtil {
+   private def generateAsyncTableFunctionCall(
+       functionTerm: String,
+       externalOperands: Seq[GeneratedExpression],
+-      outputType: LogicalType,
++      returnType: LogicalType,
++      outputDataType: DataType,
+       skipIfArgsNull: Boolean): GeneratedExpression = {
+ 
+-    val DELEGATE = className[DelegatingResultFuture[_]]
++    val DELEGATE_ASYNC_TABLE = className[DelegatingAsyncTableResultFuture]
++    val outputType = outputDataType.getLogicalType
++
++    // If we need to wrap data in a row, it's done in the delegating class.
++    val needsWrapping = !isCompositeType(outputType)
++    val isInternal = DataTypeUtils.isInternal(outputDataType);
++    val arguments = Seq(
++      s"""
++         |delegates.getCompletableFuture()
++         |""".stripMargin
++    ) ++ externalOperands.map(_.resultTerm)
++    val anyNull = externalOperands.map(_.nullTerm) ++ Seq("false")
+ 
+     val functionCallCode = {
+       if (skipIfArgsNull) {
+         s"""
+            |${externalOperands.map(_.code).mkString("\n")}
+-           |if (${externalOperands.map(_.nullTerm).mkString(" || ")}) {
++           |if (${anyNull.mkString(" || ")}) {
+            |  $DEFAULT_COLLECTOR_TERM.complete(java.util.Collections.emptyList());
+            |} else {
+-           |  $DELEGATE delegates = new $DELEGATE($DEFAULT_COLLECTOR_TERM);
+-           |  $functionTerm.eval(
+-           |    delegates.getCompletableFuture(),
+-           |    ${externalOperands.map(_.resultTerm).mkString(", ")});
++           |  $DELEGATE_ASYNC_TABLE delegates = new $DELEGATE_ASYNC_TABLE($DEFAULT_COLLECTOR_TERM,
++           |      $needsWrapping, $isInternal);
++           |  $functionTerm.eval(${arguments.mkString(", ")});
+            |}
+            |""".stripMargin
+       } else {
+         s"""
+            |${externalOperands.map(_.code).mkString("\n")}
+-           |$DELEGATE delegates = new $DELEGATE($DEFAULT_COLLECTOR_TERM);
+-           |$functionTerm.eval(
+-           |  delegates.getCompletableFuture(),
+-           |  ${externalOperands.map(_.resultTerm).mkString(", ")});
++           |$DELEGATE_ASYNC_TABLE delegates = new $DELEGATE_ASYNC_TABLE($DEFAULT_COLLECTOR_TERM,
++           |      $needsWrapping, $isInternal);
++           |  $functionTerm.eval(${arguments.mkString(", ")});
+            |""".stripMargin
+       }
+     }
+ 
+     // has no result
+-    GeneratedExpression(NO_CODE, NEVER_NULL, functionCallCode, outputType)
++    GeneratedExpression(NO_CODE, NEVER_NULL, functionCallCode, returnType)
+   }
+ 
+   private def generateAsyncScalarFunctionCall(
+@@ -389,7 +405,7 @@ object BridgingFunctionGenUtil {
+       udf: UserDefinedFunction): Unit = {
+     val enrichedType = enrichedDataType.getLogicalType
+     if (
+-      (udf.getKind == FunctionKind.TABLE || udf.getKind == FunctionKind.PROCESS_TABLE) && !isCompositeType(
++      (udf.getKind == FunctionKind.TABLE || udf.getKind == FunctionKind.ASYNC_TABLE || udf.getKind == FunctionKind.PROCESS_TABLE) && !isCompositeType(
+         enrichedType)
+     ) {
+       // logically table functions wrap atomic types into ROW, however, the physical function might
+@@ -401,10 +417,6 @@ object BridgingFunctionGenUtil {
+       )
+       val atomicOutputType = returnType.asInstanceOf[RowType].getChildren.get(0)
+       verifyOutputType(atomicOutputType, enrichedDataType)
+-    } else if (udf.getKind == FunctionKind.ASYNC_TABLE && !isCompositeType(enrichedType)) {
+-      throw new CodeGenException(
+-        "Async table functions must not emit an atomic type. " +
+-          "Only a composite type such as the row type are supported.")
+     } else if (
+       udf.getKind == FunctionKind.TABLE || udf.getKind == FunctionKind.PROCESS_TABLE || udf.getKind == FunctionKind.ASYNC_TABLE
+     ) {
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/FlinkStreamRuleSets.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/FlinkStreamRuleSets.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/FlinkStreamRuleSets.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/FlinkStreamRuleSets.scala
+@@ -20,7 +20,7 @@ package org.apache.flink.table.planner.plan.rules
+ import org.apache.flink.table.planner.plan.nodes.logical._
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.{StreamPhysicalMLPredictTableFunctionRule, StreamPhysicalProcessTableFunctionRule}
+ import org.apache.flink.table.planner.plan.rules.logical._
+-import org.apache.flink.table.planner.plan.rules.logical.JoinToMultiJoinRule
++import org.apache.flink.table.planner.plan.rules.logical.{AsyncCorrelateSplitRule, JoinToMultiJoinRule}
+ import org.apache.flink.table.planner.plan.rules.physical.FlinkExpandConversionRule
+ import org.apache.flink.table.planner.plan.rules.physical.stream._
+ 
+@@ -415,6 +415,10 @@ object FlinkStreamRuleSets {
+     PythonMapMergeRule.INSTANCE,
+     // Similar to the python rules above, the goal is to limit complexity of calcs which
+     // have async calls so that the implementation can be simplified to handle a single async call.
++    // Split async scalar calls from other types of calls in correlates
++    AsyncCorrelateSplitRule.CORRELATE_SPLIT_ASYNC_SCALAR,
++    // Split async table calls from other types of calls in correlates
++    AsyncCorrelateSplitRule.CORRELATE_SPLIT_ASYNC_TABLE,
+     // Avoids accessing a field from an asynchronous result (condition).
+     AsyncCalcSplitRule.SPLIT_CONDITION_REX_FIELD,
+     // Avoids accessing a field from an asynchronous result (projection).
+@@ -434,9 +438,7 @@ object FlinkStreamRuleSets {
+     // Avoid async calls which call async calls.
+     AsyncCalcSplitRule.NESTED_SPLIT,
+     // Avoid having async calls in multiple projections in a single calc.
+-    AsyncCalcSplitRule.ONE_PER_CALC_SPLIT,
+-    // Split async calls from correlates
+-    AsyncCorrelateSplitRule.INSTANCE
++    AsyncCalcSplitRule.ONE_PER_CALC_SPLIT
+   )
+ 
+   /** RuleSet to do physical optimize for stream */
+@@ -503,6 +505,7 @@ object FlinkStreamRuleSets {
+     StreamPhysicalConstantTableFunctionScanRule.INSTANCE,
+     StreamPhysicalCorrelateRule.INSTANCE,
+     StreamPhysicalPythonCorrelateRule.INSTANCE,
++    StreamPhysicalAsyncCorrelateRule.INSTANCE,
+     // sink
+     StreamPhysicalSinkRule.INSTANCE,
+     StreamPhysicalLegacySinkRule.INSTANCE
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/PythonCalcSplitRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/PythonCalcSplitRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/PythonCalcSplitRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/PythonCalcSplitRule.scala
+@@ -40,7 +40,7 @@ import scala.collection.mutable
+  * applied, it will only contain general Python functions or pandas Python functions in the
+  * projection of each [[FlinkLogicalCalc]].
+  */
+-class PythonCalcSplitPandasInProjectionRule(callFinder: RemoteCalcCallFinder)
++class PythonCalcSplitPandasInProjectionRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitProjectionRuleBase("PythonCalcSplitPandasInProjectionRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -65,7 +65,7 @@ class PythonCalcSplitPandasInProjectionRule(callFinder: RemoteCalcCallFinder)
+   }
+ }
+ 
+-class PythonRemoteCalcCallFinder extends RemoteCalcCallFinder {
++class PythonRemoteCallFinder extends RemoteCallFinder {
+   override def containsRemoteCall(node: RexNode): Boolean = {
+     PythonUtil.containsPythonCall(node)
+   }
+@@ -83,7 +83,7 @@ class PythonRemoteCalcCallFinder extends RemoteCalcCallFinder {
+   }
+ 
+   override def equals(obj: Any): Boolean = {
+-    obj != null && obj.isInstanceOf[PythonRemoteCalcCallFinder]
++    obj != null && obj.isInstanceOf[PythonRemoteCallFinder]
+   }
+ 
+   override def hashCode(): Int = {
+@@ -99,7 +99,7 @@ object PythonCalcSplitRule {
+    * These rules should be applied sequentially in the order of SPLIT_CONDITION, SPLIT_PROJECT,
+    * SPLIT_PANDAS_IN_PROJECT, EXPAND_PROJECT, PUSH_CONDITION and REWRITE_PROJECT.
+    */
+-  private val callFinder = new PythonRemoteCalcCallFinder()
++  private val callFinder = new PythonRemoteCallFinder()
+   val SPLIT_CONDITION: RelOptRule = new RemoteCalcSplitConditionRule(callFinder)
+   val SPLIT_PROJECT: RelOptRule = new RemoteCalcSplitProjectionRule(callFinder)
+   val SPLIT_PANDAS_IN_PROJECT: RelOptRule = new PythonCalcSplitPandasInProjectionRule(callFinder)
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcSplitRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcSplitRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcSplitRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcSplitRule.scala
+@@ -39,7 +39,7 @@ import scala.collection.mutable
+  */
+ abstract class RemoteCalcSplitRuleBase[T](
+     description: String,
+-    protected val callFinder: RemoteCalcCallFinder)
++    protected val callFinder: RemoteCallFinder)
+   extends RelOptRule(operand(classOf[FlinkLogicalCalc], any), description) {
+ 
+   // Consider the rules to be equal if they are the same class and their call finders are the same
+@@ -169,7 +169,7 @@ class SplitComponents(
+  * multiple [[FlinkLogicalCalc]]s. After this rule is applied, there will be no Remote functions in
+  * the condition of the [[FlinkLogicalCalc]]s.
+  */
+-class RemoteCalcSplitConditionRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcSplitConditionRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase("RemoteCalcSplitConditionRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -197,7 +197,7 @@ class RemoteCalcSplitConditionRule(callFinder: RemoteCalcCallFinder)
+ 
+ abstract class RemoteCalcSplitProjectionRuleBase[T](
+     description: String,
+-    callFinder: RemoteCalcCallFinder)
++    callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase[T](description, callFinder) {
+ 
+   override def split(program: RexProgram, splitter: ScalarFunctionSplitter): SplitComponents = {
+@@ -208,9 +208,7 @@ abstract class RemoteCalcSplitProjectionRuleBase[T](
+   }
+ }
+ 
+-abstract class RemoteCalcSplitRexFieldRuleBase(
+-    description: String,
+-    callFinder: RemoteCalcCallFinder)
++abstract class RemoteCalcSplitRexFieldRuleBase(description: String, callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase(description, callFinder) {
+ 
+   override def needConvert(
+@@ -240,7 +238,7 @@ abstract class RemoteCalcSplitRexFieldRuleBase(
+  * Rule that splits the RexField with the input of Remote function contained in the projection of
+  * [[FlinkLogicalCalc]]s.
+  */
+-class RemoteCalcSplitProjectionRexFieldRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcSplitProjectionRexFieldRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRexFieldRuleBase("RemoteCalcSplitProjectionRexFieldRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -262,7 +260,7 @@ class RemoteCalcSplitProjectionRexFieldRule(callFinder: RemoteCalcCallFinder)
+  * Rule that splits the RexField with the input of Remote function contained in the condition of
+  * [[FlinkLogicalCalc]]s.
+  */
+-class RemoteCalcSplitConditionRexFieldRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcSplitConditionRexFieldRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRexFieldRuleBase("RemoteCalcSplitConditionRexFieldRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -286,7 +284,7 @@ class RemoteCalcSplitConditionRexFieldRule(callFinder: RemoteCalcCallFinder)
+  * the projection into multiple [[FlinkLogicalCalc]]s. After this rule is applied, it will only
+  * contain Remote functions or Java functions in the projection of each [[FlinkLogicalCalc]].
+  */
+-class RemoteCalcSplitProjectionRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcSplitProjectionRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitProjectionRuleBase("RemoteCalcSplitProjectionRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -312,7 +310,7 @@ class RemoteCalcSplitProjectionRule(callFinder: RemoteCalcCallFinder)
+  * Rule that expands the RexFieldAccess inputs of Remote functions contained in the projection of
+  * [[FlinkLogicalCalc]]s.
+  */
+-class RemoteCalcExpandProjectRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcExpandProjectRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase("RemoteCalcExpandProjectRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -348,7 +346,7 @@ class RemoteCalcExpandProjectRule(callFinder: RemoteCalcCallFinder)
+  * Rule that pushes the condition of [[FlinkLogicalCalc]]s before it for the [[FlinkLogicalCalc]]s
+  * which contain Remote functions in the projection.
+  */
+-class RemoteCalcPushConditionRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcPushConditionRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase("RemoteCalcPushConditionRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -381,7 +379,7 @@ class RemoteCalcPushConditionRule(callFinder: RemoteCalcCallFinder)
+  * functions in the projection. This rule exists to keep implementations as simple as possible and
+  * ensures that it only needs to handle the Remote function execution.
+  */
+-class RemoteCalcRewriteProjectionRule(callFinder: RemoteCalcCallFinder)
++class RemoteCalcRewriteProjectionRule(callFinder: RemoteCallFinder)
+   extends RemoteCalcSplitRuleBase("RemoteCalcRewriteProjectionRule", callFinder) {
+ 
+   override def matches(call: RelOptRuleCall): Boolean = {
+@@ -418,7 +416,7 @@ class ScalarFunctionSplitter(
+     extractedFunctionOffset: Int,
+     extractedRexNodes: mutable.ArrayBuffer[RexNode],
+     needConvert: Function[RexNode, Boolean],
+-    callFinder: RemoteCalcCallFinder)
++    callFinder: RemoteCallFinder)
+   extends RexDefaultVisitor[RexNode] {
+ 
+   private var fieldsRexCall: Map[Int, Int] = Map[Int, Int]()
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcCallFinder.java b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCallFinder.java
+similarity index 90%
+rename from flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcCallFinder.java
+rename to flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCallFinder.java
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCalcCallFinder.java
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/RemoteCallFinder.java
+@@ -23,7 +23,7 @@
+ /**
+  * Finds whether a {@link RexNode} contains remote calls or not.
+  */
+-public interface RemoteCalcCallFinder {
++public interface RemoteCallFinder {
+ 
+     // If the node contains directly or indirectly a remote call.
+     boolean containsRemoteCall(RexNode node);
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitPythonConditionFromJoinRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitPythonConditionFromJoinRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitPythonConditionFromJoinRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitPythonConditionFromJoinRule.scala
+@@ -20,6 +20,6 @@ package org.apache.flink.table.planner.plan.rules.logical
+ import org.apache.calcite.plan.RelOptRule
+ 
+ object SplitPythonConditionFromJoinRule {
+-  private val callFinder = new PythonRemoteCalcCallFinder()
++  private val callFinder = new PythonRemoteCallFinder()
+   val INSTANCE: RelOptRule = new SplitRemoteConditionFromJoinRule(callFinder, Option.empty)
+ }
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitRemoteConditionFromJoinRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitRemoteConditionFromJoinRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitRemoteConditionFromJoinRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/logical/SplitRemoteConditionFromJoinRule.scala
+@@ -36,7 +36,7 @@ import scala.collection.JavaConversions._
+  * [[FlinkLogicalJoin]].
+  */
+ class SplitRemoteConditionFromJoinRule(
+-    protected val callFinder: RemoteCalcCallFinder,
++    protected val callFinder: RemoteCallFinder,
+     protected val errorOnUnsplittableRemoteCall: Option[String])
+   extends RelOptRule(operand(classOf[FlinkLogicalJoin], none), "SplitRemoteConditionFromJoinRule") {
+ 
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCalcRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCalcRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCalcRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCalcRule.scala
+@@ -20,10 +20,9 @@ package org.apache.flink.table.planner.plan.rules.physical.stream
+ import org.apache.flink.table.planner.plan.nodes.FlinkConventions
+ import org.apache.flink.table.planner.plan.nodes.logical.FlinkLogicalCalc
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalCalc
+-import org.apache.flink.table.planner.plan.utils.AsyncScalarUtil
++import org.apache.flink.table.planner.plan.utils.AsyncUtil.containsAsyncCall
+ import org.apache.flink.table.planner.plan.utils.PythonUtil.containsPythonCall
+ 
+-import AsyncScalarUtil.containsAsyncCall
+ import org.apache.calcite.plan.{RelOptRule, RelOptRuleCall, RelTraitSet}
+ import org.apache.calcite.rel.RelNode
+ import org.apache.calcite.rel.convert.ConverterRule
+diff --git a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCorrelateRule.scala b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCorrelateRule.scala
+--- a/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCorrelateRule.scala
++++ b/flink-table/flink-table-planner/src/main/scala/org/apache/flink/table/planner/plan/rules/physical/stream/StreamPhysicalCorrelateRule.scala
+@@ -22,7 +22,7 @@ import org.apache.flink.table.planner.plan.nodes.FlinkConventions
+ import org.apache.flink.table.planner.plan.nodes.logical.{FlinkLogicalCalc, FlinkLogicalCorrelate, FlinkLogicalTableFunctionScan}
+ import org.apache.flink.table.planner.plan.nodes.physical.stream.StreamPhysicalCorrelate
+ import org.apache.flink.table.planner.plan.rules.physical.stream.StreamPhysicalCorrelateRule.{getMergedCalc, getTableScan}
+-import org.apache.flink.table.planner.plan.utils.PythonUtil
++import org.apache.flink.table.planner.plan.utils.{AsyncUtil, PythonUtil}
+ 
+ import org.apache.calcite.plan.{RelOptRule, RelOptRuleCall, RelTraitSet}
+ import org.apache.calcite.plan.hep.HepRelVertex
+@@ -44,15 +44,17 @@ class StreamPhysicalCorrelateRule(config: Config) extends ConverterRule(config)
+     def findTableFunction(calc: FlinkLogicalCalc): Boolean = {
+       val child = calc.getInput.asInstanceOf[RelSubset].getOriginal
+       child match {
+-        case scan: FlinkLogicalTableFunctionScan => PythonUtil.isNonPythonCall(scan.getCall)
++        case scan: FlinkLogicalTableFunctionScan =>
++          PythonUtil.isNonPythonCall(scan.getCall) && AsyncUtil.isNonAsyncCall(scan.getCall)
+         case calc: FlinkLogicalCalc => findTableFunction(calc)
+         case _ => false
+       }
+     }
+ 
+     right match {
+       // right node is a table function
+-      case scan: FlinkLogicalTableFunctionScan => PythonUtil.isNonPythonCall(scan.getCall)
++      case scan: FlinkLogicalTableFunctionScan =>
++        PythonUtil.isNonPythonCall(scan.getCall) && AsyncUtil.isNonAsyncCall(scan.getCall)
+       // a filter is pushed above the table function
+       case calc: FlinkLogicalCalc => findTableFunction(calc)
+       case _ => false
+@@ -79,7 +81,9 @@ class StreamPhysicalCorrelateRule(config: Config) extends ConverterRule(config)
+           val newCalc = getMergedCalc(calc)
+           convertToCorrelate(
+             tableScan,
+-            Some(newCalc.getProgram.expandLocalRef(newCalc.getProgram.getCondition)))
++            if (newCalc.getProgram.getCondition == null) None
++            else Some(newCalc.getProgram.expandLocalRef(newCalc.getProgram.getCondition))
++          )
+ 
+         case scan: FlinkLogicalTableFunctionScan =>
+           new StreamPhysicalCorrelate(
+diff --git a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/AsyncFunctionRunner.java b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/AsyncFunctionRunner.java
+--- a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/AsyncFunctionRunner.java
++++ b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/AsyncFunctionRunner.java
+@@ -32,7 +32,7 @@
+  */
+ public class AsyncFunctionRunner extends RichAsyncFunction<RowData, RowData> {
+ 
+-    private static final long serialVersionUID = -6664660022391632123L;
++    private static final long serialVersionUID = -7198305381139008806L;
+ 
+     private final GeneratedFunction<AsyncFunction<RowData, RowData>> generatedFetcher;
+ 
+diff --git a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/DelegatingAsyncResultFuture.java b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/DelegatingAsyncResultFuture.java
+--- a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/DelegatingAsyncResultFuture.java
++++ b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/calc/async/DelegatingAsyncResultFuture.java
+@@ -32,7 +32,8 @@
+ import java.util.function.BiConsumer;
+ 
+ /**
+- * Inspired by {@link org.apache.flink.table.runtime.operators.join.lookup.DelegatingResultFuture}
++ * Inspired by {@link
++ * org.apache.flink.table.runtime.operators.correlate.async.DelegatingAsyncTableResultFuture} but
+  * for {@link org.apache.flink.table.functions.AsyncScalarFunction}.
+  */
+ public class DelegatingAsyncResultFuture implements BiConsumer<Object, Throwable> {
+diff --git a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/AsyncCorrelateRunner.java b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/AsyncCorrelateRunner.java
+new file mode 100644
+--- /dev/null
++++ b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/AsyncCorrelateRunner.java
+@@ -0,0 +1,159 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.runtime.operators.correlate.async;
++
++import org.apache.flink.api.common.functions.OpenContext;
++import org.apache.flink.api.common.functions.util.FunctionUtils;
++import org.apache.flink.streaming.api.functions.async.AsyncFunction;
++import org.apache.flink.streaming.api.functions.async.CollectionSupplier;
++import org.apache.flink.streaming.api.functions.async.ResultFuture;
++import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
++import org.apache.flink.table.data.RowData;
++import org.apache.flink.table.data.conversion.DataStructureConverter;
++import org.apache.flink.table.data.utils.JoinedRowData;
++import org.apache.flink.table.runtime.generated.GeneratedFunction;
++
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++
++/**
++ * Async function runner for {@link org.apache.flink.table.functions.AsyncTableFunction}. It invokes
++ * the UDF for each of the input rows, joining the responses with the input.
++ */
++public class AsyncCorrelateRunner extends RichAsyncFunction<RowData, RowData> {
++
++    private static final long serialVersionUID = 1L;
++
++    private final GeneratedFunction<AsyncFunction<RowData, Object>> generatedFetcher;
++    private final DataStructureConverter<RowData, Object> fetcherConverter;
++    private transient AsyncFunction<RowData, Object> fetcher;
++
++    public AsyncCorrelateRunner(
++            GeneratedFunction<AsyncFunction<RowData, Object>> generatedFetcher,
++            DataStructureConverter<RowData, Object> fetcherConverter) {
++        this.generatedFetcher = generatedFetcher;
++        this.fetcherConverter = fetcherConverter;
++    }
++
++    @Override
++    public void open(OpenContext openContext) throws Exception {
++        super.open(openContext);
++
++        ClassLoader cl = getRuntimeContext().getUserCodeClassLoader();
++        this.fetcher = generatedFetcher.newInstance(cl);
++
++        FunctionUtils.setFunctionRuntimeContext(fetcher, getRuntimeContext());
++        FunctionUtils.openFunction(fetcher, openContext);
++
++        fetcherConverter.open(cl);
++    }
++
++    @Override
++    public void asyncInvoke(RowData input, ResultFuture<RowData> resultFuture) throws Exception {
++        try {
++            JoinedRowResultFuture outResultFuture =
++                    new JoinedRowResultFuture(input, resultFuture, fetcherConverter);
++
++            fetcher.asyncInvoke(input, outResultFuture);
++        } catch (Throwable t) {
++            resultFuture.completeExceptionally(t);
++        }
++    }
++
++    @Override
++    public void close() throws Exception {
++        super.close();
++        FunctionUtils.closeFunction(fetcher);
++    }
++
++    private static final class JoinedRowResultFuture implements ResultFuture<Object> {
++        private final DataStructureConverter<RowData, Object> resultConverter;
++
++        private RowData leftRow;
++        private ResultFuture<RowData> realOutput;
++
++        private JoinedRowResultFuture(
++                RowData row,
++                ResultFuture<RowData> resultFuture,
++                DataStructureConverter<RowData, Object> resultConverter) {
++            this.leftRow = row;
++            this.realOutput = resultFuture;
++            this.resultConverter = resultConverter;
++        }
++
++        @Override
++        public void complete(Collection<Object> result) {
++            try {
++                Collection<RowData> rightRows = wrapPrimitivesAndConvert(result);
++                completeResultFuture(rightRows);
++            } catch (Throwable t) {
++                realOutput.completeExceptionally(t);
++            }
++        }
++
++        private void completeResultFuture(Collection<RowData> rightRows) {
++            realOutput.complete(
++                    () -> {
++                        if (rightRows == null || rightRows.isEmpty()) {
++                            return Collections.emptyList();
++                        } else {
++                            List<RowData> outRows = new ArrayList<>();
++                            for (RowData rightRow : rightRows) {
++                                RowData outRow =
++                                        new JoinedRowData(leftRow.getRowKind(), leftRow, rightRow);
++                                outRows.add(outRow);
++                            }
++                            return outRows;
++                        }
++                    });
++        }
++
++        @SuppressWarnings({"unchecked", "rawtypes"})
++        private Collection<RowData> wrapPrimitivesAndConvert(Collection<Object> result) {
++            Collection<RowData> rowDataCollection;
++            if (resultConverter.isIdentityConversion()) {
++                rowDataCollection = (Collection) result;
++            } else {
++                rowDataCollection = new ArrayList<>(result.size());
++                for (Object element : result) {
++                    if (element instanceof RowData) {
++                        rowDataCollection.add((RowData) element);
++                    } else {
++                        rowDataCollection.add(resultConverter.toInternal(element));
++                    }
++                }
++            }
++            return rowDataCollection;
++        }
++
++        @Override
++        public void completeExceptionally(Throwable error) {
++            realOutput.completeExceptionally(error);
++        }
++
++        @Override
++        public void complete(CollectionSupplier<Object> supplier) {
++            throw new UnsupportedOperationException();
++        }
++
++        public void close() throws Exception {}
++    }
++}
+diff --git a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/join/lookup/DelegatingResultFuture.java b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/DelegatingAsyncTableResultFuture.java
+similarity index 90%
+rename from flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/join/lookup/DelegatingResultFuture.java
+rename to flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/DelegatingAsyncTableResultFuture.java
+--- a/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/join/lookup/DelegatingResultFuture.java
++++ b/flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/correlate/async/DelegatingAsyncTableResultFuture.java
+@@ -16,40 +16,70 @@
+  * limitations under the License.
+  */
+ 
+-package org.apache.flink.table.runtime.operators.join.lookup;
++package org.apache.flink.table.runtime.operators.correlate.async;
+ 
+ import org.apache.flink.streaming.api.functions.async.ResultFuture;
++import org.apache.flink.table.data.GenericRowData;
++import org.apache.flink.types.Row;
+ 
++import java.util.ArrayList;
+ import java.util.Collection;
++import java.util.List;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.function.BiConsumer;
++import java.util.function.Function;
+ 
+ /**
+  * Delegates actions of {@link java.util.concurrent.CompletableFuture} to {@link ResultFuture}. This
+  * is used as a bridge between {@link org.apache.flink.table.functions.AsyncTableFunction} and
+  * {@link org.apache.flink.streaming.api.functions.async.AsyncFunction}.
+  */
+-public class DelegatingResultFuture<OUT> implements BiConsumer<Collection<OUT>, Throwable> {
++public class DelegatingAsyncTableResultFuture implements BiConsumer<Collection<Object>, Throwable> {
+ 
+-    private final ResultFuture<OUT> delegatedResultFuture;
+-    private final CompletableFuture<Collection<OUT>> completableFuture;
++    private final ResultFuture<Object> delegatedResultFuture;
++    private final Function<Collection<Object>, Collection<Object>> wrapFunction;
+ 
+-    public DelegatingResultFuture(ResultFuture<OUT> delegatedResultFuture) {
++    private final CompletableFuture<Collection<Object>> completableFuture;
++
++    public DelegatingAsyncTableResultFuture(
++            ResultFuture<Object> delegatedResultFuture,
++            boolean needsWrapping,
++            boolean isInternalResultType) {
+         this.delegatedResultFuture = delegatedResultFuture;
++        this.wrapFunction =
++                needsWrapping
++                        ? (isInternalResultType ? this::wrapInternal : this::wrapExternal)
++                        : outs -> outs;
+         this.completableFuture = new CompletableFuture<>();
+         this.completableFuture.whenComplete(this);
+     }
+ 
+     @Override
+-    public void accept(Collection<OUT> outs, Throwable throwable) {
++    public void accept(Collection<Object> outs, Throwable throwable) {
+         if (throwable != null) {
+             delegatedResultFuture.completeExceptionally(throwable);
+         } else {
+-            delegatedResultFuture.complete(outs);
++            delegatedResultFuture.complete(wrapFunction.apply(outs));
++        }
++    }
++
++    private Collection<Object> wrapInternal(Collection<Object> outs) {
++        List<Object> wrapped = new ArrayList<>();
++        for (Object value : outs) {
++            wrapped.add(GenericRowData.of(value));
++        }
++        return wrapped;
++    }
++
++    private Collection<Object> wrapExternal(Collection<Object> outs) {
++        List<Object> wrapped = new ArrayList<>();
++        for (Object value : outs) {
++            wrapped.add(Row.of(value));
+         }
++        return wrapped;
+     }
+ 
+-    public CompletableFuture<Collection<OUT>> getCompletableFuture() {
++    public CompletableFuture<Collection<Object>> getCompletableFuture() {
+         return completableFuture;
+     }
+ }

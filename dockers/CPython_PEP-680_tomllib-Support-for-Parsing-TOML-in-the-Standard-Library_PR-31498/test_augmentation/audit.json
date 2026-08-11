@@ -1,0 +1,369 @@
+{
+  "instance_id": "CPython_PEP-680_tomllib-Support-for-Parsing-TOML-in-the-Standard-Library_PR-31498",
+  "augmentation_pass": "lolbench-aug-2026-05-21",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "24850f925f31df7412c6f543e8870f584cc63b07916b6169e9357b727669df3e",
+    "f2p_aug.txt": "9c339b8f4c6a8b4c15b144010d8afd56b5f1a30918f96df4f0b673625f7b4c01",
+    "p2p_aug.txt": "cbdde8c662ebe06d68477a0ea6e126e500deddbed40dab5b7d5d168b0800eee5"
+  },
+  "summary": {
+    "new_f2p_count": 6,
+    "new_p2p_count": 3,
+    "mutants_targeted": 16,
+    "surviving_mutants_targeted": [
+      "mutant_001_load_stringifies_binary_bytes",
+      "mutant_002_loads_requires_bytes_decode",
+      "mutant_003_parse_float_callback_ignored",
+      "mutant_004_parse_float_allows_containers",
+      "mutant_005_duplicate_key_overwrites_value",
+      "mutant_006_inline_table_duplicate_key_overwrites",
+      "mutant_007_inline_table_namespace_mutable",
+      "mutant_008_dotted_key_parent_reopenable",
+      "mutant_009_basic_string_allows_newline",
+      "mutant_010_unicode_surrogate_escape_allowed",
+      "mutant_011_false_literal_returns_true",
+      "mutant_012_array_trailing_comma_rejected",
+      "mutant_013_timezone_offset_sign_inverted",
+      "mutant_014_date_only_returns_datetime",
+      "mutant_015_non_decimal_int_base10_only",
+      "mutant_016_comments_accept_control_chars"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 100.0,
+      "union_line_coverage_percent": 100.0,
+      "executable_lines_in_patch": 508,
+      "union_covered_lines": 508,
+      "coverage_complete": true,
+      "measurement_note": "coverage.py line coverage over the Python files added by solution.patch under Lib/tomllib/*.py; Python/stdlib_module_names.h is non-Python executable and excluded from the denominator. Original coverage was already 100%, so this augmentation targets F2P-mut rather than coverage improvement."
+    },
+    "no_modification_clauses_pinned": [
+      "Backwards Compatibility: adding tomllib must preserve existing standard-library module behavior.",
+      "Read-only TOML support is separate from pre-existing json/configparser/datetime public APIs."
+    ]
+  },
+  "tests": [
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_load_accepts_binary_file_objects_only",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_001_load_stringifies_binary_bytes"
+      ],
+      "public_surface": "tomllib.load with a binary io.BytesIO object and text-mode io.StringIO rejection.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 680 requires load() to deserialize a binary file-like object. The test proves bytes are decoded as TOML input and that text-mode reads are rejected instead of silently parsed."
+    },
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_loads_accepts_str_and_rejects_bytes",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_002_loads_requires_bytes_decode"
+      ],
+      "public_surface": "tomllib.loads with str input and bytes rejection.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 680 specifies loads() takes a str. The test requires a normal str document to parse and bytes input to fail rather than being decoded implicitly."
+    },
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_003_parse_float_callback_ignored",
+        "mutant_004_parse_float_allows_containers"
+      ],
+      "public_surface": "tomllib.loads(parse_float=...) returning decimal.Decimal and rejecting dict/list callback results.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 680 states parse_float receives the original float string and its result is part of the returned object. The test records callback arguments, asserts Decimal values, and rejects container results that would be confused with TOML arrays/tables."
+    },
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_005_duplicate_key_overwrites_value",
+        "mutant_006_inline_table_duplicate_key_overwrites",
+        "mutant_007_inline_table_namespace_mutable",
+        "mutant_008_dotted_key_parent_reopenable"
+      ],
+      "public_surface": "tomllib.loads invalid duplicate key, inline table, frozen namespace, and dotted-key/table documents.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Invalid TOML must raise TOMLDecodeError. The test covers duplicate scalar keys, duplicate inline-table keys, attempts to extend an inline-table namespace, and reopening a dotted-key parent as a table."
+    },
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_009_basic_string_allows_newline",
+        "mutant_010_unicode_surrogate_escape_allowed",
+        "mutant_011_false_literal_returns_true",
+        "mutant_016_comments_accept_control_chars"
+      ],
+      "public_surface": "tomllib.loads string, comment, and boolean parsing through TOMLDecodeError and bool output.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 680 exposes a TOML parser that returns Python bools and raises TOMLDecodeError for invalid TOML. The test rejects newline-containing basic strings, surrogate escapes, and control characters in comments, and asserts false maps to False."
+    },
+    {
+      "test_id": "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_012_array_trailing_comma_rejected",
+        "mutant_013_timezone_offset_sign_inverted",
+        "mutant_014_date_only_returns_datetime",
+        "mutant_015_non_decimal_int_base10_only"
+      ],
+      "public_surface": "tomllib.loads array, datetime, date, and integer values.",
+      "internal_symbol_check": [
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 680 requires TOML values to deserialize into basic Python objects, including datetime.date/datetime and int. The test accepts trailing-comma arrays, checks positive timezone offset sign, preserves local dates as date not datetime, and parses hex integers."
+    },
+    {
+      "test_id": "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_json_parse_float_callback_is_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "json.loads(parse_float=...) from the existing json module.",
+      "internal_symbol_check": [
+        "tomllib",
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "no_modification_clause": "PEP 680 is additive and has no backwards-incompatible impact on existing standard-library file-format, JSON, or datetime behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Pins an unrelated pre-existing standard-library parse_float callback behavior so adding tomllib does not affect json deserialization semantics."
+    },
+    {
+      "test_id": "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_configparser_defaults_and_interpolation_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "configparser.ConfigParser read_file/get/getboolean/sections public APIs.",
+      "internal_symbol_check": [
+        "tomllib",
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "no_modification_clause": "PEP 680 is additive and has no backwards-incompatible impact on existing standard-library file-format, JSON, or datetime behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Guards the established INI parser against collateral stdlib file-format regressions while PEP 680 adds TOML parsing as a separate module."
+    },
+    {
+      "test_id": "test.test_tomllib_stability_aug.StdlibStabilityAugTest.test_datetime_fromisoformat_timezone_offsets_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "datetime.datetime.fromisoformat timezone offset parsing.",
+      "internal_symbol_check": [
+        "tomllib",
+        "tomllib._parser",
+        "tomllib._re",
+        "tomllib._types"
+      ],
+      "no_modification_clause": "PEP 680 is additive and has no backwards-incompatible impact on existing standard-library file-format, JSON, or datetime behavior.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Pins pre-existing datetime offset sign handling adjacent to TOML datetime outputs without importing or exercising tomllib."
+    }
+  ],
+  "mutant_kill_coverage_check": {
+    "mutant_001_load_stringifies_binary_bytes": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_load_accepts_binary_file_objects_only"
+      ]
+    },
+    "mutant_002_loads_requires_bytes_decode": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_loads_accepts_str_and_rejects_bytes"
+      ]
+    },
+    "mutant_003_parse_float_callback_ignored": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar"
+      ]
+    },
+    "mutant_004_parse_float_allows_containers": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_parse_float_callback_is_observed_and_kept_scalar"
+      ]
+    },
+    "mutant_005_duplicate_key_overwrites_value": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected"
+      ]
+    },
+    "mutant_006_inline_table_duplicate_key_overwrites": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected"
+      ]
+    },
+    "mutant_007_inline_table_namespace_mutable": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected"
+      ]
+    },
+    "mutant_008_dotted_key_parent_reopenable": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_duplicate_keys_and_frozen_namespaces_are_rejected"
+      ]
+    },
+    "mutant_009_basic_string_allows_newline": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules"
+      ]
+    },
+    "mutant_010_unicode_surrogate_escape_allowed": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules"
+      ]
+    },
+    "mutant_011_false_literal_returns_true": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules"
+      ]
+    },
+    "mutant_012_array_trailing_comma_rejected": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers"
+      ]
+    },
+    "mutant_013_timezone_offset_sign_inverted": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers"
+      ]
+    },
+    "mutant_014_date_only_returns_datetime": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers"
+      ]
+    },
+    "mutant_015_non_decimal_int_base10_only": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_arrays_datetimes_dates_and_non_decimal_integers"
+      ]
+    },
+    "mutant_016_comments_accept_control_chars": {
+      "killed_by_aug_f2p": [
+        "test.test_tomllib_aug.TomllibPublicApiAugTest.test_strings_comments_and_booleans_follow_toml_rules"
+      ]
+    }
+  },
+  "validation_status": {
+    "status": "validated",
+    "validated_at": "2026-05-21",
+    "validate_sh": {
+      "orig": {
+        "pre": "13 F2P ERROR, 42 P2P PASS",
+        "post": "13 F2P PASS, 42 P2P PASS, resolved=true"
+      },
+      "aug": {
+        "pre": "6 F2P ERROR, 3 P2P PASS",
+        "post": "6 F2P PASS, 3 P2P PASS, resolved=true"
+      },
+      "union": {
+        "pre": "19 F2P ERROR, 45 P2P PASS",
+        "post": "19 F2P PASS, 45 P2P PASS, resolved=true"
+      },
+      "mutants": "all 16 mutants killed by at least one union F2P; all 45 P2P passed for every mutant"
+    },
+    "coverage": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 100.0,
+      "union_line_coverage_percent": 100.0,
+      "executable_lines_in_patch": 508,
+      "union_covered_lines": 508,
+      "coverage_complete": true,
+      "measurement_note": "coverage.py line coverage over the Python files added by solution.patch under Lib/tomllib/*.py; Python/stdlib_module_names.h is non-Python executable and excluded from the denominator. Original coverage was already 100%, so this augmentation targets F2P-mut rather than coverage improvement."
+    }
+  }
+}

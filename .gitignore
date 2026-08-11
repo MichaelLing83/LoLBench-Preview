@@ -1,0 +1,11 @@
+# Run outputs
+harbor_runs/
+jobs/
+
+# Local secrets
+.env
+
+# Harbor / Python
+.harbor-venv/
+__pycache__/
+*.pyc

@@ -1,0 +1,61 @@
+schema_version = "1.3"
+
+[task]
+name = "lolbench/cpython_8"
+description = "Implement PEP 701 \u2014 Syntactic formalization of f-strings."
+authors = [{ name = "LoLBench maintainers" }]
+keywords = ["lolbench", "coding-agent", "cpython", "python"]
+
+[metadata]
+instance_id = "cpython_8"
+source_instance_id = "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855"
+source_slug = "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855"
+docker_slug = "CPython_PEP-701_Syntactic-formalization-of-f-strings_PR-102855"
+dockerhub_image = "smartdub26/lolbench:cpython_8-1.0.0"
+dockerhub_digest = "sha256:e182b5979ba260545ee4cad6978c03303c1fdd2d591a7b0e85bc8595b96e8c74"
+project = "cpython"
+repo = "python/cpython"
+requirement_doc = "https://peps.python.org/pep-0701/"
+pr_link = "https://github.com/python/cpython/pull/102855"
+base_commit = "a6b07b5a345f7f54ee9f6d75e81d2fb55971b35c"
+merge_commit = "1ef61cf71a218c71860ff6aecf0fd51edb8b65dc"
+test_level = "public-api"
+source_history_policy = "ancestors-only"
+lolbench_test_modes = ["orig", "aug", "union"]
+default_lolbench_suite = "union"
+canonical_lolbench_suite = "union"
+augmentation_available = true
+verifier_network_policy = "public"
+verifier_network_reason = "The Harbor verifier runs in a separate container and may use network access; migrated LoLBench verifier assets are mounted only in the verifier phase."
+
+[environment]
+build_timeout_sec = 3600.0
+docker_image = "smartdub26/lolbench:cpython_8-1.0.0"
+network_mode = "public"
+os = "linux"
+cpus = 4
+memory_mb = 7168
+storage_mb = 20480
+
+[agent]
+timeout_sec = 21600.0
+user = "agent"
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai", "api.openai.com", "api.anthropic.com"]
+
+[verifier]
+timeout_sec = 7200.0
+user = "root"
+environment_mode = "separate"
+network_mode = "public"
+
+[verifier.env]
+LOLBENCH_SUITE = "union"
+
+[verifier.environment]
+docker_image = "smartdub26/lolbench:cpython_8-1.0.0"
+network_mode = "public"
+os = "linux"
+cpus = 4
+memory_mb = 7168
+storage_mb = 20480

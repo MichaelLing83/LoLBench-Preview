@@ -1,0 +1,464 @@
+diff --git a/flink-clients/src/test/java/org/apache/flink/client/cli/ClientCliAugTest.java b/flink-clients/src/test/java/org/apache/flink/client/cli/ClientCliAugTest.java
+new file mode 100644
+index 000000000000..111111111111
+--- /dev/null
++++ b/flink-clients/src/test/java/org/apache/flink/client/cli/ClientCliAugTest.java
+@@ -0,0 +1,68 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.client.cli;
++
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.configuration.CoreOptions;
++import org.apache.flink.configuration.DeploymentOptions;
++
++import org.apache.commons.cli.CommandLine;
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Additional regression coverage for unchanged flink-clients CLI option behavior. */
++class ClientCliAugTest {
++
++    @Test
++    void testRunOptionsPreserveAttachedShutdownAndProgramArgs() throws Exception {
++        String[] parameters = {"-sae", "-p", "3", "job.jar", "arg1", "arg2"};
++
++        CommandLine commandLine =
++                CliFrontendParser.parse(CliFrontendParser.RUN_OPTIONS, parameters, true);
++        ProgramOptions programOptions = ProgramOptions.create(commandLine);
++        Configuration configuration = new Configuration();
++        programOptions.applyToConfiguration(configuration);
++
++        assertThat(programOptions.getJarFilePath()).isEqualTo("job.jar");
++        assertThat(programOptions.getProgramArgs()).containsExactly("arg1", "arg2");
++        assertThat(programOptions.getDetachedMode()).isFalse();
++        assertThat(programOptions.isShutdownOnAttachedExit()).isTrue();
++        assertThat(configuration.get(CoreOptions.DEFAULT_PARALLELISM)).isEqualTo(3);
++        assertThat(configuration.get(DeploymentOptions.ATTACHED)).isTrue();
++        assertThat(configuration.get(DeploymentOptions.SHUTDOWN_IF_ATTACHED)).isTrue();
++    }
++
++    @Test
++    void testDetachedRunOptionKeepsShutdownFlagIndependent() throws Exception {
++        String[] parameters = {"-d", "-sae", "job.jar"};
++
++        CommandLine commandLine =
++                CliFrontendParser.parse(CliFrontendParser.RUN_OPTIONS, parameters, true);
++        ProgramOptions programOptions = ProgramOptions.create(commandLine);
++        Configuration configuration = new Configuration();
++        programOptions.applyToConfiguration(configuration);
++
++        assertThat(programOptions.getJarFilePath()).isEqualTo("job.jar");
++        assertThat(programOptions.getDetachedMode()).isTrue();
++        assertThat(programOptions.isShutdownOnAttachedExit()).isTrue();
++        assertThat(configuration.get(DeploymentOptions.ATTACHED)).isFalse();
++        assertThat(configuration.get(DeploymentOptions.SHUTDOWN_IF_ATTACHED)).isTrue();
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorAugTest.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorAugTest.java
+new file mode 100644
+index 000000000000..111111111111
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/codegen/AsyncCorrelateCodeGeneratorAugTest.java
+@@ -0,0 +1,102 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.codegen;
++
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.table.annotation.DataTypeHint;
++import org.apache.flink.table.annotation.FunctionHint;
++import org.apache.flink.table.api.DataTypes;
++import org.apache.flink.table.data.StringData;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.planner.codegen.calls.BridgingFunctionGenUtil$;
++import org.apache.flink.table.types.extraction.TypeInferenceExtractor;
++import org.apache.flink.table.types.inference.TypeInference;
++import org.apache.flink.table.types.inference.utils.CallContextMock;
++import org.apache.flink.table.types.logical.IntType;
++import org.apache.flink.table.types.logical.RowType;
++import org.apache.flink.table.types.logical.VarCharType;
++import org.apache.flink.table.types.utils.DataTypeFactoryMock;
++
++import org.junit.jupiter.api.Test;
++
++import java.util.Collections;
++import java.util.Optional;
++import java.util.concurrent.CompletableFuture;
++
++import scala.Option;
++import scala.collection.JavaConverters;
++import scala.collection.Seq;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Additional code-generation coverage for async table logical return typing. */
++public class AsyncCorrelateCodeGeneratorAugTest {
++
++    @Test
++    public void testAtomicAsyncTableGeneratedExpressionKeepsLogicalRowType() {
++        final DataTypeFactoryMock dataTypeFactory = new DataTypeFactoryMock();
++        final AtomicInternalStringFunction udf = new AtomicInternalStringFunction();
++        final RowType returnType = RowType.of(VarCharType.STRING_TYPE);
++        final GeneratedExpression operand =
++                new GeneratedExpression("42", "false", "", new IntType(false), Option.empty());
++        final Seq<GeneratedExpression> operands =
++                JavaConverters.asScalaBufferConverter(Collections.singletonList(operand))
++                        .asScala()
++                        .toSeq();
++        final TypeInference typeInference =
++                TypeInferenceExtractor.forAsyncTableFunction(
++                        dataTypeFactory, AtomicInternalStringFunction.class);
++        final CallContextMock callContext = new CallContextMock();
++        callContext.typeFactory = dataTypeFactory;
++        callContext.argumentDataTypes = Collections.singletonList(DataTypes.INT().notNull());
++        callContext.argumentLiterals = Collections.singletonList(false);
++        callContext.argumentNulls = Collections.singletonList(false);
++        callContext.argumentValues = Collections.singletonList(Optional.empty());
++        callContext.functionDefinition = udf;
++        callContext.name = "atomicInternal";
++        callContext.outputDataType = Optional.empty();
++        callContext.isGroupedAggregation = false;
++        final CodeGeneratorContext context =
++                new CodeGeneratorContext(
++                        new Configuration(), Thread.currentThread().getContextClassLoader());
++
++        final GeneratedExpression generated =
++                BridgingFunctionGenUtil$.MODULE$.generateFunctionAwareCall(
++                        context,
++                        operands,
++                        returnType,
++                        typeInference,
++                        callContext,
++                        udf,
++                        "eval",
++                        false);
++
++        assertThat(generated.resultType()).isEqualTo(returnType);
++    }
++
++    /** Atomic output bridged to Flink's internal string representation. */
++    @FunctionHint(output = @DataTypeHint(value = "STRING", bridgedTo = StringData.class))
++    public static class AtomicInternalStringFunction extends AsyncTableFunction<StringData> {
++
++        public void eval(CompletableFuture<java.util.Collection<StringData>> future, int value) {
++            future.complete(
++                    Collections.singletonList(StringData.fromString("internal " + value)));
++        }
++    }
++}
+diff --git a/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateAugITCase.java b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateAugITCase.java
+new file mode 100644
+index 000000000000..111111111111
+--- /dev/null
++++ b/flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/runtime/stream/table/AsyncCorrelateAugITCase.java
+@@ -0,0 +1,276 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.table.planner.runtime.stream.table;
++
++import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
++import org.apache.flink.table.annotation.DataTypeHint;
++import org.apache.flink.table.annotation.FunctionHint;
++import org.apache.flink.table.api.EnvironmentSettings;
++import org.apache.flink.table.api.Table;
++import org.apache.flink.table.api.TableEnvironment;
++import org.apache.flink.table.api.TableResult;
++import org.apache.flink.table.api.ValidationException;
++import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
++import org.apache.flink.table.api.config.ExecutionConfigOptions;
++import org.apache.flink.table.data.StringData;
++import org.apache.flink.table.functions.AsyncTableFunction;
++import org.apache.flink.table.planner.runtime.utils.StreamingTestBase;
++import org.apache.flink.types.Row;
++
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++
++import java.time.Duration;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.TimeUnit;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** Additional system-level coverage for AsyncTableFunction correlate behavior. */
++public class AsyncCorrelateAugITCase extends StreamingTestBase {
++
++    private TableEnvironment tEnv;
++
++    @BeforeEach
++    public void before() {
++        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
++        env.setParallelism(1);
++        tEnv = StreamTableEnvironment.create(env, EnvironmentSettings.inStreamingMode());
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 1);
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_TIMEOUT, Duration.ofSeconds(5));
++    }
++
++    @Test
++    public void testAsyncTableOptionKeysAreDistinctFromScalarOptions() {
++        assertThat(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS.key())
++                .isEqualTo("table.exec.async-table.max-concurrent-operations")
++                .isNotEqualTo(
++                        ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_BUFFER_CAPACITY.key());
++        assertThat(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_TIMEOUT.key())
++                .isEqualTo("table.exec.async-table.timeout")
++                .isNotEqualTo(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_TIMEOUT.key());
++        assertThat(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_STRATEGY.key())
++                .isEqualTo("table.exec.async-table.retry-strategy")
++                .isNotEqualTo(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_RETRY_STRATEGY.key());
++        assertThat(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_RETRY_DELAY.key())
++                .isEqualTo("table.exec.async-table.retry-delay")
++                .isNotEqualTo(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_RETRY_DELAY.key());
++        assertThat(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_RETRIES.key())
++                .isEqualTo("table.exec.async-table.max-retries")
++                .isNotEqualTo(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_MAX_ATTEMPTS.key());
++    }
++
++    @Test
++    public void testAsyncTableTimeoutUsesAsyncTableTimeoutOption() {
++        tEnv.getConfig().set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_TIMEOUT, Duration.ofSeconds(5));
++        tEnv.getConfig().set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_SCALAR_TIMEOUT, Duration.ofMillis(1));
++        Table t1 = tEnv.fromValues(1).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("slowFunc", new SlowTableFunction());
++
++        List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(slowFunc(f1))");
++
++        assertThat(results).containsExactly(Row.of(1, "slow 1"));
++    }
++
++    @Test
++    public void testAsyncTableCorrelateKeepsOrderedOutputMode() {
++        tEnv.getConfig()
++                .set(ExecutionConfigOptions.TABLE_EXEC_ASYNC_TABLE_MAX_CONCURRENT_OPERATIONS, 2);
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        ReorderingTableFunction.resetLatches();
++        tEnv.createTemporarySystemFunction("reorderingFunc", new ReorderingTableFunction());
++
++        List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(reorderingFunc(f1))");
++
++        assertThat(results)
++                .containsExactly(
++                        Row.of(1, "ordered 1"),
++                        Row.of(2, "ordered 2"));
++    }
++
++    @Test
++    public void testInvalidAsyncTableFutureTypeRejectedThroughSql() {
++        assertThatThrownBy(
++                        () ->
++                                tEnv.createTemporarySystemFunction(
++                                        "badFunc", new InvalidFutureTableFunction()))
++                .isInstanceOf(ValidationException.class)
++                .hasMessageContaining("Could not register temporary system function")
++                .hasRootCauseMessage(
++                        "Method 'eval' of function class 'org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase$InvalidFutureTableFunction' must have a first argument of type java.util.concurrent.CompletableFuture<java.util.Collection>.");
++    }
++
++    @Test
++    public void testProjectedOperandKeepsHintedRowTypeInAsyncTableSplit() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("wideFunc", new WideRowTableFunction());
++        String sql = "select * FROM t1, LATERAL TABLE(wideFunc(ABS(f1) + 10))";
++
++        String plan = tEnv.explainSql(sql);
++        assertThat(plan).contains("AsyncCorrelate");
++        List<Row> results = executeSql(sql);
++
++        assertThat(results)
++                .containsExactly(
++                        Row.of(1, "wide 11", 22),
++                        Row.of(2, "wide 12", 24));
++    }
++
++    @Test
++    public void testInternalAtomicAsyncTableOutputIsRowWrapped() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("internalFunc", new InternalStringTableFunction());
++
++        List<Row> results = executeSql("select * FROM t1, LATERAL TABLE(internalFunc(f1))");
++
++        assertThat(results)
++                .containsExactly(
++                        Row.of(1, "internal 1"),
++                        Row.of(2, "internal 2"));
++    }
++
++    @Test
++    public void testAtomicAsyncTableOutputCanBeProjectedAfterCorrelate() {
++        Table t1 = tEnv.fromValues(1, 2).as("f1");
++        tEnv.createTemporaryView("t1", t1);
++        tEnv.createTemporarySystemFunction("internalFunc", new InternalStringTableFunction());
++
++        List<Row> results =
++                executeSql(
++                        "select f1, CHAR_LENGTH(s) FROM t1, "
++                                + "LATERAL TABLE(internalFunc(f1)) AS T(s)");
++
++        assertThat(results)
++                .containsExactly(
++                        Row.of(1, 10),
++                        Row.of(2, 10));
++    }
++
++    private List<Row> executeSql(String sql) {
++        TableResult result = tEnv.executeSql(sql);
++        final List<Row> rows = new ArrayList<>();
++        result.collect().forEachRemaining(rows::add);
++        return rows;
++    }
++
++    /** Completes after the scalar timeout but before the async-table timeout. */
++    public static class SlowTableFunction extends AsyncTableFunction<String> {
++
++        public void eval(CompletableFuture<Collection<String>> future, int value) {
++            CompletableFuture.runAsync(
++                    () -> {
++                        try {
++                            Thread.sleep(100L);
++                            future.complete(Collections.singletonList("slow " + value));
++                        } catch (InterruptedException e) {
++                            Thread.currentThread().interrupt();
++                            future.completeExceptionally(e);
++                        }
++                    });
++        }
++    }
++
++    /** Makes the second result complete before the first so ORDERED output is observable. */
++    public static class ReorderingTableFunction extends AsyncTableFunction<String> {
++
++        private static volatile CountDownLatch firstInvocationStarted = new CountDownLatch(1);
++        private static volatile CountDownLatch secondInvocationStarted = new CountDownLatch(1);
++
++        static void resetLatches() {
++            firstInvocationStarted = new CountDownLatch(1);
++            secondInvocationStarted = new CountDownLatch(1);
++        }
++
++        public void eval(CompletableFuture<Collection<String>> future, int value) {
++            if (value == 1) {
++                firstInvocationStarted.countDown();
++                CompletableFuture.runAsync(
++                        () -> {
++                            try {
++                                if (!secondInvocationStarted.await(3, TimeUnit.SECONDS)) {
++                                    future.completeExceptionally(
++                                            new AssertionError("second invocation did not start"));
++                                    return;
++                                }
++                                Thread.sleep(150L);
++                                future.complete(Collections.singletonList("ordered " + value));
++                            } catch (InterruptedException e) {
++                                Thread.currentThread().interrupt();
++                                future.completeExceptionally(e);
++                            }
++                        });
++            } else {
++                CompletableFuture.runAsync(
++                        () -> {
++                            try {
++                                if (!firstInvocationStarted.await(3, TimeUnit.SECONDS)) {
++                                    future.completeExceptionally(
++                                            new AssertionError("first invocation did not start"));
++                                    return;
++                                }
++                                secondInvocationStarted.countDown();
++                                future.complete(Collections.singletonList("ordered " + value));
++                            } catch (InterruptedException e) {
++                                Thread.currentThread().interrupt();
++                                future.completeExceptionally(e);
++                            }
++                        });
++            }
++        }
++    }
++
++    /** Invalid because AsyncTableFunction results must be collections. */
++    public static class InvalidFutureTableFunction extends AsyncTableFunction<String> {
++
++        public void eval(CompletableFuture<String> future, int value) {
++            future.complete("bad " + value);
++        }
++    }
++
++    /** Hinted multi-field Row output with a projected input operand. */
++    @FunctionHint(output = @DataTypeHint("ROW<label STRING, doubled INT>"))
++    public static class WideRowTableFunction extends AsyncTableFunction<Row> {
++
++        public void eval(CompletableFuture<Collection<Row>> future, int value) {
++            future.complete(Collections.singletonList(Row.of("wide " + value, value * 2)));
++        }
++    }
++
++    /** Atomic output bridged to Flink's internal string representation. */
++    @FunctionHint(output = @DataTypeHint(value = "STRING", bridgedTo = StringData.class))
++    public static class InternalStringTableFunction extends AsyncTableFunction<StringData> {
++
++        public void eval(CompletableFuture<Collection<StringData>> future, int value) {
++            future.complete(
++                    Collections.singletonList(StringData.fromString("internal " + value)));
++        }
++    }
++}

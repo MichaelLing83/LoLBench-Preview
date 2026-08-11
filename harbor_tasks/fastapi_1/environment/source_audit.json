@@ -1,0 +1,6 @@
+{
+  "source_policy": "dockerfile_fetch_historyless_base_snapshot",
+  "base_commit": "ef176c663195489b44030bfe1fb94a317762c8d5",
+  "repo": "fastapi/fastapi",
+  "note": "The generated Dockerfile fetches the base commit with ancestor history, preserves .git, removes post-base refs/remotes/reflogs, and prunes unreachable future commit objects during image build."
+}

@@ -1,0 +1,3139 @@
+{
+  "instance_id": "CPython_PEP-695_Type-Parameter-Syntax_PR-103764",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0695/",
+  "requirement_doc_title": "PEP 695 \u2014 Type Parameter Syntax",
+  "pr_link": "https://github.com/python/cpython/pull/103764",
+  "pr_number": 103764,
+  "merge_commit": "24d8b88420b81fc60aeb0cbcacef1e72d633824a",
+  "base_commit": "fdafdc235e74f2f4fedc1f745bf8b90141daa162",
+  "base_commit_note": "PR-103764 was squash-merged on 2023-05-16; the merge commit 24d8b88420b81fc60aeb0cbcacef1e72d633824a has a single parent fdafdc235e74f2f4fedc1f745bf8b90141daa162. Same merge-parent override pattern as prior CPython instances (PEP-617 / 634 / 654 / 669 / 680 / 615 / 709 / 696).",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_type_params.TypeParamsInvalidTest.test_name_collision_01",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_02",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_03",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_04",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_05",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_06",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_07",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_08",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_9",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_10",
+    "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_13",
+    "test.test_type_params.TypeParamsInvalidTest.test_disallowed_expressions",
+    "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_01",
+    "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_02",
+    "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_03",
+    "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_allowed",
+    "test.test_type_params.TypeParamsAccessTest.test_class_access_01",
+    "test.test_type_params.TypeParamsAccessTest.test_class_access_02",
+    "test.test_type_params.TypeParamsAccessTest.test_class_access_03",
+    "test.test_type_params.TypeParamsAccessTest.test_function_access_01",
+    "test.test_type_params.TypeParamsAccessTest.test_function_access_02",
+    "test.test_type_params.TypeParamsAccessTest.test_function_access_03",
+    "test.test_type_params.TypeParamsAccessTest.test_method_access_01",
+    "test.test_type_params.TypeParamsAccessTest.test_nested_access_01",
+    "test.test_type_params.TypeParamsAccessTest.test_out_of_scope_01",
+    "test.test_type_params.TypeParamsAccessTest.test_out_of_scope_02",
+    "test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_01",
+    "test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_02",
+    "test.test_type_params.TypeParamsAccessTest.test_class_deref",
+    "test.test_type_params.TypeParamsAccessTest.test_shadowing_nonlocal",
+    "test.test_type_params.TypeParamsAccessTest.test_reference_previous_typevar",
+    "test.test_type_params.TypeParamsAccessTest.test_super",
+    "test.test_type_params.TypeParamsAccessTest.test_type_alias_containing_lambda",
+    "test.test_type_params.TypeParamsAccessTest.test_class_base_containing_lambda",
+    "test.test_type_params.TypeParamsAccessTest.test_comprehension_01",
+    "test.test_type_params.TypeParamsAccessTest.test_comprehension_02",
+    "test.test_type_params.TypeParamsLazyEvaluationTest.test_qualname",
+    "test.test_type_params.TypeParamsLazyEvaluationTest.test_recursive_class",
+    "test.test_type_params.TypeParamsLazyEvaluationTest.test_evaluation_error",
+    "test.test_type_params.TypeParamsClassScopeTest.test_alias",
+    "test.test_type_params.TypeParamsClassScopeTest.test_bound",
+    "test.test_type_params.TypeParamsClassScopeTest.test_modified_later",
+    "test.test_type_params.TypeParamsClassScopeTest.test_binding_uses_global",
+    "test.test_type_params.TypeParamsClassScopeTest.test_no_binding_uses_nonlocal",
+    "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global",
+    "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_no_static_bound",
+    "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_assignment",
+    "test.test_type_params.TypeParamsClassScopeTest.test_explicit_nonlocal",
+    "test.test_type_params.TypeParamsManglingTest.test_mangling",
+    "test.test_type_params.TypeParamsComplexCallsTest.test_defaults",
+    "test.test_type_params.TypeParamsComplexCallsTest.test_complex_base",
+    "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_01",
+    "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_02",
+    "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_03",
+    "test.test_type_params.TypeParamsTypeVarTest.test_typevar_01",
+    "test.test_type_params.TypeParamsTypeVarTest.test_typevar_generator",
+    "test.test_type_params.TypeParamsTypeVarTest.test_typevar_coroutine",
+    "test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_01",
+    "test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_02",
+    "test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_01",
+    "test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_02",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_01",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_02",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_03",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_01",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_02",
+    "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_03",
+    "test.test_type_aliases.TypeParamsInvalidTest.test_name_collision_01",
+    "test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_02",
+    "test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_03",
+    "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_01",
+    "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_02",
+    "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_03",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_01",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_02",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_03",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_04",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_subscripting",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_repr",
+    "test.test_type_aliases.TypeParamsAliasValueTest.test_recursive_repr",
+    "test.test_type_aliases.TypeAliasConstructorTest.test_basic",
+    "test.test_type_aliases.TypeAliasConstructorTest.test_generic",
+    "test.test_type_aliases.TypeAliasConstructorTest.test_keywords",
+    "test.test_type_aliases.TypeAliasConstructorTest.test_errors",
+    "test.test_type_aliases.TypeAliasTypeTest.test_immutable",
+    "test.test_type_aliases.TypeAliasTypeTest.test_no_subclassing",
+    "test.test_type_aliases.TypeAliasTypeTest.test_union",
+    "test.test_ast.AST_Tests.test_type_params_feature_version"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+    "test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+    "test.test_int.IntTestCases.test_basic",
+    "test.test_int.IntTestCases.test_invalid_signs",
+    "test.test_int.IntTestCases.test_unicode",
+    "test.test_int.IntTestCases.test_underscores",
+    "test.test_int.IntTestCases.test_small_ints",
+    "test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+    "test.test_int.IntStrDigitLimitsTests.test_max_str_digits_edge_cases",
+    "test.test_int.IntStrDigitLimitsTests.test_max_str_digits",
+    "test.test_float.GeneralFloatCases.test_float",
+    "test.test_float.GeneralFloatCases.test_noargs",
+    "test.test_float.GeneralFloatCases.test_underscores",
+    "test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+    "test.test_float.GeneralFloatCases.test_float_memoryview",
+    "test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+    "test.test_float.FormatFunctionsTestCase.test_getformat",
+    "test.test_string.ModuleTest.test_attrs",
+    "test.test_string.ModuleTest.test_capwords",
+    "test.test_string.ModuleTest.test_basic_formatter",
+    "test.test_string.ModuleTest.test_format_keyword_arguments",
+    "test.test_string.ModuleTest.test_auto_numbering",
+    "test.test_string.TestTemplate.test_regular_templates",
+    "test.test_string.TestTemplate.test_regular_templates_with_braces",
+    "test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+    "test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+    "test.test_string.TestTemplate.test_escapes",
+    "test.test_calendar.OutputTestCase.test_formatmonth",
+    "test.test_calendar.OutputTestCase.test_formatmonthname_with_year",
+    "test.test_calendar.OutputTestCase.test_prweek",
+    "test.test_calendar.OutputTestCase.test_formatweekheader_short",
+    "test.test_calendar.OutputTestCase.test_prmonth",
+    "test.test_calendar.CalendarTestCase.test_isleap",
+    "test.test_calendar.CalendarTestCase.test_setfirstweekday",
+    "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+    "test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+    "test.test_calendar.CalendarTestCase.test_days",
+    "test.test_list.ListTest.test_basic",
+    "test.test_list.ListTest.test_truth",
+    "test.test_list.ListTest.test_len",
+    "test.test_list.ListTest.test_overflow",
+    "test.test_dict.DictTest.test_invalid_keyword_arguments",
+    "test.test_dict.DictTest.test_bool",
+    "test.test_dict.DictTest.test_keys",
+    "test.test_dict.DictTest.test_values",
+    "test.test_dict.DictTest.test_items",
+    "test.test_dict.DictTest.test_contains",
+    "test.test_dict.DictTest.test_clear",
+    "test.test_dict.DictTest.test_update",
+    "test.test_dict.DictTest.test_fromkeys",
+    "test.test_dict.DictTest.test_copy",
+    "test.test_set.TestSet.test_init",
+    "test.test_set.TestSet.test_constructor_identity",
+    "test.test_set.TestSet.test_set_literal",
+    "test.test_set.TestSet.test_set_literal_insertion_order",
+    "test.test_set.TestSet.test_set_literal_evaluation_order",
+    "test.test_set.TestSet.test_hash",
+    "test.test_set.TestSet.test_clear",
+    "test.test_set.TestSet.test_copy",
+    "test.test_set.TestSet.test_add",
+    "test.test_set.TestSet.test_remove",
+    "test.test_set.TestSet.test_remove_keyerror_unpacking",
+    "test.test_set.TestSet.test_remove_keyerror_set",
+    "test.test_set.TestSet.test_discard",
+    "test.test_set.TestSet.test_pop",
+    "test.test_set.TestSet.test_update",
+    "test.test_set.TestSet.test_ior",
+    "test.test_set.TestSet.test_intersection_update",
+    "test.test_set.TestSet.test_iand",
+    "test.test_set.TestSet.test_difference_update",
+    "test.test_set.TestSet.test_isub",
+    "test.test_set.TestSet.test_symmetric_difference_update",
+    "test.test_set.TestSet.test_ixor",
+    "test.test_set.TestSet.test_inplace_on_self",
+    "test.test_set.TestSet.test_weakref",
+    "test.test_calendar.OutputTestCase.test_output",
+    "test.test_calendar.OutputTestCase.test_output_textcalendar",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default",
+    "test.test_calendar.OutputTestCase.test_yeardatescalendar",
+    "test.test_calendar.OutputTestCase.test_yeardayscalendar",
+    "test.test_calendar.OutputTestCase.test_formatweekheader_long",
+    "test.test_calendar.OutputTestCase.test_formatmonthname_without_year",
+    "test.test_calendar.OutputTestCase.test_pryear",
+    "test.test_calendar.OutputTestCase.test_format",
+    "test.test_calendar.CalendarTestCase.test_deprecation_warning",
+    "test.test_calendar.CalendarTestCase.test_months",
+    "test.test_calendar.CalendarTestCase.test_locale_calendars",
+    "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name",
+    "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_weekday",
+    "test.test_calendar.CalendarTestCase.test_itermonthdays3",
+    "test.test_calendar.CalendarTestCase.test_itermonthdays4",
+    "test.test_calendar.CalendarTestCase.test_itermonthdays",
+    "test.test_calendar.CalendarTestCase.test_itermonthdays2",
+    "test.test_calendar.CalendarTestCase.test_iterweekdays",
+    "test.test_calendar.MondayTestCase.test_february",
+    "test.test_calendar.MondayTestCase.test_april",
+    "test.test_calendar.MondayTestCase.test_december",
+    "test.test_calendar.SundayTestCase.test_february",
+    "test.test_calendar.SundayTestCase.test_april",
+    "test.test_calendar.SundayTestCase.test_december",
+    "test.test_calendar.TimegmTestCase.test_timegm",
+    "test.test_calendar.MonthRangeTestCase.test_january",
+    "test.test_dict.DictTest.test_constructor",
+    "test.test_dict.DictTest.test_literal_constructor",
+    "test.test_dict.DictTest.test_merge_operator",
+    "test.test_dict.DictTest.test_views_mapping",
+    "test.test_dict.DictTest.test_len",
+    "test.test_dict.DictTest.test_getitem",
+    "test.test_dict.DictTest.test_copy_fuzz",
+    "test.test_dict.DictTest.test_copy_maintains_tracking",
+    "test.test_dict.DictTest.test_copy_noncompact",
+    "test.test_dict.DictTest.test_get",
+    "test.test_dict.DictTest.test_setdefault",
+    "test.test_dict.DictTest.test_setdefault_atomic",
+    "test.test_dict.DictTest.test_setitem_atomic_at_resize",
+    "test.test_dict.DictTest.test_popitem",
+    "test.test_dict.DictTest.test_pop",
+    "test.test_dict.DictTest.test_mutating_iteration",
+    "test.test_dict.DictTest.test_mutating_iteration_delete",
+    "test.test_dict.DictTest.test_mutating_iteration_delete_over_values",
+    "test.test_dict.DictTest.test_mutating_iteration_delete_over_items",
+    "test.test_dict.DictTest.test_mutating_lookup",
+    "test.test_list.ListTest.test_keyword_args",
+    "test.test_list.ListTest.test_keywords_in_subclass",
+    "test.test_list.ListTest.test_identity",
+    "test.test_list.ListTest.test_list_resize_overflow",
+    "test.test_list.ListTest.test_repr_large",
+    "test.test_list.ListTest.test_iterator_pickle",
+    "test.test_list.ListTest.test_reversed_pickle",
+    "test.test_list.ListTest.test_step_overflow",
+    "test.test_list.ListTest.test_no_comdat_folding",
+    "test.test_list.ListTest.test_equal_operator_modifying_operand",
+    "test.test_list.ListTest.test_preallocation",
+    "test.test_list.ListTest.test_count_index_remove_crashes",
+    "test.test_float.GeneralFloatCases.test_error_message",
+    "test.test_float.GeneralFloatCases.test_floatconversion",
+    "test.test_float.GeneralFloatCases.test_keyword_args",
+    "test.test_float.GeneralFloatCases.test_keywords_in_subclass",
+    "test.test_float.GeneralFloatCases.test_is_integer",
+    "test.test_float.GeneralFloatCases.test_floatasratio",
+    "test.test_float.GeneralFloatCases.test_float_containment",
+    "test.test_float.GeneralFloatCases.test_float_floor",
+    "test.test_float.GeneralFloatCases.test_float_ceil",
+    "test.test_float.GeneralFloatCases.test_float_mod",
+    "test.test_float.GeneralFloatCases.test_float_pow",
+    "test.test_float.GeneralFloatCases.test_hash",
+    "test.test_float.GeneralFloatCases.test_hash_nan",
+    "test.test_float.FormatTestCase.test_format"
+  ],
+  "solution_patch_sha256": "b7fd3ab59c8c0778bde164a092cd1510af2e3e7d4346baa5da5a67ca0208eab9",
+  "eval_tests_patch_sha256": "eaab970495bd79775cbe3f216995a4312c5a17e14843a864305277bde9a38c53",
+  "omitted_patch_sha256": "f532e173af04dc55e2451f01bc036baa6f68c6cff5c36f83b0ab16cc2b720b46",
+  "eval_tests_patch_notes": "eval_tests.patch contains 7 test files: 2 NEW files (test_type_params.py with 67 methods across 13 classes, test_type_aliases.py with 20 methods across 5 classes \u2014 both canonical PEP-695 test suites) and 5 modified files (Lib/test/support/__init__.py: helpers; test_ast.py: +1 method; test_keyword.py: no method change; test_sys.py: no method change; test_typing.py: typing.TypeAliasType public API tests).\n\nRound 1 update: 3 build-glue files (Makefile.pre.in, Modules/Setup.bootstrap.in, Modules/Setup.stdlib.in) moved from omitted.patch \u2192 solution.patch per Codex Critical 1.",
+  "omitted_patch_notes": "omitted.patch contains 5 files (down from 8 in round 1 after Codex C1): Doc/library/ast.rst, Misc/NEWS.d/next/Core and Builtins/...gh-103763.rst (NEWS), and 3 Windows-only PCbuild files (_freeze_module.vcxproj, pythoncore.vcxproj, pythoncore.vcxproj.filters). The 3 Linux-relevant build-glue files (Makefile.pre.in, Modules/Setup.bootstrap.in, Modules/Setup.stdlib.in) were moved into solution.patch in round 1 to fix Codex's Critical 1 \u2014 they add Objects/typevarobject.o to OBJECT_OBJS and wire the new _typing accelerator into the bootstrap path. Without them the post-state build links incorrectly.",
+  "fixture_taint_summary": "88 F2P (expanded from initial 39 to push coverage above the 50% floor \u2014 Codex round 2 follow-up): all 67 methods in test_type_params.py + all 20 in test_type_aliases.py + 1 test_ast.test_type_params_feature_version. Pre-state: test_type_params.py module body has `def global_generic_func[T]():` (line 401) + `class GlobalGenericClass[T]:` (line 404) \u2192 SyntaxError at import \u2192 every test method ERRORs at unittest load. test_type_aliases tests exec() `type Alias[T] = ...` source \u2192 SyntaxError at run_code \u2192 FAIL/ERROR.\n208 P2P spread across 8 untouched test files: 30 test_grammar + 8 test_int + 24 test_float + 10 test_string + 40 test_calendar + 16 test_list + 30 test_dict + 50 test_set. Ratio P2P/F2P = 2.36\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "test.test_type_params.TypeParamsInvalidTest.test_name_collision_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_collision_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_04": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_04",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_05": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_05",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_06": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_06",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_07": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_07",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_08": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_08",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_9": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_9",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_10": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_10",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_13": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_name_non_collision_13",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsInvalidTest.test_disallowed_expressions": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsInvalidTest.test_disallowed_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_disallowed_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_allowed": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsNonlocalTest.test_nonlocal_allowed",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_access_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_access_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_access_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_access_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_access_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_access_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_function_access_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_function_access_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_function_access_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_function_access_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_function_access_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_function_access_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_method_access_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_method_access_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_nested_access_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_nested_access_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_out_of_scope_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_out_of_scope_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_out_of_scope_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_out_of_scope_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_scope_interaction_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_deref": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_deref",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_shadowing_nonlocal": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_shadowing_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_reference_previous_typevar": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_reference_previous_typevar",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_super": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_super",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_type_alias_containing_lambda": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_type_alias_containing_lambda",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_class_base_containing_lambda": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_class_base_containing_lambda",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_comprehension_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_comprehension_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsAccessTest.test_comprehension_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsAccessTest.test_comprehension_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsLazyEvaluationTest.test_qualname": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsLazyEvaluationTest.test_qualname",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsLazyEvaluationTest.test_recursive_class": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsLazyEvaluationTest.test_recursive_class",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsLazyEvaluationTest.test_evaluation_error": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsLazyEvaluationTest.test_evaluation_error",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_alias": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_alias",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_bound": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_bound",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_modified_later": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_modified_later",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_binding_uses_global": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_binding_uses_global",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_no_binding_uses_nonlocal": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_no_binding_uses_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_explicit_global",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_no_static_bound": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_no_static_bound",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_assignment": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_explicit_global_with_assignment",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsClassScopeTest.test_explicit_nonlocal": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsClassScopeTest.test_explicit_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsManglingTest.test_mangling": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsManglingTest.test_mangling",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsComplexCallsTest.test_defaults": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsComplexCallsTest.test_defaults",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsComplexCallsTest.test_complex_base": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsComplexCallsTest.test_complex_base",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTraditionalTypeVarsTest.test_traditional_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarTest.test_typevar_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarTest.test_typevar_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarTest.test_typevar_generator": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarTest.test_typevar_generator",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarTest.test_typevar_coroutine": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarTest.test_typevar_coroutine",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarTupleTest.test_typevartuple_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeVarParamSpecTest.test_paramspec_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_class_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_01": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_02": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_03": {
+        "system_reason": "PEP-695 type-parameter test. test_type_params.py has module-level `class GlobalGenericClass[T]:` \u2192 SyntaxError at module import pre-state \u2192 ERROR.",
+        "public_surface": "exec()/run_code() on `class C[T]:`/`def f[T]():`/`type Alias[T] = ...` source + .__type_params__",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.TypeParamsTypeParamsDunder.test_typeparams_dunder_function_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsInvalidTest.test_name_collision_01": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsInvalidTest.test_name_collision_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_02": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_03": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsInvalidTest.test_name_non_collision_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_01": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAccessTest.test_alias_access_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_02": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAccessTest.test_alias_access_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAccessTest.test_alias_access_03": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAccessTest.test_alias_access_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_01": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_01",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_02": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_02",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_03": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_03",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_04": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_alias_value_04",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_subscripting": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_subscripting",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_repr": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_repr",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeParamsAliasValueTest.test_recursive_repr": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeParamsAliasValueTest.test_recursive_repr",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasConstructorTest.test_basic": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasConstructorTest.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasConstructorTest.test_generic": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasConstructorTest.test_generic",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasConstructorTest.test_keywords": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasConstructorTest.test_keywords",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasConstructorTest.test_errors": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasConstructorTest.test_errors",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasTypeTest.test_immutable": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasTypeTest.test_immutable",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasTypeTest.test_no_subclassing": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasTypeTest.test_no_subclassing",
+        "fixture_taint_checked": true
+      },
+      "test.test_type_aliases.TypeAliasTypeTest.test_union": {
+        "system_reason": "PEP-695 type-alias test. exec()s `type Alias[T] = ...` source \u2192 pre-state SyntaxError.",
+        "public_surface": "exec()/run_code() on `type Alias[T] = ...` source + typing.TypeAliasType public API",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_aliases.TypeAliasTypeTest.test_union",
+        "fixture_taint_checked": true
+      },
+      "test.test_ast.AST_Tests.test_type_params_feature_version": {
+        "system_reason": "ast.parse feature_version gating of `class X[T]:` syntax.",
+        "public_surface": "ast.parse(source, feature_version=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_FUNCTION_TYPE_PARAMS"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_type_params_feature_version",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "test.test_grammar.TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_syntax_errors": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+        "fixture_taint_checked": true
+      },
+      "test.test_grammar.GrammarTests.test_var_annot_simple_exec": {
+        "system_reason": "Pre-existing grammar test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile()/exec() on source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_basic": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_invalid_signs": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_invalid_signs",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_unicode": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_unicode",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_underscores": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_small_ints": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_small_ints",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntStrDigitLimitsTests.test_disabled_limit": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntStrDigitLimitsTests.test_max_str_digits_edge_cases": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_max_str_digits_edge_cases",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntStrDigitLimitsTests.test_max_str_digits": {
+        "system_reason": "Pre-existing int test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_max_str_digits",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_noargs": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_noargs",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_underscores": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_non_numeric_input_types": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_memoryview": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_memoryview",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.IEEEFormatTestCase.test_serialized_float_rounding": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatFunctionsTestCase.test_getformat": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatFunctionsTestCase.test_getformat",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_attrs": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_attrs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_capwords": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_capwords",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_basic_formatter": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_basic_formatter",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_format_keyword_arguments": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_format_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_auto_numbering": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_auto_numbering",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_braces": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_braces",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_upper_case": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates_with_non_letters": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_escapes": {
+        "system_reason": "Pre-existing string test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_escapes",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonth": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonth",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonthname_with_year": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonthname_with_year",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_prweek": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_prweek",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatweekheader_short": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatweekheader_short",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_prmonth": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_prmonth",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_isleap": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_isleap",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_setfirstweekday": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_setfirstweekday",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_enumerate_weekdays": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_days": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_days",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_basic": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_truth": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_truth",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_len": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_len",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_overflow": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_invalid_keyword_arguments": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_invalid_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_bool": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_bool",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_keys": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_keys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_values": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_values",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_items": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_items",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_contains": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_contains",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_clear": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_update": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_fromkeys": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_fromkeys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_init": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_init",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_constructor_identity": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_constructor_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal_insertion_order": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal_insertion_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal_evaluation_order": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal_evaluation_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_hash": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_hash",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_clear": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_copy": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_add": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_add",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_unpacking": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_unpacking",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_set": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_set",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_discard": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_discard",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_pop": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_pop",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_update": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ior": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ior",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_intersection_update": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_intersection_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_iand": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_iand",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_difference_update": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_isub": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_isub",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_symmetric_difference_update": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_symmetric_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ixor": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ixor",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_inplace_on_self": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_inplace_on_self",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_weakref": {
+        "system_reason": "Pre-existing set test. test_set.py is NOT modified by this PR.",
+        "public_surface": "set/frozenset builtins",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_weakref",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_textcalendar": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_textcalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_default",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_yeardatescalendar": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_yeardatescalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_yeardayscalendar": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_yeardayscalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatweekheader_long": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatweekheader_long",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_formatmonthname_without_year": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_formatmonthname_without_year",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_pryear": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_pryear",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_format": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_format",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_deprecation_warning": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_deprecation_warning",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_months": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_months",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_locale_calendars": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_locale_calendars",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_month_name",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_weekday": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_locale_html_calendar_custom_css_class_weekday",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_itermonthdays3": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_itermonthdays3",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_itermonthdays4": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_itermonthdays4",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_itermonthdays": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_itermonthdays",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_itermonthdays2": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_itermonthdays2",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_iterweekdays": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_iterweekdays",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.MondayTestCase.test_february": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.MondayTestCase.test_february",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.MondayTestCase.test_april": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.MondayTestCase.test_april",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.MondayTestCase.test_december": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.MondayTestCase.test_december",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.SundayTestCase.test_february": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.SundayTestCase.test_february",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.SundayTestCase.test_april": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.SundayTestCase.test_april",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.SundayTestCase.test_december": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.SundayTestCase.test_december",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.TimegmTestCase.test_timegm": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.TimegmTestCase.test_timegm",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.MonthRangeTestCase.test_january": {
+        "system_reason": "Pre-existing calendar test. test_calendar.py is NOT modified by this PR.",
+        "public_surface": "calendar public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.MonthRangeTestCase.test_january",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_constructor": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_constructor",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_literal_constructor": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_literal_constructor",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_merge_operator": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_merge_operator",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_views_mapping": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_views_mapping",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_len": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_len",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_getitem": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_getitem",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_fuzz": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_fuzz",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_maintains_tracking": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_maintains_tracking",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy_noncompact": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy_noncompact",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_get": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_get",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_setdefault": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_setdefault",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_setdefault_atomic": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_setdefault_atomic",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_setitem_atomic_at_resize": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_setitem_atomic_at_resize",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_popitem": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_popitem",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_pop": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_pop",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_mutating_iteration": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_mutating_iteration",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_mutating_iteration_delete": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_mutating_iteration_delete",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_mutating_iteration_delete_over_values": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_mutating_iteration_delete_over_values",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_mutating_iteration_delete_over_items": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_mutating_iteration_delete_over_items",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_mutating_lookup": {
+        "system_reason": "Pre-existing dict test. test_dict.py is NOT modified by this PR.",
+        "public_surface": "dict builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_mutating_lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_keyword_args": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_keywords_in_subclass": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_keywords_in_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_identity": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_list_resize_overflow": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_list_resize_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_repr_large": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_repr_large",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_iterator_pickle": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_iterator_pickle",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_reversed_pickle": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_reversed_pickle",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_step_overflow": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_step_overflow",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_no_comdat_folding": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_no_comdat_folding",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_equal_operator_modifying_operand": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_equal_operator_modifying_operand",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_preallocation": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_preallocation",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_count_index_remove_crashes": {
+        "system_reason": "Pre-existing list test. test_list.py is NOT modified by this PR.",
+        "public_surface": "list builtin",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_count_index_remove_crashes",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_error_message": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_error_message",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_floatconversion": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_floatconversion",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_keyword_args": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_keywords_in_subclass": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_keywords_in_subclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_is_integer": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_is_integer",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_floatasratio": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_floatasratio",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_containment": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_containment",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_floor": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_floor",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_ceil": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_ceil",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_mod": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_mod",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float_pow": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_pow",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_hash": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_hash",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_hash_nan": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_hash_nan",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.FormatTestCase.test_format": {
+        "system_reason": "Pre-existing float test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatTestCase.test_format",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "Internal helpers: _PyTypeVar_*, _PyTypeAlias_*, INTRINSIC_SET_FUNCTION_TYPE_PARAMS, etc.",
+      "reason": "Internal-implementation symbols introduced by the PR. F2P checks observable public behavior only."
+    }
+  ],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; the build regenerates parser.c / Python-ast.c from python.gram + Python.asdl)",
+    "runtime_caps": "--network=none, default seccomp"
+  },
+  "validated_at": "2026-05-22T02:23:01Z",
+  "coverage_gap_note": "Union coverage: 81.9% (1034/1263 executable lines in solution.patch) after normalizing all suites to the union instrumented denominator. F2P is at the **maximum** PR contribution: all 67 methods in the NEW test_type_params.py + all 20 in NEW test_type_aliases.py + 1 test_ast.test_type_params_feature_version = 88 selectors (verified that test_typing.py has NO net new methods; test files outside the 7 modified ones are untouched). Even with the maximum public-API behavioral test surface, the gap persists in three structurally-hard-to-reach categories:\n\n  - Parser/parser.c (38%, 726-line gap): auto-generated parser-action tables for the ENTIRE Python grammar. PEP-695 syntax exercises only the new rule actions; the rest of parser.c is unchanged-but-recompiled code reachable only via other grammar tests (those tests are in P2P but they don't hit PR-NEW lines).\n\n  - Python/Python-ast.c (24%, 427-line gap): auto-generated AST node visitor / field accessor stubs for ALL ast nodes; PEP-695 tests exercise only the new TypeVar / TypeVarTuple / ParamSpec / TypeAlias visitors.\n\n  - Objects/clinic/typevarobject.c.h (14%, 316-line gap): argument-clinic-generated boilerplate for typevarobject constructors. Most lines are type-error/keyword-argument-error branches not triggered by valid public-API usage.\n\n  - Objects/typevarobject.c (35%, 593-line gap): pickle/copy/deepcopy/reduce helpers + many low-priority dunder methods. Some are reachable via pickle.dumps(TypeVar) tests; CPython's own pickle tests for these in the PR's test_typing.py weren't added as F2P because the test file diff is a net rename/refactor (0 new methods).\n\nThe residual uncovered code is auto-generated boilerplate or pickle/copy/serialization helpers that would require fabricating tests beyond the PR \u2014 out of scope per \u00a76's 'F2P/P2P from the PR itself' rule.",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "1f8f62c27191868e580cc5c2172d0c5e687c1b6805bf1a778d8907d9f0012c7f",
+    "f2p_aug_sha256": "180cd7944d3e4b01b9c0c4f254427f946e30216cc78496a4efcce54de1cbc8f9",
+    "p2p_aug_sha256": "984e5f04c636a113adb07261ac912dd626750f7bb42038dd566676b03d5d460b",
+    "fail_to_pass": [
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_ast_unparse_preserves_all_type_parameter_forms",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_source_distribution_keeps_type_parameter_grammar_and_soft_keyword",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_forward_union_and_invalid_variadic_specialization",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_implicit_type_parameters_expose_variance_and_exact_runtime_tuple",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_public_type_parameter_constructors_reject_invalid_combinations",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_lazy_bounds_constraints_and_alias_values_are_cached",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_alias_public_runtime_contract",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_bounds_constraints_and_empty_type_params_are_classified_correctly",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_parameter_scopes_and_prohibited_expressions",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_manual_ast_type_parameter_nodes_compile_and_validate",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_runtime_dunder_and_paramspec_attr_contracts",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_regenerated_parser_keeps_broad_public_grammar_paths"
+    ],
+    "pass_to_pass": [
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_regular_class_and_function_execution_are_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_string_template_and_formatter_are_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable"
+    ],
+    "targets_mutants": [
+      "mutant_001_ast_class_unparse_omits_type_params",
+      "mutant_002_ast_function_unparse_omits_type_params",
+      "mutant_003_ast_typeparams_unparse_parentheses",
+      "mutant_004_ast_typevartuple_unparse_drops_star",
+      "mutant_005_ast_paramspec_unparse_uses_single_star",
+      "mutant_006_ast_typealias_unparse_alias_keyword",
+      "mutant_007_keyword_type_not_soft_keyword",
+      "mutant_008_typing_union_helper_uses_pipe_operator",
+      "mutant_009_typing_allows_multiple_typevartuples",
+      "mutant_010_typing_paramspec_allows_too_few_args",
+      "mutant_011_implicit_typevar_infer_variance_false",
+      "mutant_012_implicit_paramspec_infer_variance_false",
+      "mutant_013_typevar_allows_infer_variance_with_variance",
+      "mutant_014_paramspec_allows_infer_variance_with_variance",
+      "mutant_015_typevar_allows_single_constraint",
+      "mutant_016_typevar_allows_constraints_with_bound",
+      "mutant_017_typevar_bound_not_cached",
+      "mutant_018_typevar_constraints_not_cached",
+      "mutant_019_typealias_value_not_cached",
+      "mutant_020_typealias_type_params_unpack_typevartuple",
+      "mutant_021_typealias_parameters_raw_typevartuple",
+      "mutant_022_typealias_non_generic_subscriptable",
+      "mutant_023_typealiastype_accepts_non_tuple_type_params",
+      "mutant_024_typealias_union_operator_missing",
+      "mutant_025_typealias_statement_returns_thunk_as_value",
+      "mutant_026_generic_base_keeps_bare_typevartuple",
+      "mutant_027_compiler_inverts_bounds_and_constraints",
+      "mutant_028_compiler_drops_last_type_param_from_tuple",
+      "mutant_029_compiler_class_stores_type_params_as_annotations",
+      "mutant_030_function_type_params_not_saved",
+      "mutant_031_function_no_type_params_returns_none",
+      "mutant_032_class_no_type_params_returns_none",
+      "mutant_033_symtable_duplicate_type_param_check_disabled",
+      "mutant_034_typeparam_scope_cannot_see_class_namespace",
+      "mutant_035_typevar_not_marked_as_type_parameter",
+      "mutant_036_typealias_scope_allows_prohibited_expressions",
+      "mutant_037_typeparam_scope_allows_prohibited_expressions",
+      "mutant_038_typevar_bound_scope_allows_prohibited_expressions",
+      "mutant_039_intrinsic_bound_recorded_as_constraints",
+      "mutant_040_intrinsic_constraints_recorded_as_bound"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "baseline_union_line_coverage_percent": 68.2,
+      "augmented_only_union_line_coverage_percent": 78.1,
+      "union_line_coverage_percent": 81.9,
+      "executable_lines_in_patch": 1263,
+      "union_covered_lines": 1034,
+      "coverage_complete": true,
+      "measurement_note": "Coverage uses the union suite report after excluding generated artifacts Parser/parser.c, Python/Python-ast.c, and Objects/clinic/typevarobject.c.h from the executable denominator; generated behavior is still exercised through public compile()/ast/runtime tests.",
+      "scope": "coverage.py for the 5 PEP-695 Python files (Lib/typing.py, Lib/ast.py, Lib/keyword.py, Lib/opcode.py, Lib/importlib/_bootstrap_external.py) + gcov/gcovr for the authored/runtime PEP-695 C source/header files (Parser/action_helpers.c, Python/{compile,symtable,ast,ast_opt,bytecodes,intrinsics,pylifecycle}.c, Objects/{typevarobject,funcobject,typeobject,unionobject,object}.c, Modules/_typingmodule.c, plus all touched pycore_*.h / cpython/funcobject.h / opcode.h headers). Grammar/python.gram and Parser/Python.asdl are grammar / schema sources (non-executable), and Parser/parser.c, Python/Python-ast.c, and Objects/clinic/typevarobject.c.h are generated artifacts, so they are not part of the denominator; generated parser/AST behavior is covered indirectly through public compile()/ast tests."
+    },
+    "synthetic_tests": [
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_ast_unparse_preserves_all_type_parameter_forms",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_source_distribution_keeps_type_parameter_grammar_and_soft_keyword",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_forward_union_and_invalid_variadic_specialization",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_implicit_type_parameters_expose_variance_and_exact_runtime_tuple",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_public_type_parameter_constructors_reject_invalid_combinations",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_lazy_bounds_constraints_and_alias_values_are_cached",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_alias_public_runtime_contract",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_bounds_constraints_and_empty_type_params_are_classified_correctly",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_parameter_scopes_and_prohibited_expressions",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_manual_ast_type_parameter_nodes_compile_and_validate",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_runtime_dunder_and_paramspec_attr_contracts",
+      "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_regenerated_parser_keeps_broad_public_grammar_paths",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_regular_class_and_function_execution_are_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_string_template_and_formatter_are_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable",
+      "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors exercise PEP 695 behavior through public ast, keyword, typing, compile(), exec(), class/function metadata, and TypeAliasType surfaces; no project-defined internal symbols are referenced. Augmented P2P selectors exercise unrelated public stdlib/interpreter behavior that should pass at base, golden, and mutant states. Requirement section names exactly match the Section Classification Summary in requirement_pr_pairs/CPython_PEP-695_Type-Parameter-Syntax_PR-103764.md.",
+      "fail_to_pass": {
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_ast_unparse_preserves_all_type_parameter_forms": {
+          "requirement_sections": [
+            "Specification > Type Parameter Declarations",
+            "Specification > Generic Type Alias",
+            "Runtime Implementation > AST Changes"
+          ],
+          "public_surface": "ast.parse() and ast.unparse() over public class, function, async function, TypeVarTuple, ParamSpec, and type-alias syntax.",
+          "mutants_targeted": [
+            "mutant_001_ast_class_unparse_omits_type_params",
+            "mutant_002_ast_function_unparse_omits_type_params",
+            "mutant_003_ast_typeparams_unparse_parentheses",
+            "mutant_004_ast_typevartuple_unparse_drops_star",
+            "mutant_005_ast_paramspec_unparse_uses_single_star",
+            "mutant_006_ast_typealias_unparse_alias_keyword"
+          ],
+          "rationale": "PEP 695 requires type parameter lists to round trip through the public AST for classes, functions, async functions, variadic parameters, ParamSpecs, and type aliases. The test asserts the rendered public source keeps square brackets, stars, double stars, and the type statement."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_source_distribution_keeps_type_parameter_grammar_and_soft_keyword": {
+          "requirement_sections": [
+            "Runtime Implementation > Grammar Changes",
+            "Specification > Generic Type Alias"
+          ],
+          "public_surface": "The CPython source distribution shipped in the benchmark image, plus keyword.issoftkeyword(\"type\").",
+          "mutants_targeted": [
+            "mutant_007_keyword_type_not_soft_keyword"
+          ],
+          "rationale": "The grammar-change and generic-alias sections require the shipped grammar to define type-parameter productions and the type statement, and require type to be a soft keyword. Source-level checks catch source distribution regressions that generated parser artifacts can mask."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_forward_union_and_invalid_variadic_specialization": {
+          "requirement_sections": [
+            "Runtime Implementation > Library Changes"
+          ],
+          "public_surface": "typing.TypeVar union expressions with forward-reference strings, TypeVarTuple aliases, and ParamSpec Callable specialization.",
+          "mutants_targeted": [
+            "mutant_008_typing_union_helper_uses_pipe_operator",
+            "mutant_009_typing_allows_multiple_typevartuples",
+            "mutant_010_typing_paramspec_allows_too_few_args"
+          ],
+          "rationale": "The library-change section wires new runtime typing helpers into public typing constructs. The test verifies forward-reference unions work through typing, while invalid multiple-TypeVarTuple and under-supplied ParamSpec substitutions are still rejected."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_implicit_type_parameters_expose_variance_and_exact_runtime_tuple": {
+          "requirement_sections": [
+            "Specification > Type Parameter Declarations",
+            "Specification > Accessing Type Parameters at Runtime",
+            "Specification > Auto Variance For TypeVar"
+          ],
+          "public_surface": "exec() of PEP 695 class, function, and type-alias source plus public __type_params__, __parameters__, __name__, and __infer_variance__ attributes.",
+          "mutants_targeted": [
+            "mutant_011_implicit_typevar_infer_variance_false",
+            "mutant_012_implicit_paramspec_infer_variance_false",
+            "mutant_020_typealias_type_params_unpack_typevartuple",
+            "mutant_026_generic_base_keeps_bare_typevartuple",
+            "mutant_028_compiler_drops_last_type_param_from_tuple",
+            "mutant_029_compiler_class_stores_type_params_as_annotations",
+            "mutant_030_function_type_params_not_saved"
+          ],
+          "rationale": "PEP 695 says implicit parameters are runtime objects, are exposed in declaration order, infer variance automatically, and drive Generic metadata without explicit Generic bases. The test observes those properties through public class, function, and type-alias metadata."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_public_type_parameter_constructors_reject_invalid_combinations": {
+          "requirement_sections": [
+            "Specification > Constrained Type Specification",
+            "Specification > Auto Variance For TypeVar",
+            "Runtime Implementation > Library Changes",
+            "Specification > Runtime Type Alias Class"
+          ],
+          "public_surface": "typing.TypeVar, typing.ParamSpec, and typing.TypeAliasType public constructors.",
+          "mutants_targeted": [
+            "mutant_013_typevar_allows_infer_variance_with_variance",
+            "mutant_014_paramspec_allows_infer_variance_with_variance",
+            "mutant_015_typevar_allows_single_constraint",
+            "mutant_016_typevar_allows_constraints_with_bound",
+            "mutant_023_typealiastype_accepts_non_tuple_type_params"
+          ],
+          "rationale": "Constructor validation is part of the public runtime representation. The test requires invalid variance combinations, invalid constraints, and non-tuple TypeAliasType type parameters to raise the documented public exceptions."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_lazy_bounds_constraints_and_alias_values_are_cached": {
+          "requirement_sections": [
+            "Specification > Runtime Representation of Bounds and Constraints",
+            "Runtime Implementation > Lazy Evaluation",
+            "Specification > Generic Type Alias"
+          ],
+          "public_surface": "exec() of PEP 695 source plus public __bound__, __constraints__, and TypeAliasType.__value__ attributes.",
+          "mutants_targeted": [
+            "mutant_017_typevar_bound_not_cached",
+            "mutant_018_typevar_constraints_not_cached",
+            "mutant_019_typealias_value_not_cached",
+            "mutant_025_typealias_statement_returns_thunk_as_value"
+          ],
+          "rationale": "Bounds, constraints, and type-alias values are lazily evaluated public attributes and must cache after successful evaluation. The test uses side effects visible from Python source to prove one evaluation and the correct exposed value."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_alias_public_runtime_contract": {
+          "requirement_sections": [
+            "Specification > Generic Type Alias",
+            "Specification > Runtime Type Alias Class",
+            "Specification > Accessing Type Parameters at Runtime",
+            "Runtime Implementation > Library Changes"
+          ],
+          "public_surface": "exec() of type-alias statements plus TypeAliasType.__type_params__, __parameters__, __value__, subscription, and union behavior.",
+          "mutants_targeted": [
+            "mutant_020_typealias_type_params_unpack_typevartuple",
+            "mutant_021_typealias_parameters_raw_typevartuple",
+            "mutant_022_typealias_non_generic_subscriptable",
+            "mutant_024_typealias_union_operator_missing",
+            "mutant_025_typealias_statement_returns_thunk_as_value"
+          ],
+          "rationale": "Generic aliases must expose declared parameters exactly, expose subscription parameters with the public unpacking semantics, reject subscripting non-generic aliases, and participate in union expressions. The test drives all checks through TypeAliasType objects produced by public syntax."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_bounds_constraints_and_empty_type_params_are_classified_correctly": {
+          "requirement_sections": [
+            "Specification > Upper Bound Specification",
+            "Specification > Constrained Type Specification",
+            "Specification > Accessing Type Parameters at Runtime",
+            "Runtime Implementation > Lazy Evaluation"
+          ],
+          "public_surface": "exec() of class declarations plus public __bound__, __constraints__, and __type_params__ on classes and functions.",
+          "mutants_targeted": [
+            "mutant_027_compiler_inverts_bounds_and_constraints",
+            "mutant_028_compiler_drops_last_type_param_from_tuple",
+            "mutant_031_function_no_type_params_returns_none",
+            "mutant_032_class_no_type_params_returns_none",
+            "mutant_039_intrinsic_bound_recorded_as_constraints",
+            "mutant_040_intrinsic_constraints_recorded_as_bound"
+          ],
+          "rationale": "PEP 695 distinguishes upper bounds from constrained TypeVars and requires __type_params__ to be a tuple, including the empty tuple for non-generic functions/classes. This test checks those public runtime classifications directly."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_type_parameter_scopes_and_prohibited_expressions": {
+          "requirement_sections": [
+            "Specification > Type Parameter Declarations",
+            "Specification > Type Parameter Scopes",
+            "Runtime Implementation > Scoping Behavior"
+          ],
+          "public_surface": "compile() and exec() over PEP 695 source snippets, observing SyntaxError and public __bound__ resolution.",
+          "mutants_targeted": [
+            "mutant_033_symtable_duplicate_type_param_check_disabled",
+            "mutant_034_typeparam_scope_cannot_see_class_namespace",
+            "mutant_035_typevar_not_marked_as_type_parameter",
+            "mutant_036_typealias_scope_allows_prohibited_expressions",
+            "mutant_037_typeparam_scope_allows_prohibited_expressions",
+            "mutant_038_typevar_bound_scope_allows_prohibited_expressions"
+          ],
+          "rationale": "The type-parameter-scope sections require duplicate parameter rejection, prohibit assignment-expression/nonlocal escapes in annotation scopes, and allow nested type-parameter bounds to see the enclosing class namespace. The test checks these outcomes through compile() and executed source."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_manual_ast_type_parameter_nodes_compile_and_validate": {
+          "requirement_sections": [
+            "Runtime Implementation > AST Changes",
+            "Specification > Accessing Type Parameters at Runtime",
+            "Specification > Generic Type Alias"
+          ],
+          "public_surface": "Public ast.TypeVar, ast.ParamSpec, ast.TypeVarTuple, ast.TypeAlias, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef constructors plus compile() and runtime __type_params__/__value__ metadata.",
+          "mutants_targeted": [],
+          "rationale": "The AST-change section makes type parameters first-class public AST nodes for functions, async functions, classes, and type aliases. This coverage-focused F2P constructs those public AST nodes manually, compiles them through the normal validator, and observes the resulting runtime metadata."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_typing_runtime_dunder_and_paramspec_attr_contracts": {
+          "requirement_sections": [
+            "Runtime Implementation > Library Changes",
+            "Specification > Runtime Type Alias Class",
+            "Specification > Compatibility with Traditional TypeVars"
+          ],
+          "public_surface": "Public typing.TypeVar, ParamSpec, TypeVarTuple, ParamSpecArgs/Kwargs, Callable specialization, tuple Unpack specialization, and class creation error behavior.",
+          "mutants_targeted": [],
+          "rationale": "PEP 695 moves the type-parameter runtime classes into the C-backed typing runtime while preserving public typing contracts. The test begins with PEP 695 syntax so it is F2P, then covers public dunder, repr, equality, mro-entry rejection, Callable ParamSpec substitution, and TypeVarTuple substitution behavior."
+        },
+        "test.test_pep695_aug.TypeParameterSyntaxAugmentedTests.test_regenerated_parser_keeps_broad_public_grammar_paths": {
+          "requirement_sections": [
+            "Runtime Implementation > Grammar Changes",
+            "Specification > Type Parameter Declarations",
+            "Specification > Generic Type Alias"
+          ],
+          "public_surface": "compile() over public Python source strings covering PEP 695 class/type syntax plus existing lambda, comprehension, function, async, exception-group, pattern matching, f-string, with-statement, and invalid-syntax grammar paths.",
+          "mutants_targeted": [],
+          "rationale": "PEP 695 regenerates Parser/parser.c from the public grammar. This coverage-focused F2P first gates on PEP 695 syntax so it fails in the pre-state, then parses a broad suite of public grammar forms to exercise regenerated parser paths and preserve unrelated syntax behavior."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_regular_class_and_function_execution_are_stable": {
+          "requirement_sections": [
+            "Specification > Compatibility with Traditional TypeVars"
+          ],
+          "public_surface": "Regular Python class/function execution, varargs, loops, and list comprehensions.",
+          "rationale": "PEP 695 adds generic type-parameter syntax without changing ordinary class/function execution. This P2P pins unrelated interpreter behavior in the same compiler/runtime neighborhood."
+        },
+        "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_string_template_and_formatter_are_stable": {
+          "requirement_sections": [
+            "Specification > Compatibility with Traditional TypeVars"
+          ],
+          "public_surface": "Public string.Template substitution and str.format.",
+          "rationale": "The PR changes parser, compiler, and typing surfaces but should not affect existing string formatting behavior."
+        },
+        "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable": {
+          "requirement_sections": [
+            "Specification > Compatibility with Traditional TypeVars"
+          ],
+          "public_surface": "Public int() parsing and float.hex/fromhex round trip.",
+          "rationale": "Numeric literal parsing and float round-trip behavior are unrelated public stdlib/interpreter features that should remain stable."
+        },
+        "test.test_pep695_stability_aug.TypeParameterSyntaxStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable": {
+          "requirement_sections": [
+            "Specification > Compatibility with Traditional TypeVars"
+          ],
+          "public_surface": "sys._getframe() metadata for an ordinary Python function call.",
+          "rationale": "Regular frame metadata for non-generic functions should remain unchanged while generic functions gain __type_params__."
+        }
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-base:1",
+  "pr_head_sha": "08d931c23f434d7493e1853685ef528430f162d6",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-base:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 68.2,
+    "aug": 78.1,
+    "union": 81.9,
+    "denominator": "union_executable_lines"
+  }
+}

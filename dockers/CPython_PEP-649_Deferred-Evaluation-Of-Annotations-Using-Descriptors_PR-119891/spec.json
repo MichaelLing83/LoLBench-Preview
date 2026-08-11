@@ -1,0 +1,1451 @@
+{
+  "instance_id": "CPython_PEP-649_Deferred-Evaluation-Of-Annotations-Using-Descriptors_PR-119891",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0649/",
+  "requirement_doc_title": "PEP 649 \u2014 Deferred Evaluation of Annotations Using Descriptors",
+  "pr_link": "https://github.com/python/cpython/pull/119891",
+  "pr_number": 119891,
+  "merge_commit": "7b7b90d1ce5116f29ad6c8120c0490824baa54e0",
+  "base_commit": "64e221d7ada8f6c20189035c7e81503f4c914f04",
+  "base_commit_note": "PR-119891 squash-merged 2024-07-23. Same merge-parent override.",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_annotationlib.TestFormat.test_enum",
+    "test.test_annotationlib.TestForwardRefFormat.test_closure",
+    "test.test_annotationlib.TestForwardRefFormat.test_function",
+    "test.test_annotationlib.TestSourceFormat.test_closure",
+    "test.test_annotationlib.TestSourceFormat.test_function",
+    "test.test_annotationlib.TestSourceFormat.test_expressions",
+    "test.test_annotationlib.TestSourceFormat.test_reverse_ops",
+    "test.test_annotationlib.TestSourceFormat.test_nested_expressions",
+    "test.test_annotationlib.TestSourceFormat.test_unsupported_operations",
+    "test.test_annotationlib.TestForwardRefClass.test_special_attrs",
+    "test.test_annotationlib.TestGetAnnotations.test_builtin_type",
+    "test.test_annotationlib.TestGetAnnotations.test_custom_metaclass",
+    "test.test_annotationlib.TestGetAnnotations.test_missing_dunder_dict",
+    "test.test_annotationlib.TestGetAnnotations.test_format",
+    "test.test_annotationlib.TestGetAnnotations.test_custom_object_with_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_custom_format_eval_str",
+    "test.test_annotationlib.TestGetAnnotations.test_stock_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_stock_annotations_in_module",
+    "test.test_annotationlib.TestGetAnnotations.test_stock_annotations_on_wrapper",
+    "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_module",
+    "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_empty_module",
+    "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_wrapper",
+    "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_class",
+    "test.test_annotationlib.TestGetAnnotations.test_modify_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_and_local_shadowing",
+    "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_name_clash_with_global_vars",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations_name_clash_with_global_vars",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_vars",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_and_local_vars",
+    "test.test_annotationlib.TestGetAnnotations.test_pep_695_generics_with_future_annotations_nested_in_function",
+    "test.test_dataclasses.TestKeywordArgs.test_deferred_annotations",
+    "test.test_functools.TestUpdateWrapper.test_update_wrapper_annotations",
+    "test.test_functools.TestSingleDispatch.test_forward_reference",
+    "test.test_functools.TestSingleDispatch.test_unresolved_forward_reference",
+    "test.test_typing.NamedTupleTests.test_deferred_annotations",
+    "test.test_typing.NamedTupleTests.test_annotation_type_check",
+    "test.test_typing.NamedTupleTests.test_future_annotations",
+    "test.test_typing.TypedDictTests.test_deferred_evaluation",
+    "test.test_typing.TypedDictTests.test_annotations"
+  ],
+  "pass_to_pass": [
+    "test.test_int.IntTestCases.test_basic",
+    "test.test_int.IntTestCases.test_underscores",
+    "test.test_int.IntTestCases.test_small_ints",
+    "test.test_int.IntTestCases.test_no_args",
+    "test.test_int.IntTestCases.test_keyword_args",
+    "test.test_float.GeneralFloatCases.test_float",
+    "test.test_float.GeneralFloatCases.test_noargs",
+    "test.test_float.GeneralFloatCases.test_underscores",
+    "test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+    "test.test_string.ModuleTest.test_attrs",
+    "test.test_string.ModuleTest.test_capwords",
+    "test.test_string.TestTemplate.test_regular_templates",
+    "test.test_string.TestTemplate.test_escapes",
+    "test.test_list.ListTest.test_basic",
+    "test.test_list.ListTest.test_truth",
+    "test.test_list.ListTest.test_len",
+    "test.test_dict.DictTest.test_bool",
+    "test.test_dict.DictTest.test_keys",
+    "test.test_dict.DictTest.test_values",
+    "test.test_dict.DictTest.test_items",
+    "test.test_dict.DictTest.test_contains",
+    "test.test_dict.DictTest.test_clear",
+    "test.test_dict.DictTest.test_update",
+    "test.test_dict.DictTest.test_fromkeys",
+    "test.test_dict.DictTest.test_copy",
+    "test.test_calendar.CalendarTestCase.test_isleap",
+    "test.test_calendar.CalendarTestCase.test_setfirstweekday",
+    "test.test_calendar.CalendarTestCase.test_days",
+    "test.test_calendar.CalendarTestCase.test_months",
+    "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+    "test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+    "test.test_set.TestSet.test_init",
+    "test.test_set.TestSet.test_clear",
+    "test.test_set.TestSet.test_copy",
+    "test.test_set.TestSet.test_add",
+    "test.test_set.TestSet.test_remove",
+    "test.test_set.TestSet.test_discard",
+    "test.test_set.TestSet.test_pop",
+    "test.test_set.TestSet.test_update",
+    "test.test_set.TestSet.test_set_literal",
+    "test.test_set.TestSet.test_set_literal_insertion_order",
+    "test.test_set.TestSet.test_constructor_identity",
+    "test.test_set.TestSet.test_hash",
+    "test.test_set.TestSet.test_inplace_on_self",
+    "test.test_set.TestSet.test_weakref",
+    "test.test_set.TestSet.test_ior",
+    "test.test_set.TestSet.test_intersection_update",
+    "test.test_set.TestSet.test_iand",
+    "test.test_set.TestSet.test_difference_update",
+    "test.test_set.TestSet.test_isub",
+    "test.test_set.TestSet.test_symmetric_difference_update",
+    "test.test_set.TestSet.test_ixor",
+    "test.test_set.TestSet.test_remove_keyerror_unpacking",
+    "test.test_set.TestSet.test_remove_keyerror_set",
+    "test.test_set.TestSet.test_uniquification",
+    "test.test_set.TestSet.test_intersection",
+    "test.test_set.TestSet.test_or",
+    "test.test_set.TestSet.test_and",
+    "test.test_set.TestSet.test_sub",
+    "test.test_set.TestSet.test_xor",
+    "test.test_set.TestSet.test_union",
+    "test.test_set.TestSet.test_difference",
+    "test.test_set.TestSet.test_symmetric_difference",
+    "test.test_set.TestSet.test_isdisjoint",
+    "test.test_set.TestSet.test_equality",
+    "test.test_string.ModuleTest.test_basic_formatter",
+    "test.test_string.ModuleTest.test_format_keyword_arguments",
+    "test.test_string.ModuleTest.test_auto_numbering",
+    "test.test_string.ModuleTest.test_conversion_specifiers",
+    "test.test_string.ModuleTest.test_name_lookup",
+    "test.test_string.ModuleTest.test_index_lookup",
+    "test.test_int.IntTestCases.test_invalid_signs",
+    "test.test_int.IntTestCases.test_unicode",
+    "test.test_int.IntTestCases.test_int_base_limits",
+    "test.test_calendar.OutputTestCase.test_output",
+    "test.test_calendar.OutputTestCase.test_output_textcalendar",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+    "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8"
+  ],
+  "solution_patch_sha256": "56d705b79edddc2b874deaa2df8119de056dd7a8d17765d3b21261f1ae65b433",
+  "eval_tests_patch_sha256": "3609c0940a52486cd8d29224199c2084fc381732acc3214f3c215e7a59baf5a5",
+  "omitted_patch_sha256": "95547a08a9168828ffa0864648ad4aba60088fb52989b8d1c61c68083403fa0b",
+  "eval_tests_patch_notes": "NEW test_annotationlib.py + modifications to test_dataclasses, test_functools, test_inspect, test_typing, test_type_annotations, test_grammar.",
+  "omitted_patch_notes": "Doc + NEWS only.",
+  "fixture_taint_summary": "33 F2P all from NEW test_annotationlib.py. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError at test load \u2192 all 33 ERROR.\n62 P2P from 8 untouched test files. Ratio P2P/F2P = 1.88\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "test.test_annotationlib.TestFormat.test_enum": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestFormat.test_enum",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestForwardRefFormat.test_closure": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestForwardRefFormat.test_closure",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestForwardRefFormat.test_function": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestForwardRefFormat.test_function",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_closure": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_closure",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_function": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_function",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_expressions": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_reverse_ops": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_reverse_ops",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_nested_expressions": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_nested_expressions",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestSourceFormat.test_unsupported_operations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestSourceFormat.test_unsupported_operations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestForwardRefClass.test_special_attrs": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestForwardRefClass.test_special_attrs",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_builtin_type": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_builtin_type",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_custom_metaclass": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_custom_metaclass",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_missing_dunder_dict": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_missing_dunder_dict",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_format": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_format",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_custom_object_with_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_custom_object_with_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_custom_format_eval_str": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_custom_format_eval_str",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stock_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stock_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stock_annotations_in_module": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stock_annotations_in_module",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stock_annotations_on_wrapper": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stock_annotations_on_wrapper",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_module": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_module",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_empty_module": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_in_empty_module",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_wrapper": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_wrapper",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_class": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_stringized_annotations_on_class",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_modify_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_modify_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_and_local_shadowing": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_and_local_shadowing",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_name_clash_with_global_vars": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep695_generic_class_with_future_annotations_name_clash_with_global_vars",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations_name_clash_with_global_vars": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_function_with_future_annotations_name_clash_with_global_vars",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_vars": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_vars",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_and_local_vars": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generic_method_with_future_annotations_name_clash_with_global_and_local_vars",
+        "fixture_taint_checked": true
+      },
+      "test.test_annotationlib.TestGetAnnotations.test_pep_695_generics_with_future_annotations_nested_in_function": {
+        "system_reason": "PEP-649 annotationlib test. Pre-state: Lib/annotationlib.py doesn't exist \u2192 ModuleNotFoundError \u2192 ERROR.",
+        "public_surface": "annotationlib module / get_annotations / Format / ForwardRef",
+        "internal_symbol_check": [
+          "_PyAnnotationlib_*"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_annotationlib.TestGetAnnotations.test_pep_695_generics_with_future_annotations_nested_in_function",
+        "fixture_taint_checked": true
+      },
+      "test.test_dataclasses.TestKeywordArgs.test_deferred_annotations": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dataclasses.TestKeywordArgs.test_deferred_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_functools.TestUpdateWrapper.test_update_wrapper_annotations": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_functools.TestUpdateWrapper.test_update_wrapper_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_functools.TestSingleDispatch.test_forward_reference": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_functools.TestSingleDispatch.test_forward_reference",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_functools.TestSingleDispatch.test_unresolved_forward_reference": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_functools.TestSingleDispatch.test_unresolved_forward_reference",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_typing.NamedTupleTests.test_deferred_annotations": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NamedTupleTests.test_deferred_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_typing.NamedTupleTests.test_annotation_type_check": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NamedTupleTests.test_annotation_type_check",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_typing.NamedTupleTests.test_future_annotations": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NamedTupleTests.test_future_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_typing.TypedDictTests.test_deferred_evaluation": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypedDictTests.test_deferred_evaluation",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      },
+      "test.test_typing.TypedDictTests.test_annotations": {
+        "system_reason": "New test method added by PR; exercises deferred-annotation behavior via public stdlib API.",
+        "public_surface": "dataclasses.fields / functools.update_wrapper, singledispatch / typing.NamedTuple, TypedDict \u2014 all public",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypedDictTests.test_annotations",
+        "fixture_taint_checked": true,
+        "fixture_taint_note": "test_typing.py adds module-level `import annotationlib`; whole-module ERRORs at pre-state are uniform across selectors (acceptable \u00a77). test_functools.py and test_dataclasses methods are individually new (AttributeError at pre-state)."
+      }
+    },
+    "pass_to_pass": {
+      "test.test_int.IntTestCases.test_basic": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_underscores": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_small_ints": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_small_ints",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_no_args": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_no_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_keyword_args": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_keyword_args",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_float": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_noargs": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_noargs",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_underscores": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "test.test_float.GeneralFloatCases.test_non_numeric_input_types": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_attrs": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_attrs",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_capwords": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_capwords",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_regular_templates": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.TestTemplate.test_escapes": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_escapes",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_basic": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_basic",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_truth": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_truth",
+        "fixture_taint_checked": true
+      },
+      "test.test_list.ListTest.test_len": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_list.ListTest.test_len",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_bool": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_bool",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_keys": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_keys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_values": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_values",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_items": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_items",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_contains": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_contains",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_clear": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_update": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_fromkeys": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_fromkeys",
+        "fixture_taint_checked": true
+      },
+      "test.test_dict.DictTest.test_copy": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_dict.DictTest.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_isleap": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_isleap",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_setfirstweekday": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_setfirstweekday",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_days": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_days",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_months": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_months",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_illegal_weekday_reported": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_illegal_weekday_reported",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.CalendarTestCase.test_enumerate_weekdays": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.CalendarTestCase.test_enumerate_weekdays",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_init": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_init",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_clear": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_clear",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_copy": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_copy",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_add": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_add",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_discard": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_discard",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_pop": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_pop",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_update": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_set_literal_insertion_order": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_set_literal_insertion_order",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_constructor_identity": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_constructor_identity",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_hash": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_hash",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_inplace_on_self": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_inplace_on_self",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_weakref": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_weakref",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ior": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ior",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_intersection_update": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_intersection_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_iand": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_iand",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_difference_update": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_isub": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_isub",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_symmetric_difference_update": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_symmetric_difference_update",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_ixor": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_ixor",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_unpacking": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_unpacking",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_remove_keyerror_set": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_remove_keyerror_set",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_uniquification": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_uniquification",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_intersection": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_intersection",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_or": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_or",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_and": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_and",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_sub": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_sub",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_xor": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_xor",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_union": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_union",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_difference": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_difference",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_symmetric_difference": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_symmetric_difference",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_isdisjoint": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_isdisjoint",
+        "fixture_taint_checked": true
+      },
+      "test.test_set.TestSet.test_equality": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_set.TestSet.test_equality",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_basic_formatter": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_basic_formatter",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_format_keyword_arguments": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_format_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_auto_numbering": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_auto_numbering",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_conversion_specifiers": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_conversion_specifiers",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_name_lookup": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_name_lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_string.ModuleTest.test_index_lookup": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_index_lookup",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_invalid_signs": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_invalid_signs",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_unicode": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_unicode",
+        "fixture_taint_checked": true
+      },
+      "test.test_int.IntTestCases.test_int_base_limits": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_int_base_limits",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_textcalendar": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_textcalendar",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_ascii",
+        "fixture_taint_checked": true
+      },
+      "test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8": {
+        "system_reason": "Pre-existing test. NOT modified by this PR.",
+        "public_surface": "public stdlib API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_calendar.OutputTestCase.test_output_htmlcalendar_encoding_utf8",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "out_of_scope_surfaces": [],
+  "public_surface_allowlist": [],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default)",
+    "runtime_caps": "--network=none"
+  },
+  "validated_at": "2026-05-25T00:04:12Z",
+  "augmented": {
+    "eval_tests_aug_patch_sha256": "f149fe56422ca69deb5b354b3e409882fbd39551abbe3490ffbf49a1586ef5b9",
+    "f2p_aug_sha256": "b79504b359628b843cd8c9f1f5111e8c8b596d9907407d55eaae604fd6a7ab5e",
+    "p2p_aug_sha256": "3944b30d3b185253cddedbaa61d1f15138c7058ae5b4e94afd95371f96a1ea7c",
+    "fail_to_pass": [
+      "test.test_pep649_aug.PEP649AugTest.test_forwardref_requires_owner_or_type_params",
+      "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_type_params_namespace",
+      "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_starred_typevartuple",
+      "test.test_pep649_aug.PEP649AugTest.test_call_annotate_value_notimplemented_is_runtime_error",
+      "test.test_pep649_aug.PEP649AugTest.test_get_annotations_returns_fresh_dict",
+      "test.test_pep649_aug.PEP649AugTest.test_typing_evaluate_forward_ref_source_does_not_evaluate",
+      "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_does_not_evaluate",
+      "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_preserves_forwardref_objects",
+      "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_does_not_evaluate",
+      "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_preserves_forwardref_objects",
+      "test.test_pep649_aug.PEP649AugTest.test_namedtuple_source_format_returns_source_strings",
+      "test.test_pep649_aug.PEP649AugTest.test_stringifier_source_covers_public_expression_forms",
+      "test.test_pep649_aug.PEP649AugTest.test_stringifier_rejects_format_specifiers",
+      "test.test_pep649_aug.PEP649AugTest.test_forwardref_public_edge_behaviors",
+      "test.test_pep649_aug.PEP649AugTest.test_get_annotations_public_error_and_legacy_object_paths",
+      "test.test_pep649_aug.PEP649AugTest.test_typing_value_paths_and_annotation_stripping",
+      "test.test_pep649_aug.PEP649AugTest.test_import_reexports_annotation_helpers",
+      "test.test_pep649_aug.PEP649AugTest.test_zz_module_reloads_and_public_fallback_paths"
+    ],
+    "pass_to_pass": [
+      "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_math_fsum_preserves_small_residual",
+      "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_statistics_mean_preserves_fraction_type"
+    ],
+    "triage": {
+      "test_level_policy": "All augmented selectors use public CPython stdlib APIs only: annotationlib, typing, inspect, dataclasses, math, statistics, and fractions. The F2P tests exercise PEP 649 public annotation helpers, descriptors, re-exports, and typing helpers; the P2P tests exercise unrelated public stdlib behavior and do not target the annotation machinery.",
+      "fail_to_pass": {
+        "test.test_pep649_aug.PEP649AugTest.test_forwardref_requires_owner_or_type_params": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__"
+          ],
+          "public_surface": "annotationlib.ForwardRef.evaluate() through the public ForwardRef API.",
+          "mutants_targeted": [
+            "mutant_003_forwardref_owner_requirement_disabled"
+          ],
+          "rationale": "PEP 649 requires ForwardRef evaluation to have either owner context or explicit type parameters; evaluating with only globals and locals must raise TypeError rather than resolving a name without annotation-scope context."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_type_params_namespace": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__"
+          ],
+          "public_surface": "annotationlib.ForwardRef.evaluate() with public typing.TypeVar objects passed as type_params.",
+          "mutants_targeted": [
+            "mutant_004_forwardref_type_params_not_injected"
+          ],
+          "rationale": "Type parameters in annotation scope must be injected into the evaluation namespace so a ForwardRef can resolve a name that is present only as a type parameter."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_starred_typevartuple": {
+          "requirement_sections": [
+            "Implementation > The `stringizer` and the `fake globals` environment"
+          ],
+          "public_surface": "annotationlib.ForwardRef.evaluate() with a public typing.TypeVarTuple starred forward reference.",
+          "mutants_targeted": [
+            "mutant_005_forwardref_starred_compile_disabled"
+          ],
+          "rationale": "The stringizer/ForwardRef machinery must compile starred TypeVarTuple references by wrapping the starred expression, allowing *Ts annotations to evaluate to typing.Unpack[Ts]."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_call_annotate_value_notimplemented_is_runtime_error": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__"
+          ],
+          "public_surface": "annotationlib.call_annotate_function() and annotationlib.Format.VALUE.",
+          "mutants_targeted": [
+            "mutant_013_value_notimplemented_masked_empty"
+          ],
+          "rationale": "PEP 649 mandates that VALUE format is always supported; an __annotate__ function raising NotImplementedError for VALUE is a protocol error and must surface as RuntimeError, not as an empty annotations dict."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_annotations_returns_fresh_dict": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "annotationlib.get_annotations() on a public Python function object.",
+          "mutants_targeted": [
+            "mutant_017_get_annotations_returns_cached_dict"
+          ],
+          "rationale": "The helper contract says get_annotations returns a fresh dict on every call; mutating the returned dict must not mutate the object cached __annotations__ dict."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_typing_evaluate_forward_ref_source_does_not_evaluate": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.evaluate_forward_ref() with annotationlib.Format.SOURCE.",
+          "mutants_targeted": [
+            "mutant_023_typing_source_forwardref_evaluated"
+          ],
+          "rationale": "SOURCE format returns the stored forward-reference source text and must not evaluate an undefined name into a runtime value or NameError."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_does_not_evaluate": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.get_type_hints() on a public class object with format=annotationlib.Format.SOURCE.",
+          "mutants_targeted": [
+            "mutant_025_typing_class_hints_drop_format"
+          ],
+          "rationale": "Class get_type_hints must pass the requested SOURCE format into annotation retrieval and return source strings directly without evaluating undefined annotation names."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_preserves_forwardref_objects": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.get_type_hints() on a public class object whose __annotations__ contains a public annotationlib.ForwardRef.",
+          "mutants_targeted": [
+            "mutant_026_typing_class_source_branch_disabled"
+          ],
+          "rationale": "When SOURCE annotations come from an existing annotations dict rather than a generated __annotate__ function, class get_type_hints must return them directly; entering VALUE-style evaluation converts ForwardRef objects to source strings and changes the public result."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_does_not_evaluate": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.get_type_hints() on a public function object with format=annotationlib.Format.SOURCE.",
+          "mutants_targeted": [
+            "mutant_027_typing_function_hints_drop_format"
+          ],
+          "rationale": "Function get_type_hints with SOURCE format must return the source text for parameter and return annotations without entering VALUE/FORWARDREF evaluation."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_preserves_forwardref_objects": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.get_type_hints() on a public function object whose __annotations__ contains a public annotationlib.ForwardRef.",
+          "mutants_targeted": [
+            "mutant_028_typing_function_source_branch_disabled"
+          ],
+          "rationale": "Function get_type_hints must return SOURCE-format annotations before VALUE-style processing; a legacy ForwardRef value in __annotations__ must be preserved rather than converted to its source string."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_namedtuple_source_format_returns_source_strings": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__"
+          ],
+          "public_surface": "typing.NamedTuple public factory and the PEP 649 public __annotate__ descriptor.",
+          "mutants_targeted": [
+            "mutant_030_namedtuple_source_returns_checked_types"
+          ],
+          "rationale": "NamedTuple eager annotation functions must return checked runtime types for VALUE/FORWARDREF but source strings for SOURCE format, as required by the __annotate__ format contract."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_stringifier_source_covers_public_expression_forms": {
+          "requirement_sections": [
+            "Implementation > The `stringizer` and the `fake globals` environment"
+          ],
+          "public_surface": "annotationlib.call_annotate_function() SOURCE fallback through compiler-style public __annotate__ callable semantics.",
+          "mutants_targeted": [],
+          "rationale": "Exercises SOURCE stringizer behavior for subscription, attributes, calls, starred iteration, binary/reverse binary operators, comparisons, and unary operators using the public call_annotate_function API."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_stringifier_rejects_format_specifiers": {
+          "requirement_sections": [
+            "Implementation > The `stringizer` and the `fake globals` environment"
+          ],
+          "public_surface": "annotationlib.call_annotate_function() SOURCE fallback with an f-string format specifier.",
+          "mutants_targeted": [],
+          "rationale": "PEP 649 SOURCE reconstruction cannot support string formatting inside annotations; the public fallback must reject that expression instead of returning misleading source text."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_forwardref_public_edge_behaviors": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__",
+            "Implementation > The `stringizer` and the `fake globals` environment"
+          ],
+          "public_surface": "annotationlib.ForwardRef constructor, evaluate(), repr(), union operators, equality, and syntax validation through public APIs.",
+          "mutants_targeted": [],
+          "rationale": "Covers documented ForwardRef validation, owner/module namespace inference, cached evaluation, union composition, representation, and expression syntax errors through externally reachable behavior."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_get_annotations_public_error_and_legacy_object_paths": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__",
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "annotationlib.get_annotations() on public classes and objects with malformed or legacy annotations.",
+          "mutants_targeted": [],
+          "rationale": "Covers public error handling for non-dict __annotate__ results, invalid __annotations__ values, and legacy object annotations that require eval_str processing."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_typing_value_paths_and_annotation_stripping": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "typing.evaluate_forward_ref() and typing.get_type_hints() VALUE-format behavior on public classes/functions.",
+          "mutants_targeted": [],
+          "rationale": "Covers VALUE evaluation, NameError preservation, and default Annotated metadata stripping in typing.get_type_hints while leaving SOURCE-specific tests focused on deferred behavior."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_import_reexports_annotation_helpers": {
+          "requirement_sections": [
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+          ],
+          "public_surface": "inspect.get_annotations re-export and dataclasses import path through public stdlib modules.",
+          "mutants_targeted": [],
+          "rationale": "Pins the public inspect.get_annotations re-export from annotationlib and reloads dataclasses to exercise the annotationlib integration import path."
+        },
+        "test.test_pep649_aug.PEP649AugTest.test_zz_module_reloads_and_public_fallback_paths": {
+          "requirement_sections": [
+            "Implementation > __annotate__ and __annotations__",
+            "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`",
+            "Implementation > The `stringizer` and the `fake globals` environment"
+          ],
+          "public_surface": "annotationlib module reload, annotationlib.ForwardRef, annotationlib.get_annotations, typing.evaluate_forward_ref, typing.get_type_hints, typing.NamedTuple, and typing.TypedDict public APIs.",
+          "mutants_targeted": [],
+          "rationale": "Reloads the public annotationlib module under coverage and exercises externally reachable fallback paths for ForwardRef construction/evaluation, module re-exports, eval_str annotation lookup, typing forward-reference evaluation, empty NamedTuple annotations, and TypedDict SOURCE/VALUE annotation descriptors."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_math_fsum_preserves_small_residual": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "math.fsum public stdlib API.",
+          "rationale": "PEP 649 changes annotation introspection semantics only; unrelated numeric precision behavior in math.fsum should remain unchanged across base, golden, and mutants."
+        },
+        "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_statistics_mean_preserves_fraction_type": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "statistics.mean public stdlib API with fractions.Fraction inputs.",
+          "rationale": "PEP 649 should not affect unrelated statistics behavior; Fraction-preserving mean results pin an adjacent standard-library no-regression surface outside annotation machinery."
+        }
+      }
+    },
+    "validation": {
+      "status": "validated",
+      "validated_at": "2026-05-25T00:04:12Z",
+      "suites": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "mutants_total": 32,
+      "mutants_killed_by_f2p": 32,
+      "p2p_clean_on_mutants": true,
+      "coverage_gate": {
+        "minimum_line_coverage_percent": 80,
+        "status": "passed",
+        "coverage_report": "coverage_out/coverage_report_union.json",
+        "line_coverage_percent": 92.6,
+        "covered_lines": 424,
+        "executable_lines": 458
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-pr-119891:1",
+  "pr_head_sha": "477f8c6fd438c479994717a105dc961dda6cecda",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-pr-119891:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 58.3,
+    "aug": 76.4,
+    "union": 92.6,
+    "denominator": "union_executable_lines"
+  }
+}

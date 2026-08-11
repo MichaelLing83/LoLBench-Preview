@@ -1,0 +1,23 @@
+{
+  "instance_id": "flink_10",
+  "source_instance_id": "Apache-Flink_FLIP-501-Support-Window-Extension-in-DataStream-V2-API_PR-26001",
+  "source_slug": "Apache-Flink_FLIP-501-Support-Window-Extension-in-DataStream-V2-API_PR-26001",
+  "docker_slug": "Apache-Flink_FLIP-501-Support-Window-Extension-in-DataStream-V2-API_PR-26001",
+  "dockerhub_image": "smartdub26/lolbench:flink_10-1.0.0",
+  "dockerhub_digest": "sha256:16e120caa1e734c4b43bdb91c0d02022f2545cf870e550ab947f351d0b66d9d0",
+  "project": "flink",
+  "repo": "apache/flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-501",
+  "pr_link": "https://github.com/apache/flink/pull/26001",
+  "base_commit": "180d587717ba0997c35f89e080974851eea7a938",
+  "merge_commit": "a05307f4adcf49e34b7148ece6aaa8d57d945a17",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

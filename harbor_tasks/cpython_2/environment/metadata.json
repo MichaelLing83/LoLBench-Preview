@@ -1,0 +1,19 @@
+{
+  "instance_id": "cpython_2",
+  "source_instance_id": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "source_slug": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "docker_slug": "CPython_PEP-615_Support-for-the-IANA-Time-Zone-Database-in-the-Standard-Library_PR-19909",
+  "dockerhub_image": "smartdub26/lolbench:cpython_2-1.0.0",
+  "dockerhub_digest": "sha256:629883723cc0b9e8b1b9f2f9b3f95f1dd993086a8fc06c05a12b3ce4ce48cee9",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0615/",
+  "pr_link": "https://github.com/python/cpython/pull/19909",
+  "base_commit": "6e8cda91d92da72800d891b2fc2073ecbc134d98",
+  "merge_commit": "62972d9d73e83d6eea157617cc69500ffec9e3f0",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": ["orig", "aug", "union"],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

@@ -1,0 +1,61 @@
+schema_version = "1.3"
+
+[task]
+name = "lolbench/kafka_1"
+description = "Implement Apache Kafka - KIP-470 TopologyTestDriver test input and output usability improvements."
+authors = [{ name = "LoLBench maintainers" }]
+keywords = ["lolbench", "coding-agent", "apache", "kafka", "java"]
+
+[metadata]
+instance_id = "kafka_1"
+source_instance_id = "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378"
+source_slug = "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378"
+docker_slug = "Apache-Kafka_KIP-470_TopologyTestDriver-test-input-and-output-usability-improvements_PR-7378"
+dockerhub_image = "smartdub26/lolbench:kafka_1-1.0.0"
+dockerhub_digest = "sha256:f43a70d113e7f80ee0e30f8d502e02e68be3b563ed40d7286d040f3987274583"
+project = "kafka"
+repo = "apache/kafka"
+requirement_doc = "https://cwiki.apache.org/confluence/display/KAFKA/KIP-470%3A+TopologyTestDriver+test+input+and+output+usability+improvements"
+pr_link = "https://github.com/apache/kafka/pull/7378"
+base_commit = "0de61a4683b92bdee803c51211c3277578ab3edf"
+merge_commit = "50cfdc05d22d51ec9864ecb1722a461bb07a7e4a"
+test_level = "system"
+source_history_policy = "ancestors-only"
+lolbench_test_modes = ["orig", "aug", "union"]
+default_lolbench_suite = "union"
+canonical_lolbench_suite = "union"
+augmentation_available = true
+verifier_network_policy = "public"
+verifier_network_reason = "The Harbor verifier runs in a separate container and may use network access; migrated LoLBench verifier assets are mounted only in the verifier phase."
+
+[environment]
+build_timeout_sec = 3600.0
+docker_image = "smartdub26/lolbench:kafka_1-1.0.0"
+network_mode = "public"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+
+[agent]
+timeout_sec = 21600.0
+user = "agent"
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai", "api.openai.com", "api.anthropic.com"]
+
+[verifier]
+timeout_sec = 5400.0
+user = "root"
+environment_mode = "separate"
+network_mode = "public"
+
+[verifier.env]
+LOLBENCH_SUITE = "union"
+
+[verifier.environment]
+docker_image = "smartdub26/lolbench:kafka_1-1.0.0"
+network_mode = "public"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480

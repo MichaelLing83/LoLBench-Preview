@@ -1,0 +1,51 @@
+diff --git a/tests/test_annotated_aug.py b/tests/test_annotated_aug.py
+new file mode 100644
+index 0000000..f664daa
+--- /dev/null
++++ b/tests/test_annotated_aug.py
+@@ -0,0 +1,37 @@
++from fastapi import FastAPI
++from fastapi.params import File as FileParam
++from fastapi.params import Form as FormParam
++from fastapi.testclient import TestClient
++from typing_extensions import Annotated
++
++
++def test_annotated_form_without_positional_default():
++    app = FastAPI()
++
++    @app.post("/submit")
++    def submit(name: Annotated[str, FormParam()]):
++        return {"name": name}
++
++    client = TestClient(app)
++    response = client.post("/submit", data={"name": "Ada"})
++
++    assert response.status_code == 200
++    assert response.json() == {"name": "Ada"}
++
++
++def test_annotated_file_without_positional_default():
++    app = FastAPI()
++
++    @app.post("/upload")
++    async def upload(payload: Annotated[bytes, FileParam()]):
++        return {"size": len(payload)}
++
++    client = TestClient(app)
++    response = client.post("/upload", files={"payload": ("note.txt", b"hello")})
++
++    assert response.status_code == 200
++    assert response.json() == {"size": 5}
++
++
++def test_plain_query_parameter_default_still_works():
++    app = FastAPI()
++
++    @app.get("/items")
++    def read_items(q: str = "default"):
++        return {"q": q}
++
++    client = TestClient(app)
++    assert client.get("/items").json() == {"q": "default"}
++    assert client.get("/items", params={"q": "set"}).json() == {"q": "set"}

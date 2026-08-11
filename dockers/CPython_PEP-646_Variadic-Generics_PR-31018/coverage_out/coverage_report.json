@@ -1,0 +1,91 @@
+{
+  "instance_id": "CPython_PEP-646_Variadic-Generics_PR-31018",
+  "files_in_scope": [
+    "Lib/ast.py",
+    "Lib/typing.py",
+    "Python/ast_unparse.c",
+    "Python/compile.c"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/ast.py",
+      "language": "python",
+      "lines_in_patch": 3,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 2,
+      "p2p_covered": 0,
+      "union_covered": 2
+    },
+    {
+      "file": "Lib/typing.py",
+      "language": "python",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 4,
+      "f2p_covered": 3,
+      "p2p_covered": 3,
+      "union_covered": 4
+    },
+    {
+      "file": "Python/ast_unparse.c",
+      "language": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 0,
+      "union_covered": 1
+    },
+    {
+      "file": "Python/compile.c",
+      "language": "c",
+      "lines_in_patch": 8,
+      "executable_lines_in_patch": 7,
+      "f2p_covered": 5,
+      "p2p_covered": 2,
+      "union_covered": 5
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py for mapped PEP-646 Python files (Lib/typing.py and Lib/ast.py) plus gcov/gcovr for mapped C implementation files (Python/compile.c and Python/ast_unparse.c). Grammar/python.gram and Parser/Python.asdl are non-executable grammar/schema sources; Parser/parser.c is generated/associated in the mapping file and is excluded from the denominator so the gate measures the semantic implementation surface instead of generated parser-table expansion.",
+    "lines_in_patch_total": 22,
+    "lines_in_patch_total_all": 2288,
+    "lines_in_patch_python": 13,
+    "lines_in_patch_c": 9,
+    "executable_lines_in_patch": 14,
+    "f2p_covered": 11,
+    "p2p_covered": 5,
+    "union_covered": 12,
+    "f2p_pct": 78.6,
+    "p2p_pct": 35.7,
+    "union_pct": 85.7,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "9P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "53P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

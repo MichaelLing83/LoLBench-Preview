@@ -1,0 +1,403 @@
+diff --git a/Doc/library/ast.rst b/Doc/library/ast.rst
+index 09f2a40478..e954c38c7c 100644
+--- a/Doc/library/ast.rst
++++ b/Doc/library/ast.rst
+@@ -1748,15 +1748,17 @@ Type parameters
+ :ref:`Type parameters <type-params>` can exist on classes, functions, and type
+ aliases.
+ 
+-.. class:: TypeVar(name, bound)
++.. class:: TypeVar(name, bound, default_value)
+ 
+-   A :class:`typing.TypeVar`. ``name`` is the name of the type variable.
+-   ``bound`` is the bound or constraints, if any. If ``bound`` is a :class:`Tuple`,
+-   it represents constraints; otherwise it represents the bound.
++   A :class:`typing.TypeVar`. *name* is the name of the type variable.
++   *bound* is the bound or constraints, if any. If *bound* is a :class:`Tuple`,
++   it represents constraints; otherwise it represents the bound. *default_value*
++   is the default value; if the :class:`!TypeVar` has no default, this
++   attribute will be set to ``None``.
+ 
+    .. doctest::
+ 
+-        >>> print(ast.dump(ast.parse("type Alias[T: int] = list[T]"), indent=4))
++        >>> print(ast.dump(ast.parse("type Alias[T: int = bool] = list[T]"), indent=4))
+         Module(
+             body=[
+                 TypeAlias(
+@@ -1764,7 +1766,8 @@ aliases.
+                     type_params=[
+                         TypeVar(
+                             name='T',
+-                            bound=Name(id='int', ctx=Load()))],
++                            bound=Name(id='int', ctx=Load()),
++                            default_value=Name(id='bool', ctx=Load()))],
+                     value=Subscript(
+                         value=Name(id='list', ctx=Load()),
+                         slice=Name(id='T', ctx=Load()),
+@@ -1772,19 +1775,30 @@ aliases.
+ 
+    .. versionadded:: 3.12
+ 
+-.. class:: ParamSpec(name)
++   .. versionchanged:: 3.13
++      Added the *default_value* parameter.
++
++.. class:: ParamSpec(name, default_value)
+ 
+-   A :class:`typing.ParamSpec`. ``name`` is the name of the parameter specification.
++   A :class:`typing.ParamSpec`. *name* is the name of the parameter specification.
++   *default_value* is the default value; if the :class:`!ParamSpec` has no default,
++   this attribute will be set to ``None``.
+ 
+    .. doctest::
+ 
+-        >>> print(ast.dump(ast.parse("type Alias[**P] = Callable[P, int]"), indent=4))
++        >>> print(ast.dump(ast.parse("type Alias[**P = (int, str)] = Callable[P, int]"), indent=4))
+         Module(
+             body=[
+                 TypeAlias(
+                     name=Name(id='Alias', ctx=Store()),
+                     type_params=[
+-                        ParamSpec(name='P')],
++                        ParamSpec(
++                            name='P',
++                            default_value=Tuple(
++                                elts=[
++                                    Name(id='int', ctx=Load()),
++                                    Name(id='str', ctx=Load())],
++                                ctx=Load()))],
+                     value=Subscript(
+                         value=Name(id='Callable', ctx=Load()),
+                         slice=Tuple(
+@@ -1796,19 +1810,26 @@ aliases.
+ 
+    .. versionadded:: 3.12
+ 
+-.. class:: TypeVarTuple(name)
++   .. versionchanged:: 3.13
++      Added the *default_value* parameter.
++
++.. class:: TypeVarTuple(name, default_value)
+ 
+-   A :class:`typing.TypeVarTuple`. ``name`` is the name of the type variable tuple.
++   A :class:`typing.TypeVarTuple`. *name* is the name of the type variable tuple.
++   *default_value* is the default value; if the :class:`!TypeVarTuple` has no
++   default, this attribute will be set to ``None``.
+ 
+    .. doctest::
+ 
+-        >>> print(ast.dump(ast.parse("type Alias[*Ts] = tuple[*Ts]"), indent=4))
++        >>> print(ast.dump(ast.parse("type Alias[*Ts = ()] = tuple[*Ts]"), indent=4))
+         Module(
+             body=[
+                 TypeAlias(
+                     name=Name(id='Alias', ctx=Store()),
+                     type_params=[
+-                        TypeVarTuple(name='Ts')],
++                        TypeVarTuple(
++                            name='Ts',
++                            default_value=Tuple(ctx=Load()))],
+                     value=Subscript(
+                         value=Name(id='tuple', ctx=Load()),
+                         slice=Tuple(
+@@ -1821,6 +1842,9 @@ aliases.
+ 
+    .. versionadded:: 3.12
+ 
++   .. versionchanged:: 3.13
++      Added the *default_value* parameter.
++
+ Function and class definitions
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+diff --git a/Doc/library/typing.rst b/Doc/library/typing.rst
+index 573318bd76..e062872506 100644
+--- a/Doc/library/typing.rst
++++ b/Doc/library/typing.rst
+@@ -1614,7 +1614,7 @@ without the dedicated syntax, as documented below.
+ 
+ .. _typevar:
+ 
+-.. class:: TypeVar(name, *constraints, bound=None, covariant=False, contravariant=False, infer_variance=False)
++.. class:: TypeVar(name, *constraints, bound=None, covariant=False, contravariant=False, infer_variance=False, default=typing.NoDefault)
+ 
+    Type variable.
+ 
+@@ -1752,15 +1752,35 @@ without the dedicated syntax, as documented below.
+          the constraints are evaluated only when the attribute is accessed, not when
+          the type variable is created (see :ref:`lazy-evaluation`).
+ 
++   .. attribute:: __default__
++
++      The default value of the type variable, or :data:`typing.NoDefault` if it
++      has no default.
++
++      .. versionadded:: 3.13
++
++   .. method:: has_default()
++
++      Return whether or not the type variable has a default value. This is equivalent
++      to checking whether :attr:`__default__` is not the :data:`typing.NoDefault`
++      singleton, except that it does not force evaluation of the
++      :ref:`lazily evaluated <lazy-evaluation>` default value.
++
++      .. versionadded:: 3.13
++
+    .. versionchanged:: 3.12
+ 
+       Type variables can now be declared using the
+       :ref:`type parameter <type-params>` syntax introduced by :pep:`695`.
+       The ``infer_variance`` parameter was added.
+ 
++   .. versionchanged:: 3.13
++
++      Support for default values was added.
++
+ .. _typevartuple:
+ 
+-.. class:: TypeVarTuple(name)
++.. class:: TypeVarTuple(name, default=typing.NoDefault)
+ 
+    Type variable tuple. A specialized form of :ref:`type variable <typevar>`
+    that enables *variadic* generics.
+@@ -1870,6 +1890,22 @@ without the dedicated syntax, as documented below.
+ 
+       The name of the type variable tuple.
+ 
++   .. attribute:: __default__
++
++      The default value of the type variable tuple, or :data:`typing.NoDefault` if it
++      has no default.
++
++      .. versionadded:: 3.13
++
++   .. method:: has_default()
++
++      Return whether or not the type variable tuple has a default value. This is equivalent
++      to checking whether :attr:`__default__` is not the :data:`typing.NoDefault`
++      singleton, except that it does not force evaluation of the
++      :ref:`lazily evaluated <lazy-evaluation>` default value.
++
++      .. versionadded:: 3.13
++
+    .. versionadded:: 3.11
+ 
+    .. versionchanged:: 3.12
+@@ -1877,7 +1913,11 @@ without the dedicated syntax, as documented below.
+       Type variable tuples can now be declared using the
+       :ref:`type parameter <type-params>` syntax introduced by :pep:`695`.
+ 
+-.. class:: ParamSpec(name, *, bound=None, covariant=False, contravariant=False)
++   .. versionchanged:: 3.13
++
++      Support for default values was added.
++
++.. class:: ParamSpec(name, *, bound=None, covariant=False, contravariant=False, default=typing.NoDefault)
+ 
+    Parameter specification variable.  A specialized version of
+    :ref:`type variables <typevar>`.
+@@ -1946,6 +1986,22 @@ without the dedicated syntax, as documented below.
+ 
+       The name of the parameter specification.
+ 
++   .. attribute:: __default__
++
++      The default value of the parameter specification, or :data:`typing.NoDefault` if it
++      has no default.
++
++      .. versionadded:: 3.13
++
++   .. method:: has_default()
++
++      Return whether or not the parameter specification has a default value. This is equivalent
++      to checking whether :attr:`__default__` is not the :data:`typing.NoDefault`
++      singleton, except that it does not force evaluation of the
++      :ref:`lazily evaluated <lazy-evaluation>` default value.
++
++      .. versionadded:: 3.13
++
+    Parameter specification variables created with ``covariant=True`` or
+    ``contravariant=True`` can be used to declare covariant or contravariant
+    generic types.  The ``bound`` argument is also accepted, similar to
+@@ -1959,6 +2015,10 @@ without the dedicated syntax, as documented below.
+       Parameter specifications can now be declared using the
+       :ref:`type parameter <type-params>` syntax introduced by :pep:`695`.
+ 
++   .. versionchanged:: 3.13
++
++      Support for default values was added.
++
+    .. note::
+       Only parameter specification variables defined in global scope can
+       be pickled.
+@@ -3171,6 +3231,22 @@ Introspection helpers
+ 
+    .. versionadded:: 3.7.4
+ 
++.. data:: NoDefault
++
++   A sentinel object used to indicate that a type parameter has no default
++   value. For example:
++
++   .. doctest::
++
++      >>> T = TypeVar("T")
++      >>> T.__default__ is typing.NoDefault
++      True
++      >>> S = TypeVar("S", default=None)
++      >>> S.__default__ is None
++      True
++
++   .. versionadded:: 3.13
++
+ Constant
+ --------
+ 
+diff --git a/Doc/reference/compound_stmts.rst b/Doc/reference/compound_stmts.rst
+index 374404bf33..42cca0664d 100644
+--- a/Doc/reference/compound_stmts.rst
++++ b/Doc/reference/compound_stmts.rst
+@@ -1620,15 +1620,18 @@ Type parameter lists
+ 
+ .. versionadded:: 3.12
+ 
++.. versionchanged:: 3.13
++   Support for default values was added (see :pep:`696`).
++
+ .. index::
+    single: type parameters
+ 
+ .. productionlist:: python-grammar
+    type_params: "[" `type_param` ("," `type_param`)* "]"
+    type_param: `typevar` | `typevartuple` | `paramspec`
+-   typevar: `identifier` (":" `expression`)?
+-   typevartuple: "*" `identifier`
+-   paramspec: "**" `identifier`
++   typevar: `identifier` (":" `expression`)? ("=" `expression`)?
++   typevartuple: "*" `identifier` ("=" `expression`)?
++   paramspec: "**" `identifier` ("=" `expression`)?
+ 
+ :ref:`Functions <def>` (including :ref:`coroutines <async def>`),
+ :ref:`classes <class>` and :ref:`type aliases <type>` may
+@@ -1694,19 +1697,31 @@ evaluated in a separate :ref:`annotation scope <annotation-scopes>`.
+ :data:`typing.TypeVarTuple`\ s and :data:`typing.ParamSpec`\ s cannot have bounds
+ or constraints.
+ 
++All three flavors of type parameters can also have a *default value*, which is used
++when the type parameter is not explicitly provided. This is added by appending
++a single equals sign (``=``) followed by an expression. Like the bounds and
++constraints of type variables, the default value is not evaluated when the
++object is created, but only when the type parameter's ``__default__`` attribute
++is accessed. To this end, the default value is evaluated in a separate
++:ref:`annotation scope <annotation-scopes>`. If no default value is specified
++for a type parameter, the ``__default__`` attribute is set to the special
++sentinel object :data:`typing.NoDefault`.
++
+ The following example indicates the full set of allowed type parameter declarations::
+ 
+    def overly_generic[
+       SimpleTypeVar,
++      TypeVarWithDefault = int,
+       TypeVarWithBound: int,
+       TypeVarWithConstraints: (str, bytes),
+-      *SimpleTypeVarTuple,
+-      **SimpleParamSpec,
++      *SimpleTypeVarTuple = (int, float),
++      **SimpleParamSpec = (str, bytearray),
+    ](
+       a: SimpleTypeVar,
+-      b: TypeVarWithBound,
+-      c: Callable[SimpleParamSpec, TypeVarWithConstraints],
+-      *d: SimpleTypeVarTuple,
++      b: TypeVarWithDefault,
++      c: TypeVarWithBound,
++      d: Callable[SimpleParamSpec, TypeVarWithConstraints],
++      *e: SimpleTypeVarTuple,
+    ): ...
+ 
+ .. _generic-functions:
+diff --git a/Doc/reference/executionmodel.rst b/Doc/reference/executionmodel.rst
+index ed50faed6c..f24e1537af 100644
+--- a/Doc/reference/executionmodel.rst
++++ b/Doc/reference/executionmodel.rst
+@@ -205,7 +205,7 @@ Annotation scopes are used in the following contexts:
+ * Type parameter lists for :ref:`generic classes <generic-classes>`.
+   A generic class's base classes and
+   keyword arguments are executed within the annotation scope, but its decorators are not.
+-* The bounds and constraints for type variables
++* The bounds, constraints, and default values for type parameters
+   (:ref:`lazily evaluated <lazy-evaluation>`).
+ * The value of type aliases (:ref:`lazily evaluated <lazy-evaluation>`).
+ 
+@@ -232,13 +232,17 @@ Annotation scopes differ from function scopes in the following ways:
+ .. versionadded:: 3.12
+    Annotation scopes were introduced in Python 3.12 as part of :pep:`695`.
+ 
++.. versionchanged:: 3.13
++   Annotation scopes are also used for type parameter defaults, as
++   introduced by :pep:`696`.
++
+ .. _lazy-evaluation:
+ 
+ Lazy evaluation
+ ---------------
+ 
+ The values of type aliases created through the :keyword:`type` statement are
+-*lazily evaluated*. The same applies to the bounds and constraints of type
++*lazily evaluated*. The same applies to the bounds, constraints, and default values of type
+ variables created through the :ref:`type parameter syntax <type-params>`.
+ This means that they are not evaluated when the type alias or type variable is
+ created. Instead, they are only evaluated when doing so is necessary to resolve
+diff --git a/Doc/whatsnew/3.13.rst b/Doc/whatsnew/3.13.rst
+index d59c4ee22e..d996cf6c4d 100644
+--- a/Doc/whatsnew/3.13.rst
++++ b/Doc/whatsnew/3.13.rst
+@@ -89,6 +89,8 @@ Interpreter improvements:
+ 
+ New typing features:
+ 
++* :pep:`696`: Type parameters (:data:`typing.TypeVar`, :data:`typing.ParamSpec`,
++  and :data:`typing.TypeVarTuple`) now support defaults.
+ * :pep:`742`: :data:`typing.TypeIs` was added, providing more intuitive
+   type narrowing behavior.
+ 
+@@ -850,6 +852,10 @@ typing
+   an item of a :class:`typing.TypedDict` as read-only for type checkers.
+   See :pep:`705` for more details.
+ 
++* Add :data:`typing.NoDefault`, a sentinel object used to represent the defaults
++  of some parameters in the :mod:`typing` module. (Contributed by Jelle Zijlstra in
++  :gh:`116126`.)
++
+ unicodedata
+ -----------
+ 
+diff --git a/Misc/NEWS.d/next/Core and Builtins/2024-02-29-18-55-45.gh-issue-116129.wsFnIq.rst b/Misc/NEWS.d/next/Core and Builtins/2024-02-29-18-55-45.gh-issue-116129.wsFnIq.rst
+new file mode 100644
+index 0000000000..e632ad58d6
+--- /dev/null
++++ b/Misc/NEWS.d/next/Core and Builtins/2024-02-29-18-55-45.gh-issue-116129.wsFnIq.rst	
+@@ -0,0 +1,2 @@
++Implement :pep:`696`, adding support for defaults on type parameters.
++Patch by Jelle Zijlstra.
+diff --git a/Tools/c-analyzer/cpython/globals-to-fix.tsv b/Tools/c-analyzer/cpython/globals-to-fix.tsv
+index 79a8f850ec..b58e9d9fae 100644
+--- a/Tools/c-analyzer/cpython/globals-to-fix.tsv
++++ b/Tools/c-analyzer/cpython/globals-to-fix.tsv
+@@ -92,6 +92,7 @@ Objects/typeobject.c	-	PyBaseObject_Type	-
+ Objects/typeobject.c	-	PySuper_Type	-
+ Objects/typeobject.c	-	PyType_Type	-
+ Objects/typevarobject.c	-	_PyTypeAlias_Type	-
++Objects/typevarobject.c	-	_PyNoDefault_Type	-
+ Objects/unicodeobject.c	-	PyUnicodeIter_Type	-
+ Objects/unicodeobject.c	-	PyUnicode_Type	-
+ Objects/weakrefobject.c	-	_PyWeakref_CallableProxyType	-
+@@ -310,6 +311,7 @@ Objects/object.c	-	_Py_NotImplementedStruct	-
+ Objects/setobject.c	-	_dummy_struct	-
+ Objects/setobject.c	-	_PySet_Dummy	-
+ Objects/sliceobject.c	-	_Py_EllipsisObject	-
++Objects/typevarobject.c	-	_Py_NoDefaultStruct	-
+ Python/instrumentation.c	-	_PyInstrumentation_DISABLE	-
+ Python/instrumentation.c	-	_PyInstrumentation_MISSING	-
+ 

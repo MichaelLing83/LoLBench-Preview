@@ -1,0 +1,66 @@
+{
+  "instance_id": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "suite_support": {
+    "env": "LOLBENCH_SUITE",
+    "modes": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "default": "orig"
+  },
+  "sidecar_patch": "eval_tests_aug.patch",
+  "sidecar_patch_sha256": "bfade42de0c01d1655e6212b7506589a8a16e9a0adc7f06fdab4252182cc5b13",
+  "new_file_rule": "All augmented selectors live in new Rust integration test file crates/ruff/tests/config_aug.rs via eval_tests_aug.patch.",
+  "tests": {
+    "config_aug::isolated_inline_overrides_still_apply": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Allow override of configuration options via the CLI > Proposals"
+      ],
+      "public_surface": "ruff check --isolated with repeatable inline --config TOML options.",
+      "kills_mutants": [
+        "mutant_013_isolated_mode_ignores_inline_overrides"
+      ],
+      "coverage_goal": "Exercises ConfigArguments application in the isolated resolve branch and inline TOML parsing for lint.select and line-length.",
+      "internal_symbol_check": "No production internals imported; test invokes the ruff binary."
+    },
+    "config_aug::nested_pyproject_add_noqa_uses_cli_excludes": {
+      "kind": "F2P-mut",
+      "requirement_sections": [
+        "Allow override of configuration options via the CLI > Proposals"
+      ],
+      "public_surface": "ruff check --add-noqa over a directory with nested pyproject.toml and inline exclude override.",
+      "kills_mutants": [
+        "mutant_016_show_settings_ignores_config_arguments"
+      ],
+      "coverage_goal": "Exercises CLI override transformation during hierarchical file discovery for add-noqa.",
+      "internal_symbol_check": "No production internals imported; test invokes the ruff binary and observes file contents."
+    },
+    "config_aug::default_check_still_reports_unused_import": {
+      "kind": "P2P",
+      "requirement_sections": [
+        "Allow override of configuration options via the CLI > Proposals"
+      ],
+      "public_surface": "ruff check default CLI behavior without --config overrides.",
+      "stability_goal": "Guards ordinary no-config linting behavior unrelated to the new override semantics.",
+      "internal_symbol_check": "No production internals imported; test invokes the ruff binary."
+    }
+  },
+  "coverage_validation": {
+    "status": "passed",
+    "required_minimum_percent": 80,
+    "baseline_union_line_coverage_percent": 85.7,
+    "augmented_only_union_line_coverage_percent": 39.8,
+    "union_line_coverage_percent": 87.8,
+    "executable_lines_in_patch": 329,
+    "union_covered_lines": 289,
+    "coverage_complete": true,
+    "reports": {
+      "baseline": "coverage_out/coverage_report_orig.json",
+      "augmented_only": "coverage_out/coverage_report_aug.json",
+      "union": "coverage_out/coverage_report_union.json"
+    },
+    "measurement_note": "Coverage measured with cargo-llvm-cov over solution.patch Rust lines; union mode runs original plus augmented F2P/P2P selectors."
+  }
+}

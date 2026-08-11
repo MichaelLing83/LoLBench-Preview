@@ -1,0 +1,1585 @@
+diff --git a/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/18509c9e-3250-4c52-91b9-11ccefc85db1 b/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/18509c9e-3250-4c52-91b9-11ccefc85db1
+--- a/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/18509c9e-3250-4c52-91b9-11ccefc85db1
++++ b/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/18509c9e-3250-4c52-91b9-11ccefc85db1
+@@ -35,9 +35,11 @@ org.apache.flink.api.connector.sink2.WriterInitContext.getMailboxExecutor(): Ret
+ org.apache.flink.api.connector.sink2.WriterInitContext.getProcessingTimeService(): Returned leaf type org.apache.flink.api.common.operators.ProcessingTimeService does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.sink2.WriterInitContext.getUserCodeClassLoader(): Returned leaf type org.apache.flink.util.UserCodeClassLoader does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.sink2.WriterInitContext.metricGroup(): Returned leaf type org.apache.flink.metrics.groups.SinkWriterMetricGroup does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
++org.apache.flink.api.connector.source.Source.declareWatermarks(): Returned leaf type org.apache.flink.api.common.watermark.WatermarkDeclaration does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.Source.getEnumeratorCheckpointSerializer(): Returned leaf type org.apache.flink.core.io.SimpleVersionedSerializer does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.Source.getSplitSerializer(): Returned leaf type org.apache.flink.core.io.SimpleVersionedSerializer does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.SourceReader.pollNext(org.apache.flink.api.connector.source.ReaderOutput): Returned leaf type org.apache.flink.core.io.InputStatus does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
++org.apache.flink.api.connector.source.SourceReaderContext.emitWatermark(org.apache.flink.api.common.watermark.Watermark): Argument leaf type org.apache.flink.api.common.watermark.Watermark does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.SourceReaderContext.getUserCodeClassLoader(): Returned leaf type org.apache.flink.util.UserCodeClassLoader does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.SourceReaderContext.metricGroup(): Returned leaf type org.apache.flink.metrics.groups.SourceReaderMetricGroup does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+ org.apache.flink.api.connector.source.SplitEnumeratorContext.metricGroup(): Returned leaf type org.apache.flink.metrics.groups.SplitEnumeratorMetricGroup does not satisfy: reside outside of package 'org.apache.flink..' or reside in any package ['..shaded..'] or annotated with @Public or annotated with @Deprecated
+diff --git a/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/e5126cae-f3fe-48aa-b6fb-60ae6cc3fcd5 b/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/e5126cae-f3fe-48aa-b6fb-60ae6cc3fcd5
+--- a/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/e5126cae-f3fe-48aa-b6fb-60ae6cc3fcd5
++++ b/flink-architecture-tests/flink-architecture-tests-production/archunit-violations/e5126cae-f3fe-48aa-b6fb-60ae6cc3fcd5
+@@ -14,12 +14,12 @@ Method <org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedHaServi
+ Method <org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedHaServicesWithLeadershipControl.revokeJobMasterLeadership(org.apache.flink.api.common.JobID)> calls method <org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedLeaderService.revokeLeadership()> in (EmbeddedHaServicesWithLeadershipControl.java:89)
+ Method <org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedHaServicesWithLeadershipControl.revokeResourceManagerLeadership()> calls method <org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedLeaderService.revokeLeadership()> in (EmbeddedHaServicesWithLeadershipControl.java:102)
+ Method <org.apache.flink.runtime.io.network.partition.ResourceManagerPartitionTrackerImpl.listDataSets()> calls method <org.apache.flink.runtime.io.network.partition.DataSetMetaInfo.withNumRegisteredPartitions(int, int)> in (ResourceManagerPartitionTrackerImpl.java:286)
+-Method <org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$DeferrableCoordinator.closeAsync(long)> calls method <org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$QuiesceableContext.quiesce()> in (RecreateOnResetOperatorCoordinator.java:371)
++Method <org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$DeferrableCoordinator.closeAsync(long)> calls method <org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$QuiesceableContext.quiesce()> in (RecreateOnResetOperatorCoordinator.java:383)
+ Method <org.apache.flink.runtime.taskexecutor.TaskManagerConfiguration.fromConfiguration(org.apache.flink.configuration.Configuration, org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, java.lang.String, java.io.File)> calls method <org.apache.flink.runtime.taskexecutor.TaskExecutorResourceUtils.generateDefaultSlotResourceProfile(org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, int)> in (TaskManagerConfiguration.java:238)
+ Method <org.apache.flink.runtime.taskexecutor.TaskManagerConfiguration.fromConfiguration(org.apache.flink.configuration.Configuration, org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, java.lang.String, java.io.File)> calls method <org.apache.flink.runtime.taskexecutor.TaskExecutorResourceUtils.generateTotalAvailableResourceProfile(org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec)> in (TaskManagerConfiguration.java:240)
+ Method <org.apache.flink.runtime.taskexecutor.TaskManagerServices.createTaskSlotTable(int, org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, long, int, java.util.concurrent.Executor)> calls method <org.apache.flink.runtime.taskexecutor.TaskExecutorResourceUtils.generateDefaultSlotResourceProfile(org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, int)> in (TaskManagerServices.java:481)
+ Method <org.apache.flink.runtime.taskexecutor.TaskManagerServices.createTaskSlotTable(int, org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec, long, int, java.util.concurrent.Executor)> calls method <org.apache.flink.runtime.taskexecutor.TaskExecutorResourceUtils.generateTotalAvailableResourceProfile(org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec)> in (TaskManagerServices.java:479)
+-Method <org.apache.flink.streaming.api.operators.SourceOperator$1$1.asClassLoader()> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getRuntimeContext()> in (SourceOperator.java:311)
+-Method <org.apache.flink.streaming.api.operators.SourceOperator$1$1.registerReleaseHookIfAbsent(java.lang.String, java.lang.Runnable)> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getRuntimeContext()> in (SourceOperator.java:317)
+-Method <org.apache.flink.streaming.runtime.tasks.SourceOperatorStreamTask.init()> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getSourceReader()> in (SourceOperatorStreamTask.java:96)
++Method <org.apache.flink.streaming.api.operators.SourceOperator$1$1.asClassLoader()> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getRuntimeContext()> in (SourceOperator.java:317)
++Method <org.apache.flink.streaming.api.operators.SourceOperator$1$1.registerReleaseHookIfAbsent(java.lang.String, java.lang.Runnable)> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getRuntimeContext()> in (SourceOperator.java:323)
++Method <org.apache.flink.streaming.runtime.tasks.SourceOperatorStreamTask.init()> calls method <org.apache.flink.streaming.api.operators.SourceOperator.getSourceReader()> in (SourceOperatorStreamTask.java:101)
+ Method <org.apache.flink.streaming.runtime.tasks.mailbox.MailboxExecutorImpl.isIdle()> calls method <org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.isDefaultActionAvailable()> in (MailboxExecutorImpl.java:63)
+diff --git a/flink-connectors/flink-connector-base/src/test/java/org/apache/flink/connector/base/source/reader/SourceReaderBaseTest.java b/flink-connectors/flink-connector-base/src/test/java/org/apache/flink/connector/base/source/reader/SourceReaderBaseTest.java
+--- a/flink-connectors/flink-connector-base/src/test/java/org/apache/flink/connector/base/source/reader/SourceReaderBaseTest.java
++++ b/flink-connectors/flink-connector-base/src/test/java/org/apache/flink/connector/base/source/reader/SourceReaderBaseTest.java
+@@ -41,6 +41,7 @@
+ import org.apache.flink.connector.testutils.source.reader.TestingReaderOutput;
+ import org.apache.flink.core.io.InputStatus;
+ import org.apache.flink.core.testutils.CommonTestUtils;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.source.event.AddSplitEvent;
+ import org.apache.flink.streaming.api.operators.SourceOperator;
+ import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput;
+@@ -529,5 +530,8 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) {}
+ 
+         @Override
+         public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {}
++
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {}
+     }
+ }
+diff --git a/flink-core-api/src/test/java/org/apache/flink/api/common/watermark/WatermarkDeclarationsTest.java b/flink-core-api/src/test/java/org/apache/flink/api/common/watermark/WatermarkDeclarationsTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-core-api/src/test/java/org/apache/flink/api/common/watermark/WatermarkDeclarationsTest.java
+@@ -0,0 +1,91 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.api.common.watermark;
++
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Tests for {@link WatermarkDeclarations}. */
++class WatermarkDeclarationsTest {
++
++    private static final String DEFAULT_WATERMARK_IDENTIFIER = "default";
++
++    @Test
++    void testCreatedLongWatermarkDeclarationDefaultValue() {
++        LongWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER).typeLong().build();
++        assertThat(watermarkDeclaration.getIdentifier()).isEqualTo(DEFAULT_WATERMARK_IDENTIFIER);
++        assertThat(watermarkDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(WatermarkCombinationFunction.NumericWatermarkCombinationFunction.MIN);
++        assertThat(watermarkDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isEqualTo(false);
++        assertThat(watermarkDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++    }
++
++    @Test
++    void testCreatedBoolWatermarkDeclarationDefaultValue() {
++        BoolWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER).typeBool().build();
++        assertThat(watermarkDeclaration.getIdentifier()).isEqualTo(DEFAULT_WATERMARK_IDENTIFIER);
++        assertThat(watermarkDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(WatermarkCombinationFunction.BoolWatermarkCombinationFunction.AND);
++        assertThat(watermarkDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isEqualTo(false);
++        assertThat(watermarkDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++    }
++
++    @Test
++    void testBuildLongWatermarkDeclaration() {
++        LongWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeLong()
++                        .combineFunctionMax()
++                        .combineWaitForAllChannels(true)
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++        assertThat(watermarkDeclaration.getIdentifier()).isEqualTo(DEFAULT_WATERMARK_IDENTIFIER);
++        assertThat(watermarkDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(WatermarkCombinationFunction.NumericWatermarkCombinationFunction.MAX);
++        assertThat(watermarkDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isEqualTo(true);
++        assertThat(watermarkDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++    }
++
++    @Test
++    void testBuildBoolWatermarkDeclaration() {
++        BoolWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeBool()
++                        .combineFunctionOR()
++                        .combineWaitForAllChannels(true)
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++        assertThat(watermarkDeclaration.getIdentifier()).isEqualTo(DEFAULT_WATERMARK_IDENTIFIER);
++        assertThat(watermarkDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(WatermarkCombinationFunction.BoolWatermarkCombinationFunction.OR);
++        assertThat(watermarkDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isEqualTo(true);
++        assertThat(watermarkDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++    }
++}
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/attribute/StreamingJobGraphGeneratorWithAttributeTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/attribute/StreamingJobGraphGeneratorWithAttributeTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/attribute/StreamingJobGraphGeneratorWithAttributeTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/attribute/StreamingJobGraphGeneratorWithAttributeTest.java
+@@ -25,6 +25,7 @@
+ import org.apache.flink.datastream.api.attribute.NoOutputUntilEndOfInput;
+ import org.apache.flink.datastream.api.common.Collector;
+ import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
+ import org.apache.flink.datastream.api.stream.NonKeyedPartitionStream;
+@@ -236,7 +237,7 @@ public void processRecord(
+                 Integer record,
+                 Collector<Integer> output1,
+                 Collector<Integer> output2,
+-                PartitionedContext ctx) {
++                TwoOutputPartitionedContext ctx) {
+             output1.collect(record + 1);
+             output2.collect(record - 1);
+         }
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultNonPartitionedContextTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultNonPartitionedContextTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultNonPartitionedContextTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultNonPartitionedContextTest.java
+@@ -25,6 +25,7 @@
+ import org.junit.jupiter.api.Test;
+ 
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Optional;
+@@ -59,23 +60,28 @@ void testApplyToAllPartitions() throws Exception {
+                         0,
+                         operatorRuntimeContext.getMetricGroup());
+ 
++        DefaultPartitionedContext<Integer> partitionedContext =
++                new DefaultPartitionedContext<>(
++                        runtimeContext,
++                        Optional::empty,
++                        (r, k) -> {
++                            cf.complete(null);
++                            r.run();
++                            cf.complete(null);
++                        },
++                        UnsupportedProcessingTimeManager.INSTANCE,
++                        ContextTestUtils.createStreamingRuntimeContext(),
++                        new MockOperatorStateStore());
+         DefaultNonPartitionedContext<Integer> nonPartitionedContext =
+                 new DefaultNonPartitionedContext<>(
+                         runtimeContext,
+-                        new DefaultPartitionedContext(
+-                                runtimeContext,
+-                                Optional::empty,
+-                                (r, k) -> {
+-                                    cf.complete(null);
+-                                    r.run();
+-                                    cf.complete(null);
+-                                },
+-                                UnsupportedProcessingTimeManager.INSTANCE,
+-                                ContextTestUtils.createStreamingRuntimeContext(),
+-                                new MockOperatorStateStore()),
++                        partitionedContext,
+                         collector,
+                         false,
+-                        null);
++                        null,
++                        null,
++                        Collections.emptyMap());
++        partitionedContext.setNonPartitionedContext(nonPartitionedContext);
+         nonPartitionedContext.applyToAllPartitions(
+                 (out, ctx) -> {
+                     counter.incrementAndGet();
+@@ -114,24 +120,29 @@ void testKeyedApplyToAllPartitions() throws Exception {
+                         0,
+                         0,
+                         operatorRuntimeContext.getMetricGroup());
++        DefaultPartitionedContext<Integer> partitionedContext =
++                new DefaultPartitionedContext<>(
++                        runtimeContext,
++                        currentKey::get,
++                        (r, k) -> {
++                            Integer oldKey = currentKey.get();
++                            currentKey.set((Integer) k);
++                            r.run();
++                            currentKey.set(oldKey);
++                        },
++                        UnsupportedProcessingTimeManager.INSTANCE,
++                        ContextTestUtils.createStreamingRuntimeContext(),
++                        new MockOperatorStateStore());
+         DefaultNonPartitionedContext<Integer> nonPartitionedContext =
+                 new DefaultNonPartitionedContext<>(
+                         runtimeContext,
+-                        new DefaultPartitionedContext(
+-                                runtimeContext,
+-                                currentKey::get,
+-                                (r, k) -> {
+-                                    Integer oldKey = currentKey.get();
+-                                    currentKey.set((Integer) k);
+-                                    r.run();
+-                                    currentKey.set(oldKey);
+-                                },
+-                                UnsupportedProcessingTimeManager.INSTANCE,
+-                                ContextTestUtils.createStreamingRuntimeContext(),
+-                                new MockOperatorStateStore()),
++                        partitionedContext,
+                         collector,
+                         true,
+-                        allKeys);
++                        allKeys,
++                        null,
++                        Collections.emptyMap());
++        partitionedContext.setNonPartitionedContext(nonPartitionedContext);
+         nonPartitionedContext.applyToAllPartitions(
+                 (out, ctx) -> {
+                     counter.incrementAndGet();
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultTwoOutputNonPartitionedContextTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultTwoOutputNonPartitionedContextTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultTwoOutputNonPartitionedContextTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/context/DefaultTwoOutputNonPartitionedContextTest.java
+@@ -25,6 +25,7 @@
+ import org.junit.jupiter.api.Test;
+ 
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Optional;
+@@ -63,24 +64,29 @@ void testApplyToAllPartitions() throws Exception {
+                         0,
+                         0,
+                         operatorRuntimeContext.getMetricGroup());
++        DefaultTwoOutputPartitionedContext<Integer, Long> partitionedContext =
++                new DefaultTwoOutputPartitionedContext<>(
++                        runtimeContext,
++                        Optional::empty,
++                        (r, k) -> {
++                            cf.complete(null);
++                            r.run();
++                            cf.complete(null);
++                        },
++                        UnsupportedProcessingTimeManager.INSTANCE,
++                        ContextTestUtils.createStreamingRuntimeContext(),
++                        new MockOperatorStateStore());
+         DefaultTwoOutputNonPartitionedContext<Integer, Long> nonPartitionedContext =
+                 new DefaultTwoOutputNonPartitionedContext<>(
+                         runtimeContext,
+-                        new DefaultPartitionedContext(
+-                                runtimeContext,
+-                                Optional::empty,
+-                                (r, k) -> {
+-                                    cf.complete(null);
+-                                    r.run();
+-                                    cf.complete(null);
+-                                },
+-                                UnsupportedProcessingTimeManager.INSTANCE,
+-                                ContextTestUtils.createStreamingRuntimeContext(),
+-                                new MockOperatorStateStore()),
++                        partitionedContext,
+                         firstCollector,
+                         secondCollector,
+                         false,
+-                        null);
++                        null,
++                        null,
++                        Collections.emptyMap());
++        partitionedContext.setNonPartitionedContext(nonPartitionedContext);
+ 
+         nonPartitionedContext.applyToAllPartitions(
+                 (firstOutput, secondOutput, ctx) -> {
+@@ -127,25 +133,30 @@ void testKeyedApplyToAllPartitions() throws Exception {
+                         0,
+                         0,
+                         operatorRuntimeContext.getMetricGroup());
++        DefaultTwoOutputPartitionedContext<Integer, Long> partitionedContext =
++                new DefaultTwoOutputPartitionedContext<>(
++                        runtimeContext,
++                        currentKey::get,
++                        (r, k) -> {
++                            Integer oldKey = currentKey.get();
++                            currentKey.set((Integer) k);
++                            r.run();
++                            currentKey.set(oldKey);
++                        },
++                        UnsupportedProcessingTimeManager.INSTANCE,
++                        ContextTestUtils.createStreamingRuntimeContext(),
++                        new MockOperatorStateStore());
+         DefaultTwoOutputNonPartitionedContext<Integer, Long> nonPartitionedContext =
+                 new DefaultTwoOutputNonPartitionedContext<>(
+                         runtimeContext,
+-                        new DefaultPartitionedContext(
+-                                runtimeContext,
+-                                currentKey::get,
+-                                (r, k) -> {
+-                                    Integer oldKey = currentKey.get();
+-                                    currentKey.set((Integer) k);
+-                                    r.run();
+-                                    currentKey.set(oldKey);
+-                                },
+-                                UnsupportedProcessingTimeManager.INSTANCE,
+-                                ContextTestUtils.createStreamingRuntimeContext(),
+-                                new MockOperatorStateStore()),
++                        partitionedContext,
+                         firstCollector,
+                         secondCollector,
+                         true,
+-                        allKeys);
++                        allKeys,
++                        null,
++                        Collections.emptyMap());
++        partitionedContext.setNonPartitionedContext(nonPartitionedContext);
+         nonPartitionedContext.applyToAllPartitions(
+                 (firstOut, secondOut, ctx) -> {
+                     counter.incrementAndGet();
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/functions/ProcessFunctionTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/functions/ProcessFunctionTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/functions/ProcessFunctionTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/functions/ProcessFunctionTest.java
+@@ -23,6 +23,7 @@
+ import org.apache.flink.datastream.api.context.NonPartitionedContext;
+ import org.apache.flink.datastream.api.context.PartitionedContext;
+ import org.apache.flink.datastream.api.context.TwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.ProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
+@@ -178,7 +179,7 @@ public void processRecord(
+                             Integer record,
+                             Collector<Integer> output1,
+                             Collector<Integer> output2,
+-                            PartitionedContext ctx)
++                            TwoOutputPartitionedContext ctx)
+                             throws Exception {}
+ 
+                     @Override
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperatorTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperatorTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperatorTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperatorTest.java
+@@ -21,8 +21,8 @@
+ import org.apache.flink.api.common.typeinfo.Types;
+ import org.apache.flink.api.java.functions.KeySelector;
+ import org.apache.flink.datastream.api.common.Collector;
+-import org.apache.flink.datastream.api.context.PartitionedContext;
+ import org.apache.flink.datastream.api.context.TwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness;
+@@ -52,7 +52,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Integer> output1,
+                                     Collector<Long> output2,
+-                                    PartitionedContext ctx) {
++                                    TwoOutputPartitionedContext ctx) {
+                                 output1.collect(record);
+                                 output2.collect((long) (record * 2));
+                             }
+@@ -93,7 +93,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Integer> output1,
+                                     Collector<Long> output2,
+-                                    PartitionedContext ctx) {
++                                    TwoOutputPartitionedContext ctx) {
+                                 // do nothing.
+                             }
+ 
+@@ -147,7 +147,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Integer> output1,
+                                     Collector<Long> output2,
+-                                    PartitionedContext ctx) {
++                                    TwoOutputPartitionedContext ctx) {
+                                 if (emitToFirstOutput.get()) {
+                                     output1.collect(record);
+                                 } else {
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperatorTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperatorTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperatorTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperatorTest.java
+@@ -19,8 +19,8 @@
+ package org.apache.flink.datastream.impl.operators;
+ 
+ import org.apache.flink.datastream.api.common.Collector;
+-import org.apache.flink.datastream.api.context.PartitionedContext;
+ import org.apache.flink.datastream.api.context.TwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.util.OneInputStreamOperatorTestHarness;
+@@ -48,7 +48,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Integer> output1,
+                                     Collector<Long> output2,
+-                                    PartitionedContext ctx) {
++                                    TwoOutputPartitionedContext ctx) {
+                                 output1.collect(record);
+                                 output2.collect((long) (record * 2));
+                             }
+@@ -86,7 +86,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Integer> output1,
+                                     Collector<Long> output2,
+-                                    PartitionedContext ctx) {
++                                    TwoOutputPartitionedContext ctx) {
+                                 // do nothing.
+                             }
+ 
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/stream/StreamTestUtils.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/stream/StreamTestUtils.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/stream/StreamTestUtils.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/stream/StreamTestUtils.java
+@@ -25,6 +25,7 @@
+ import org.apache.flink.datastream.api.common.Collector;
+ import org.apache.flink.datastream.api.context.NonPartitionedContext;
+ import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
+@@ -109,7 +110,7 @@ public void processRecord(
+                 Integer record,
+                 Collector<Integer> output1,
+                 Collector<Long> output2,
+-                PartitionedContext ctx) {
++                TwoOutputPartitionedContext ctx) {
+             //  do nothing.
+         }
+     }
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/StreamUtilsTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/StreamUtilsTest.java
+--- a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/StreamUtilsTest.java
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/StreamUtilsTest.java
+@@ -26,6 +26,7 @@
+ import org.apache.flink.datastream.api.common.Collector;
+ import org.apache.flink.datastream.api.context.NonPartitionedContext;
+ import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
+ import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
+ import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
+@@ -132,7 +133,7 @@ public void processRecord(
+                                     Integer record,
+                                     Collector<Long> output1,
+                                     Collector<String> output2,
+-                                    PartitionedContext ctx)
++                                    TwoOutputPartitionedContext ctx)
+                                     throws Exception {
+                                 // ignore
+                             }
+diff --git a/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/WatermarkUtilsTest.java b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/WatermarkUtilsTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/test/java/org/apache/flink/datastream/impl/utils/WatermarkUtilsTest.java
+@@ -0,0 +1,182 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.utils;
++
++import org.apache.flink.api.common.watermark.BoolWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.LongWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkCombinationFunction;
++import org.apache.flink.api.common.watermark.WatermarkCombinationPolicy;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkDeclarations;
++import org.apache.flink.api.common.watermark.WatermarkHandlingStrategy;
++import org.apache.flink.api.connector.dsv2.DataStreamV2SourceUtils;
++import org.apache.flink.datastream.api.ExecutionEnvironment;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.NonKeyedPartitionStream;
++import org.apache.flink.datastream.impl.ExecutionEnvironmentImpl;
++import org.apache.flink.streaming.api.graph.StreamGraph;
++import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.Alignable;
++import org.apache.flink.streaming.runtime.watermark.AlignableLongWatermarkDeclaration;
++import org.apache.flink.streaming.util.watermark.WatermarkUtils;
++
++import org.junit.jupiter.api.BeforeAll;
++import org.junit.jupiter.api.Test;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Comparator;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Test for {@link WatermarkUtils}. */
++class WatermarkUtilsTest {
++
++    private static List<WatermarkDeclaration> watermarkDeclarations;
++
++    @BeforeAll
++    static void setup() {
++        watermarkDeclarations = new ArrayList<>();
++        watermarkDeclarations.add(
++                WatermarkDeclarations.newBuilder("watermark1")
++                        .typeLong()
++                        .combineFunctionMax()
++                        .defaultHandlingStrategyIgnore()
++                        .build());
++        watermarkDeclarations.add(
++                WatermarkDeclarations.newBuilder("watermark2")
++                        .typeBool()
++                        .combineFunctionOR()
++                        .defaultHandlingStrategyIgnore()
++                        .build());
++        watermarkDeclarations.add(
++                WatermarkDeclarations.newBuilder("watermark3")
++                        .typeBool()
++                        .combineFunctionAND()
++                        .defaultHandlingStrategy(WatermarkHandlingStrategy.IGNORE)
++                        .build());
++        watermarkDeclarations.add(
++                new AlignableLongWatermarkDeclaration(
++                        "watermark4",
++                        new WatermarkCombinationPolicy(
++                                WatermarkCombinationFunction.NumericWatermarkCombinationFunction
++                                        .MAX,
++                                true),
++                        WatermarkHandlingStrategy.IGNORE,
++                        true));
++        watermarkDeclarations.sort(Comparator.comparing(WatermarkDeclaration::getIdentifier));
++    }
++
++    @Test
++    void testGetInternalWatermarkDeclarationsFromStreamGraph() throws ReflectiveOperationException {
++        StreamGraph streamGraph = getStreamGraph(watermarkDeclarations);
++        Set<AbstractInternalWatermarkDeclaration<?>> internalWatermarkDeclarationSet =
++                WatermarkUtils.getInternalWatermarkDeclarationsFromStreamGraph(streamGraph);
++        ArrayList<AbstractInternalWatermarkDeclaration<?>> internalWatermarkDeclarations =
++                new ArrayList<>(internalWatermarkDeclarationSet);
++        internalWatermarkDeclarations.sort(
++                Comparator.comparing(WatermarkDeclaration::getIdentifier));
++        assertThat(internalWatermarkDeclarations.size()).isEqualTo(watermarkDeclarations.size());
++        for (int i = 0; i < internalWatermarkDeclarations.size(); i++) {
++            judgeWatermarkDeclarationEqual(
++                    watermarkDeclarations.get(i), internalWatermarkDeclarations.get(i));
++        }
++    }
++
++    private static StreamGraph getStreamGraph(List<WatermarkDeclaration> watermarkDeclarations)
++            throws ReflectiveOperationException {
++        ExecutionEnvironment env = ExecutionEnvironment.getInstance();
++        NonKeyedPartitionStream<Integer> source =
++                env.fromSource(
++                        DataStreamV2SourceUtils.fromData(Arrays.asList(1, 2, 3)), "custom-source");
++        NonKeyedPartitionStream.ProcessConfigurableAndNonKeyedPartitionStream<Integer> stream1 =
++                source.process(
++                        new OneInputStreamProcessFunction<Integer, Integer>() {
++                            @Override
++                            public void processRecord(
++                                    Integer record,
++                                    Collector<Integer> output,
++                                    PartitionedContext ctx)
++                                    throws Exception {}
++
++                            @Override
++                            public Set<? extends WatermarkDeclaration> declareWatermarks() {
++                                return Set.of(watermarkDeclarations.get(0));
++                            }
++                        });
++
++        NonKeyedPartitionStream.ProcessConfigurableAndTwoNonKeyedPartitionStream<Integer, Integer>
++                stream2 =
++                        stream1.process(
++                                new TwoOutputStreamProcessFunction<Integer, Integer, Integer>() {
++                                    @Override
++                                    public void processRecord(
++                                            Integer record,
++                                            Collector<Integer> output1,
++                                            Collector<Integer> output2,
++                                            TwoOutputPartitionedContext ctx)
++                                            throws Exception {}
++
++                                    @Override
++                                    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++                                        return new HashSet<>(
++                                                watermarkDeclarations.subList(
++                                                        1, watermarkDeclarations.size()));
++                                    }
++                                });
++
++        return ((ExecutionEnvironmentImpl) env).getStreamGraph();
++    }
++
++    private static void judgeWatermarkDeclarationEqual(
++            WatermarkDeclaration watermarkDeclaration,
++            AbstractInternalWatermarkDeclaration<?> internalWatermarkDeclaration) {
++        assertThat(watermarkDeclaration.getIdentifier())
++                .isEqualTo(internalWatermarkDeclaration.getIdentifier());
++        boolean isAligned =
++                (watermarkDeclaration instanceof Alignable)
++                        && ((Alignable) watermarkDeclaration).isAligned();
++        assertThat(isAligned).isEqualTo(internalWatermarkDeclaration.isAligned());
++        if (watermarkDeclaration instanceof BoolWatermarkDeclaration) {
++            BoolWatermarkDeclaration boolWatermarkDeclaration =
++                    (BoolWatermarkDeclaration) watermarkDeclaration;
++            assertThat(boolWatermarkDeclaration.getCombinationPolicy())
++                    .isEqualTo(internalWatermarkDeclaration.getCombinationPolicy());
++            assertThat(boolWatermarkDeclaration.getDefaultHandlingStrategy())
++                    .isEqualTo(internalWatermarkDeclaration.getDefaultHandlingStrategy());
++        } else if (watermarkDeclaration instanceof LongWatermarkDeclaration) {
++            LongWatermarkDeclaration longWatermarkDeclaration =
++                    (LongWatermarkDeclaration) watermarkDeclaration;
++            assertThat(longWatermarkDeclaration.getCombinationPolicy())
++                    .isEqualTo(internalWatermarkDeclaration.getCombinationPolicy());
++            assertThat(longWatermarkDeclaration.getDefaultHandlingStrategy())
++                    .isEqualTo(internalWatermarkDeclaration.getDefaultHandlingStrategy());
++        } else {
++            throw new IllegalArgumentException(
++                    "Unknown WatermarkDeclaration type " + watermarkDeclaration.getClass());
++        }
++    }
++}
+diff --git a/flink-datastream/src/test/resources/log4j2-test.properties b/flink-datastream/src/test/resources/log4j2-test.properties
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/test/resources/log4j2-test.properties
+@@ -0,0 +1,31 @@
++################################################################################
++#  Licensed to the Apache Software Foundation (ASF) under one
++#  or more contributor license agreements.  See the NOTICE file
++#  distributed with this work for additional information
++#  regarding copyright ownership.  The ASF licenses this file
++#  to you under the Apache License, Version 2.0 (the
++#  "License"); you may not use this file except in compliance
++#  with the License.  You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++#  Unless required by applicable law or agreed to in writing, software
++#  distributed under the License is distributed on an "AS IS" BASIS,
++#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++#  See the License for the specific language governing permissions and
++# limitations under the License.
++################################################################################
++
++# Set root logger level to OFF to not flood build logs
++# set manually to INFO for debugging purposes
++rootLogger.level = OFF
++rootLogger.appenderRef.test.ref = TestLogger
++
++appender.testlogger.name = TestLogger
++appender.testlogger.type = CONSOLE
++appender.testlogger.target = SYSTEM_ERR
++appender.testlogger.layout.type = PatternLayout
++appender.testlogger.layout.pattern = %-4r [%t] %-5p %c %x - %m%n
++
++logger.migration.name = org.apache.flink.test.migration
++logger.migration.level = INFO
+diff --git a/flink-runtime/src/test/java/org/apache/flink/runtime/io/network/api/serialization/EventSerializerTest.java b/flink-runtime/src/test/java/org/apache/flink/runtime/io/network/api/serialization/EventSerializerTest.java
+--- a/flink-runtime/src/test/java/org/apache/flink/runtime/io/network/api/serialization/EventSerializerTest.java
++++ b/flink-runtime/src/test/java/org/apache/flink/runtime/io/network/api/serialization/EventSerializerTest.java
+@@ -18,11 +18,14 @@
+ 
+ package org.apache.flink.runtime.io.network.api.serialization;
+ 
++import org.apache.flink.api.common.watermark.BoolWatermark;
++import org.apache.flink.api.common.watermark.LongWatermark;
+ import org.apache.flink.core.execution.SavepointFormatType;
+ import org.apache.flink.runtime.checkpoint.CheckpointOptions;
+ import org.apache.flink.runtime.checkpoint.CheckpointType;
+ import org.apache.flink.runtime.checkpoint.SavepointType;
+ import org.apache.flink.runtime.event.AbstractEvent;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.io.network.api.CancelCheckpointMarker;
+ import org.apache.flink.runtime.io.network.api.CheckpointBarrier;
+ import org.apache.flink.runtime.io.network.api.EndOfData;
+@@ -114,7 +117,9 @@ class EventSerializerTest {
+                 44),
+         new SubtaskConnectionDescriptor(23, 42),
+         EndOfSegmentEvent.INSTANCE,
+-        new RecoveryMetadata(3)
++        new RecoveryMetadata(3),
++        new WatermarkEvent(new LongWatermark(42L, "test"), false),
++        new WatermarkEvent(new BoolWatermark(true, "test"), true),
+     };
+ 
+     @Test
+@@ -148,6 +153,14 @@ void testToBufferConsumer() throws IOException {
+             } else if (evt instanceof EndOfPartitionEvent) {
+                 assertThat(bufferConsumer.build().getDataType())
+                         .isEqualTo(Buffer.DataType.END_OF_PARTITION);
++            } else if (evt instanceof WatermarkEvent) {
++                if (((WatermarkEvent) evt).isAligned()) {
++                    assertThat(bufferConsumer.build().getDataType())
++                            .isEqualTo(Buffer.DataType.ALIGNED_WATERMARK_EVENT);
++                } else {
++                    assertThat(bufferConsumer.build().getDataType())
++                            .isEqualTo(Buffer.DataType.UNALIGNED_WATERMARK_EVENT);
++                }
+             } else {
+                 assertThat(bufferConsumer.build().getDataType())
+                         .isEqualTo(Buffer.DataType.EVENT_BUFFER);
+@@ -170,6 +183,14 @@ void testToBuffer() throws IOException {
+                 assertThat(buffer.getDataType()).isEqualTo(Buffer.DataType.END_OF_DATA);
+             } else if (evt instanceof EndOfPartitionEvent) {
+                 assertThat(buffer.getDataType()).isEqualTo(Buffer.DataType.END_OF_PARTITION);
++            } else if (evt instanceof WatermarkEvent) {
++                if (((WatermarkEvent) evt).isAligned()) {
++                    assertThat(buffer.getDataType())
++                            .isEqualTo(Buffer.DataType.ALIGNED_WATERMARK_EVENT);
++                } else {
++                    assertThat(buffer.getDataType())
++                            .isEqualTo(Buffer.DataType.UNALIGNED_WATERMARK_EVENT);
++                }
+             } else {
+                 assertThat(buffer.getDataType()).isEqualTo(Buffer.DataType.EVENT_BUFFER);
+             }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/SourceOperatorTest.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/SourceOperatorTest.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/SourceOperatorTest.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/SourceOperatorTest.java
+@@ -23,6 +23,7 @@ Licensed to the Apache Software Foundation (ASF) under one
+ import org.apache.flink.api.connector.source.mocks.MockSourceReader;
+ import org.apache.flink.api.connector.source.mocks.MockSourceSplit;
+ import org.apache.flink.api.connector.source.mocks.MockSourceSplitSerializer;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.io.network.api.StopMode;
+ import org.apache.flink.runtime.operators.coordination.MockOperatorEventGateway;
+ import org.apache.flink.runtime.operators.coordination.OperatorEvent;
+@@ -266,5 +267,10 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) throws Exception {
+         public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {
+             output.emitRecordAttributes(recordAttributes);
+         }
++
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {
++            output.emitWatermark(watermark);
++        }
+     }
+ }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/CollectingDataOutput.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/CollectingDataOutput.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/CollectingDataOutput.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/CollectingDataOutput.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.streaming.api.operators.sort;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -59,4 +60,9 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) throws Exception {
+     public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {
+         events.add(recordAttributes);
+     }
++
++    @Override
++    public void emitWatermark(WatermarkEvent watermark) throws Exception {
++        events.add(watermark);
++    }
+ }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/LargeSortingDataInputITCase.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/LargeSortingDataInputITCase.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/LargeSortingDataInputITCase.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/sort/LargeSortingDataInputITCase.java
+@@ -29,6 +29,7 @@
+ import org.apache.flink.configuration.Configuration;
+ import org.apache.flink.runtime.checkpoint.CheckpointException;
+ import org.apache.flink.runtime.checkpoint.channel.ChannelStateWriter;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.io.AvailabilityProvider;
+ import org.apache.flink.runtime.operators.testutils.DummyInvokable;
+ import org.apache.flink.runtime.operators.testutils.MockEnvironment;
+@@ -221,6 +222,9 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) throws Exception {}
+         @Override
+         public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {}
+ 
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {}
++
+         public int getSeenRecords() {
+             return seenRecords;
+         }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/CollectingDataOutput.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/CollectingDataOutput.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/CollectingDataOutput.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/CollectingDataOutput.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.streaming.api.operators.source;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -62,6 +63,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) throws Excep
+         events.add(recordAttributes);
+     }
+ 
++    @Override
++    public void emitWatermark(WatermarkEvent watermark) throws Exception {
++        events.add(watermark);
++    }
++
+     public List<Object> getEvents() {
+         return events;
+     }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/TestingSourceOperator.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/TestingSourceOperator.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/TestingSourceOperator.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/operators/source/TestingSourceOperator.java
+@@ -98,7 +98,8 @@ public TestingSourceOperator(
+                 new Configuration(),
+                 "localhost",
+                 emitProgressiveWatermarks,
+-                () -> false);
++                () -> false,
++                Collections.emptyMap());
+ 
+         this.subtaskIndex = subtaskIndex;
+         this.parallelism = parallelism;
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/api/watermark/generalized/WatermarkCombinerTest.java b/flink-runtime/src/test/java/org/apache/flink/streaming/api/watermark/generalized/WatermarkCombinerTest.java
+new file mode 100644
+--- /dev/null
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/api/watermark/generalized/WatermarkCombinerTest.java
+@@ -0,0 +1,405 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.streaming.api.watermark.generalized;
++
++import org.apache.flink.api.common.watermark.BoolWatermark;
++import org.apache.flink.api.common.watermark.BoolWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.LongWatermark;
++import org.apache.flink.api.common.watermark.LongWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkCombinationFunction;
++import org.apache.flink.api.common.watermark.WatermarkCombinationPolicy;
++import org.apache.flink.api.common.watermark.WatermarkDeclarations;
++import org.apache.flink.api.common.watermark.WatermarkHandlingStrategy;
++import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.AlignedWatermarkCombiner;
++import org.apache.flink.streaming.runtime.watermark.InternalBoolWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.InternalLongWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.WatermarkCombiner;
++
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.concurrent.atomic.AtomicBoolean;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Tests for {@link WatermarkCombiner}. */
++class WatermarkCombinerTest {
++
++    private static final String DEFAULT_WATERMARK_IDENTIFIER = "default";
++    private List<Watermark> receivedWatermarks = new ArrayList<>();
++    private WatermarkCombiner combiner;
++
++    @BeforeEach
++    public void setup() {
++        receivedWatermarks.clear();
++        combiner = null;
++    }
++
++    @Test
++    void testAlignedWatermarkCombiner() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | gateNotified | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |     1     |           |    false     |    []
++        //     2   |           |     1     |    true      |    [1]
++        //     3   |           |     2     |    false     |    [1]
++        //     4   |     2     |           |    true      |    [1, 2]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value 1.
++        // The expected result of this step is the gateNotified should be set to true, and the
++        // receivedWatermarks should contain one watermark with a value of 1.
++
++        InternalLongWatermarkDeclaration watermarkDeclaration =
++                new InternalLongWatermarkDeclaration(
++                        DEFAULT_WATERMARK_IDENTIFIER,
++                        new WatermarkCombinationPolicy(
++                                WatermarkCombinationFunction.NumericWatermarkCombinationFunction
++                                        .MIN,
++                                true),
++                        WatermarkHandlingStrategy.FORWARD,
++                        true);
++        AtomicBoolean gateNotified = new AtomicBoolean(false);
++        combiner = new AlignedWatermarkCombiner(2, () -> gateNotified.set(true));
++
++        // step 1
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(1L), 0);
++        assertThat(gateNotified.get()).isFalse();
++
++        // step 2
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(1L), 1, 1L);
++        assertThat(gateNotified.get()).isTrue();
++
++        // clear gateNotified
++        gateNotified.set(false);
++
++        // step 3
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(2L), 1, 1L);
++        assertThat(gateNotified.get()).isFalse();
++
++        // step 4
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 0, 1L, 2L);
++        assertThat(gateNotified.get()).isTrue();
++    }
++
++    @Test
++    void testLongWatermarkCombinerWaitForAllChannels() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |     3     |           |    []
++        //     2   |     2     |           |    []
++        //     3   |           |     1     |    [2]
++        //     4   |           |     3     |    [2, 3]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value 3.
++        // The expected result of this step is the receivedWatermarks should be empty.
++
++        LongWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeLong()
++                        .combineFunctionMax()
++                        .combineWaitForAllChannels(true)
++                        .build();
++        InternalLongWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalLongWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(3L), 0);
++
++        // step 2
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(2L), 0);
++
++        // step 3
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(1L), 1, 2L);
++
++        // step 4
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(3L), 0, 2L, 3L);
++    }
++
++    @Test
++    void testLongWatermarkCombinerCombineMax() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |     1     |           |    [1]
++        //     2   |     2     |           |    [1, 2]
++        //     3   |           |     2     |    [1, 2]
++        //     4   |           |     3     |    [1, 2, 3]
++        //     5   |           |     2     |    [1, 2, 3, 2]
++        //     6   |     2     |           |    [1, 2, 3, 2]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value 3.
++        // The expected result of this step is and the receivedWatermarks should contain one
++        // watermark with a value of 1.
++
++        LongWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeLong()
++                        .combineFunctionMax()
++                        .build();
++        InternalLongWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalLongWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(1L), 0, 1L);
++
++        // step 2
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 0, 1L, 2L);
++
++        // step 3
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 1, 1L, 2L);
++
++        // step 4
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(3L), 1, 1L, 2L, 3L);
++
++        // step 5
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 1, 1L, 2L, 3L, 2L);
++
++        // step 6
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 0, 1L, 2L, 3L, 2L);
++    }
++
++    @Test
++    void testLongWatermarkCombinerCombineMin() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |     2     |           |    [2]
++        //     2   |           |     1     |    [2, 1]
++        //     3   |     3     |           |    [2, 1]
++        //     4   |           |     1     |    [2, 1]
++        //     5   |           |     2     |    [2, 1, 2]
++        //     6   |           |     4     |    [2, 1, 2, 3]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value 2.
++        // The expected result of this step is and the receivedWatermarks should contain one
++        // watermark with a value of 2.
++
++        LongWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeLong()
++                        .combineFunctionMin()
++                        .build();
++        InternalLongWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalLongWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithLongWatermark(watermarkDeclaration.newWatermark(2L), 0, 2L);
++
++        // step 2
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(1L), 1, 2L, 1L);
++
++        // step 3
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(3L), 0, 2L, 1L);
++
++        // step 4
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(1L), 1, 2L, 1L);
++
++        // step 5
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(2L), 1, 2L, 1L, 2L);
++
++        // step 6
++        executeAndCheckCombineStepWithLongWatermark(
++                watermarkDeclaration.newWatermark(4L), 1, 2L, 1L, 2L, 3L);
++    }
++
++    @Test
++    void testBoolWatermarkCombinerWaitForAllChannels() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |   true    |           |    []
++        //     2   |   true    |           |    []
++        //     3   |           |   false   |    [false]
++        //     4   |           |   true    |    [false, true]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value true.
++        // The expected result of this step is the receivedWatermarks should be empty.
++
++        BoolWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeBool()
++                        .combineFunctionAND()
++                        .combineWaitForAllChannels(true)
++                        .build();
++        InternalBoolWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalBoolWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithBoolWatermark(watermarkDeclaration.newWatermark(true), 0);
++
++        // step 2
++        executeAndCheckCombineStepWithBoolWatermark(watermarkDeclaration.newWatermark(true), 0);
++
++        // step 3
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(false), 1, false);
++
++        // step 4
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 1, false, true);
++    }
++
++    @Test
++    void testBoolWatermarkCombinerCombineAnd() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |   true    |           |    [true]
++        //     2   |           |   false   |    [true, false]
++        //     3   |           |   true    |    [true, false, true]
++        //     4   |   true    |           |    [true, false, true]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value true.
++        // The expected result of this step is and the receivedWatermarks should contain one
++        // watermark with a value of true.
++
++        BoolWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeBool()
++                        .combineFunctionAND()
++                        .build();
++        InternalBoolWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalBoolWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 0, true);
++
++        // step 2
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(false), 1, true, false);
++
++        // step 3
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 1, true, false, true);
++
++        // step 4
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 0, true, false, true);
++    }
++
++    @Test
++    void testBoolWatermarkCombinerCombineOr() throws Exception {
++        // The test scenario is as follows:
++        // -----------------------------------------------------------------------------
++        //               test scenario     |         expected result
++        // -----------------------------------------------------------------------------
++        //    Step | Channel 0 | Channel 1 | receivedWatermarkValues
++        // -----------------------------------------------------------------------------
++        //     1   |   true    |           |    [true]
++        //     2   |           |   false   |    [true]
++        //     3   |           |   true    |    [true]
++        //     4   |           |   false   |    [true]
++        //     5   |   false   |           |    [true, false]
++        // -----------------------------------------------------------------------------
++        // e.g. The step 1 means that Channel 0 will receive the watermark with value 2.
++        // The expected result of this step is and the receivedWatermarks should contain one
++        // watermark with a value of 2.
++
++        BoolWatermarkDeclaration watermarkDeclaration =
++                WatermarkDeclarations.newBuilder(DEFAULT_WATERMARK_IDENTIFIER)
++                        .typeBool()
++                        .combineFunctionOR()
++                        .build();
++        InternalBoolWatermarkDeclaration internalWatermarkDeclaration =
++                (InternalBoolWatermarkDeclaration)
++                        AbstractInternalWatermarkDeclaration.from(watermarkDeclaration);
++        combiner = internalWatermarkDeclaration.createWatermarkCombiner(2, null);
++
++        // step 1
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 0, true);
++
++        // step 2
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(false), 1, true);
++
++        // step 3
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(true), 1, true);
++
++        // step 4
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(false), 1, true);
++
++        // step 5
++        executeAndCheckCombineStepWithBoolWatermark(
++                watermarkDeclaration.newWatermark(false), 0, true, false);
++    }
++
++    private void executeAndCheckCombineStepWithLongWatermark(
++            LongWatermark watermark, int channelIndex, Long... expectedReceivedWatermarkValues)
++            throws Exception {
++        combiner.combineWatermark(watermark, channelIndex, receivedWatermarks::add);
++        assertThat(receivedWatermarks.stream().map(w -> ((LongWatermark) w).getValue()))
++                .containsExactly(expectedReceivedWatermarkValues);
++    }
++
++    private void executeAndCheckCombineStepWithBoolWatermark(
++            BoolWatermark watermark, int channelIndex, Boolean... expectedReceivedWatermarkValues)
++            throws Exception {
++        combiner.combineWatermark(watermark, channelIndex, receivedWatermarks::add);
++        assertThat(receivedWatermarks.stream().map(w -> ((BoolWatermark) w).getValue()))
++                .containsExactly(expectedReceivedWatermarkValues);
++    }
++}
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockIndexedInputGate.java b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockIndexedInputGate.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockIndexedInputGate.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockIndexedInputGate.java
+@@ -113,6 +113,9 @@ public Optional<BufferOrEvent> pollNext() {
+     @Override
+     public void sendTaskEvent(TaskEvent event) {}
+ 
++    @Override
++    public void resumeGateConsumption() throws IOException {}
++
+     @Override
+     public void close() {}
+ 
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockInputGate.java b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockInputGate.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockInputGate.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/MockInputGate.java
+@@ -149,6 +149,12 @@ public Optional<BufferOrEvent> pollNext() {
+     @Override
+     public void sendTaskEvent(TaskEvent event) {}
+ 
++    @Override
++    public void resumeGateConsumption() throws IOException {
++        blockedChannels.forEach(
++                channelIdx -> resumeConsumption(new InputChannelInfo(getGateIndex(), channelIdx)));
++    }
++
+     @Override
+     public void resumeConsumption(InputChannelInfo channelInfo) {
+         lastUnblockedChannels.add(channelInfo.getInputChannelIdx());
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/checkpointing/AlignedCheckpointsMassiveRandomTest.java b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/checkpointing/AlignedCheckpointsMassiveRandomTest.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/checkpointing/AlignedCheckpointsMassiveRandomTest.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/io/checkpointing/AlignedCheckpointsMassiveRandomTest.java
+@@ -234,6 +234,9 @@ private boolean allChannelsBlocked() {
+         @Override
+         public void sendTaskEvent(TaskEvent event) {}
+ 
++        @Override
++        public void resumeGateConsumption() throws IOException {}
++
+         @Override
+         public void resumeConsumption(InputChannelInfo channelInfo) {}
+ 
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/watermarkstatus/StatusWatermarkValveTest.java b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/watermarkstatus/StatusWatermarkValveTest.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/watermarkstatus/StatusWatermarkValveTest.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/runtime/watermarkstatus/StatusWatermarkValveTest.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.streaming.runtime.watermarkstatus;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -459,6 +460,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) throws Excep
+             throw new UnsupportedOperationException();
+         }
+ 
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {
++            throw new UnsupportedOperationException();
++        }
++
+         public StreamElement popLastSeenOutput() {
+             return allOutputs.poll();
+         }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/util/AbstractStreamOperatorTestHarness.java b/flink-runtime/src/test/java/org/apache/flink/streaming/util/AbstractStreamOperatorTestHarness.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/util/AbstractStreamOperatorTestHarness.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/util/AbstractStreamOperatorTestHarness.java
+@@ -35,6 +35,7 @@
+ import org.apache.flink.runtime.checkpoint.StateObjectCollection;
+ import org.apache.flink.runtime.checkpoint.SubTaskInitializationMetricsBuilder;
+ import org.apache.flink.runtime.checkpoint.TaskStateSnapshot;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.execution.Environment;
+ import org.apache.flink.runtime.jobgraph.OperatorID;
+ import org.apache.flink.runtime.metrics.groups.TaskIOMetricGroup;
+@@ -867,6 +868,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) {
+             outputList.add(recordAttributes);
+         }
+ 
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) {
++            outputList.add(watermark);
++        }
++
+         @Override
+         public void collect(StreamRecord<OUT> element) {
+             if (outputSerializer == null) {
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/util/CollectorOutput.java b/flink-runtime/src/test/java/org/apache/flink/streaming/util/CollectorOutput.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/util/CollectorOutput.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/util/CollectorOutput.java
+@@ -18,6 +18,8 @@
+ 
+ package org.apache.flink.streaming.util;
+ 
++import org.apache.flink.runtime.event.RuntimeEvent;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.operators.Output;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -29,35 +31,49 @@
+ import org.apache.flink.util.OutputTag;
+ 
+ import java.io.IOException;
++import java.util.ArrayList;
+ import java.util.List;
+ 
+ /** Collecting {@link Output} for {@link StreamRecord}. */
+ public class CollectorOutput<T> implements Output<StreamRecord<T>> {
+ 
+-    private final List<StreamElement> list;
++    private final List<StreamElement> elementList;
+ 
+-    public CollectorOutput(List<StreamElement> list) {
+-        this.list = list;
++    private final List<RuntimeEvent> eventList;
++
++    public CollectorOutput(List<StreamElement> elementList) {
++        this.elementList = elementList;
++        this.eventList = new ArrayList<>();
++    }
++
++    public CollectorOutput(List<StreamElement> elementList, List<RuntimeEvent> eventList) {
++        this.elementList = elementList;
++        this.eventList = eventList;
+     }
+ 
+     @Override
+     public void emitWatermark(Watermark mark) {
+-        list.add(mark);
++        elementList.add(mark);
+     }
+ 
+     @Override
+     public void emitWatermarkStatus(WatermarkStatus watermarkStatus) {
+-        list.add(watermarkStatus);
++        elementList.add(watermarkStatus);
+     }
+ 
+     @Override
+     public void emitLatencyMarker(LatencyMarker latencyMarker) {
+-        list.add(latencyMarker);
++        elementList.add(latencyMarker);
+     }
+ 
+     @Override
+     public void emitRecordAttributes(RecordAttributes recordAttributes) {
+-        list.add(recordAttributes);
++        elementList.add(recordAttributes);
++    }
++
++    @Override
++    public void emitWatermark(WatermarkEvent watermark) {
++        eventList.add(watermark);
+     }
+ 
+     @Override
+@@ -67,7 +83,7 @@ public void collect(StreamRecord<T> record) {
+             T copied =
+                     InstantiationUtil.deserializeObject(
+                             InstantiationUtil.serializeObject(record.getValue()), cl);
+-            list.add(record.copy(copied));
++            elementList.add(record.copy(copied));
+         } catch (IOException | ClassNotFoundException ex) {
+             throw new RuntimeException("Unable to deserialize record: " + record, ex);
+         }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/util/MockOutput.java b/flink-runtime/src/test/java/org/apache/flink/streaming/util/MockOutput.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/util/MockOutput.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/util/MockOutput.java
+@@ -17,6 +17,7 @@
+ 
+ package org.apache.flink.streaming.util;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.operators.Output;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -75,6 +76,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) {
+         throw new RuntimeException("RecordAttributes is not supported for MockOutput");
+     }
+ 
++    @Override
++    public void emitWatermark(WatermarkEvent watermark) {
++        throw new RuntimeException("WatermarkEvent is not supported for MockOutput");
++    }
++
+     @Override
+     public void close() {}
+ }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/streaming/util/SourceOperatorTestHarness.java b/flink-runtime/src/test/java/org/apache/flink/streaming/util/SourceOperatorTestHarness.java
+--- a/flink-runtime/src/test/java/org/apache/flink/streaming/util/SourceOperatorTestHarness.java
++++ b/flink-runtime/src/test/java/org/apache/flink/streaming/util/SourceOperatorTestHarness.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.streaming.util;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.operators.testutils.MockEnvironment;
+ import org.apache.flink.streaming.api.operators.Output;
+ import org.apache.flink.streaming.api.operators.SourceOperator;
+@@ -85,5 +86,10 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) {
+         public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {
+             output.emitRecordAttributes(recordAttributes);
+         }
++
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {
++            output.emitWatermark(watermark);
++        }
+     }
+ }
+diff --git a/flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/io/StreamTaskNetworkInputTest.java b/flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/io/StreamTaskNetworkInputTest.java
+--- a/flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/io/StreamTaskNetworkInputTest.java
++++ b/flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/io/StreamTaskNetworkInputTest.java
+@@ -24,6 +24,7 @@
+ import org.apache.flink.runtime.checkpoint.CheckpointOptions;
+ import org.apache.flink.runtime.checkpoint.channel.ChannelStateWriter;
+ import org.apache.flink.runtime.checkpoint.channel.InputChannelInfo;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.io.disk.iomanager.IOManager;
+ import org.apache.flink.runtime.io.disk.iomanager.IOManagerAsync;
+ import org.apache.flink.runtime.io.network.api.CheckpointBarrier;
+@@ -453,6 +454,9 @@ public void emitLatencyMarker(LatencyMarker latencyMarker) {}
+ 
+         @Override
+         public void emitRecordAttributes(RecordAttributes recordAttributes) {}
++
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) {}
+     }
+ 
+     private static class VerifyRecordsDataOutput<T> extends NoOpDataOutput<T> {
+diff --git a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/runtime/utils/TimeTestUtil.scala b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/runtime/utils/TimeTestUtil.scala
+--- a/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/runtime/utils/TimeTestUtil.scala
++++ b/flink-table/flink-table-planner/src/test/scala/org/apache/flink/table/planner/runtime/utils/TimeTestUtil.scala
+@@ -19,6 +19,7 @@ package org.apache.flink.table.planner.runtime.utils
+ 
+ import org.apache.flink.api.common.state.{ListState, ListStateDescriptor}
+ import org.apache.flink.api.common.typeinfo.Types
++import org.apache.flink.runtime.event.WatermarkEvent
+ import org.apache.flink.runtime.state.{StateInitializationContext, StateSnapshotContext}
+ import org.apache.flink.streaming.api.functions.source.legacy.SourceFunction
+ import org.apache.flink.streaming.api.operators.{AbstractStreamOperator, OneInputStreamOperator}
+@@ -101,6 +102,9 @@ object TimeTestUtil {
+ 
+     override def processRecordAttributes(recordAttributes: RecordAttributes): Unit =
+       super.processRecordAttributes(recordAttributes)
++
++    override def processWatermark(event: WatermarkEvent): Unit =
++      super.processWatermark(event)
+   }
+ 
+ }
+diff --git a/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/multipleinput/output/BlackHoleOutput.java b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/multipleinput/output/BlackHoleOutput.java
+--- a/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/multipleinput/output/BlackHoleOutput.java
++++ b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/multipleinput/output/BlackHoleOutput.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.table.runtime.operators.multipleinput.output;
+ 
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.streaming.api.operators.Output;
+ import org.apache.flink.streaming.api.watermark.Watermark;
+ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+@@ -55,6 +56,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) {
+         // do nothing
+     }
+ 
++    @Override
++    public void emitWatermark(WatermarkEvent watermark) {
++        // do nothing
++    }
++
+     @Override
+     public void collect(StreamRecord<RowData> record) {
+         // do nothing
+diff --git a/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/over/NonBufferOverWindowOperatorTest.java b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/over/NonBufferOverWindowOperatorTest.java
+--- a/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/over/NonBufferOverWindowOperatorTest.java
++++ b/flink-table/flink-table-runtime/src/test/java/org/apache/flink/table/runtime/operators/over/NonBufferOverWindowOperatorTest.java
+@@ -20,6 +20,7 @@
+ 
+ import org.apache.flink.configuration.Configuration;
+ import org.apache.flink.core.memory.ManagedMemoryUseCase;
++import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.jobgraph.OperatorID;
+ import org.apache.flink.runtime.operators.testutils.MockEnvironment;
+ import org.apache.flink.runtime.operators.testutils.MockEnvironmentBuilder;
+@@ -218,6 +219,11 @@ public void emitRecordAttributes(RecordAttributes recordAttributes) {
+             throw new RuntimeException();
+         }
+ 
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) {
++            throw new RuntimeException();
++        }
++
+         @Override
+         public void collect(StreamRecord<RowData> record) {
+             consumer.accept(record.getValue());

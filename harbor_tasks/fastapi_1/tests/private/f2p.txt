@@ -1,0 +1,9 @@
+tests/test_annotated.py::test_get
+tests/test_ambiguous_params.py::test_no_annotated_defaults
+tests/test_ambiguous_params.py::test_no_multiple_annotations
+tests/test_tutorial/test_annotated/test_tutorial001.py::test_get
+tests/test_tutorial/test_annotated/test_tutorial001_py39.py::test_get
+tests/test_tutorial/test_annotated/test_tutorial002.py::test_get
+tests/test_tutorial/test_annotated/test_tutorial002_py39.py::test_get
+tests/test_tutorial/test_annotated/test_tutorial003.py::test_get
+tests/test_tutorial/test_annotated/test_tutorial003_py39.py::test_get

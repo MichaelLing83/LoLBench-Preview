@@ -1,0 +1,1052 @@
+diff --git a/Lib/test/test_tomllib/__init__.py b/Lib/test/test_tomllib/__init__.py
+new file mode 100644
+index 0000000000..6204c6e47f
+--- /dev/null
++++ b/Lib/test/test_tomllib/__init__.py
+@@ -0,0 +1,15 @@
++# SPDX-License-Identifier: MIT
++# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
++# Licensed to PSF under a Contributor Agreement.
++
++__all__ = ("tomllib",)
++
++# By changing this one line, we can run the tests against
++# a different module name.
++import tomllib
++
++import os
++from test.support import load_package_tests
++
++def load_tests(*args):
++    return load_package_tests(os.path.dirname(__file__), *args)
+diff --git a/Lib/test/test_tomllib/__main__.py b/Lib/test/test_tomllib/__main__.py
+new file mode 100644
+index 0000000000..dd06365343
+--- /dev/null
++++ b/Lib/test/test_tomllib/__main__.py
+@@ -0,0 +1,6 @@
++import unittest
++
++from . import load_tests
++
++
++unittest.main()
+diff --git a/Lib/test/test_tomllib/burntsushi.py b/Lib/test/test_tomllib/burntsushi.py
+new file mode 100644
+index 0000000000..71228c6536
+--- /dev/null
++++ b/Lib/test/test_tomllib/burntsushi.py
+@@ -0,0 +1,120 @@
++# SPDX-License-Identifier: MIT
++# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
++# Licensed to PSF under a Contributor Agreement.
++
++"""Utilities for tests that are in the "burntsushi" format."""
++
++import datetime
++from typing import Any
++
++# Aliases for converting TOML compliance format [1] to BurntSushi format [2]
++# [1] https://github.com/toml-lang/compliance/blob/db7c3211fda30ff9ddb10292f4aeda7e2e10abc4/docs/json-encoding.md  # noqa: E501
++# [2] https://github.com/BurntSushi/toml-test/blob/4634fdf3a6ecd6aaea5f4cdcd98b2733c2694993/README.md  # noqa: E501
++_aliases = {
++    "boolean": "bool",
++    "offset datetime": "datetime",
++    "local datetime": "datetime-local",
++    "local date": "date-local",
++    "local time": "time-local",
++}
++
++
++def convert(obj):  # noqa: C901
++    if isinstance(obj, str):
++        return {"type": "string", "value": obj}
++    elif isinstance(obj, bool):
++        return {"type": "bool", "value": str(obj).lower()}
++    elif isinstance(obj, int):
++        return {"type": "integer", "value": str(obj)}
++    elif isinstance(obj, float):
++        return {"type": "float", "value": _normalize_float_str(str(obj))}
++    elif isinstance(obj, datetime.datetime):
++        val = _normalize_datetime_str(obj.isoformat())
++        if obj.tzinfo:
++            return {"type": "datetime", "value": val}
++        return {"type": "datetime-local", "value": val}
++    elif isinstance(obj, datetime.time):
++        return {
++            "type": "time-local",
++            "value": _normalize_localtime_str(str(obj)),
++        }
++    elif isinstance(obj, datetime.date):
++        return {
++            "type": "date-local",
++            "value": str(obj),
++        }
++    elif isinstance(obj, list):
++        return [convert(i) for i in obj]
++    elif isinstance(obj, dict):
++        return {k: convert(v) for k, v in obj.items()}
++    raise Exception("unsupported type")
++
++
++def normalize(obj: Any) -> Any:
++    """Normalize test objects.
++
++    This normalizes primitive values (e.g. floats), and also converts from
++    TOML compliance format [1] to BurntSushi format [2].
++
++    [1] https://github.com/toml-lang/compliance/blob/db7c3211fda30ff9ddb10292f4aeda7e2e10abc4/docs/json-encoding.md  # noqa: E501
++    [2] https://github.com/BurntSushi/toml-test/blob/4634fdf3a6ecd6aaea5f4cdcd98b2733c2694993/README.md  # noqa: E501
++    """
++    if isinstance(obj, list):
++        return [normalize(item) for item in obj]
++    if isinstance(obj, dict):
++        if "type" in obj and "value" in obj:
++            type_ = obj["type"]
++            norm_type = _aliases.get(type_, type_)
++            value = obj["value"]
++            if norm_type == "float":
++                norm_value = _normalize_float_str(value)
++            elif norm_type in {"datetime", "datetime-local"}:
++                norm_value = _normalize_datetime_str(value)
++            elif norm_type == "time-local":
++                norm_value = _normalize_localtime_str(value)
++            else:
++                norm_value = value
++
++            if norm_type == "array":
++                return [normalize(item) for item in value]
++            return {"type": norm_type, "value": norm_value}
++        return {k: normalize(v) for k, v in obj.items()}
++    raise AssertionError("Burntsushi fixtures should be dicts/lists only")
++
++
++def _normalize_datetime_str(dt_str: str) -> str:
++    if dt_str[-1].lower() == "z":
++        dt_str = dt_str[:-1] + "+00:00"
++
++    date = dt_str[:10]
++    rest = dt_str[11:]
++
++    if "+" in rest:
++        sign = "+"
++    elif "-" in rest:
++        sign = "-"
++    else:
++        sign = ""
++
++    if sign:
++        time, _, offset = rest.partition(sign)
++    else:
++        time = rest
++        offset = ""
++
++    time = time.rstrip("0") if "." in time else time
++    return date + "T" + time + sign + offset
++
++
++def _normalize_localtime_str(lt_str: str) -> str:
++    return lt_str.rstrip("0") if "." in lt_str else lt_str
++
++
++def _normalize_float_str(float_str: str) -> str:
++    as_float = float(float_str)
++
++    # Normalize "-0.0" and "+0.0"
++    if as_float == 0:
++        return "0"
++
++    return str(as_float)
+diff --git a/Lib/test/test_tomllib/data/invalid/array-missing-comma.toml b/Lib/test/test_tomllib/data/invalid/array-missing-comma.toml
+new file mode 100644
+index 0000000000..9431d90799
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array-missing-comma.toml
+@@ -0,0 +1 @@
++arrr = [true false]
+diff --git a/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-array-in-parent.toml b/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-array-in-parent.toml
+new file mode 100644
+index 0000000000..f867c28dee
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-array-in-parent.toml
+@@ -0,0 +1,4 @@
++[[parent-table.arr]]
++[parent-table]
++not-arr = 1
++arr = 2
+diff --git a/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-bool-with-aot.toml b/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-bool-with-aot.toml
+new file mode 100644
+index 0000000000..b1892d6a44
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array-of-tables/overwrite-bool-with-aot.toml
+@@ -0,0 +1,2 @@
++a=true
++[[a]]
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/array/file-end-after-val.toml b/Lib/test/test_tomllib/data/invalid/array/file-end-after-val.toml
+new file mode 100644
+index 0000000000..00196bb03e
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array/file-end-after-val.toml
+@@ -0,0 +1 @@
++a=[1
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/array/unclosed-after-item.toml b/Lib/test/test_tomllib/data/invalid/array/unclosed-after-item.toml
+new file mode 100644
+index 0000000000..9edec37078
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array/unclosed-after-item.toml
+@@ -0,0 +1 @@
++v=[1,
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/array/unclosed-empty.toml b/Lib/test/test_tomllib/data/invalid/array/unclosed-empty.toml
+new file mode 100644
+index 0000000000..1fd099d368
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/array/unclosed-empty.toml
+@@ -0,0 +1 @@
++v=[
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/basic-str-ends-in-escape.toml b/Lib/test/test_tomllib/data/invalid/basic-str-ends-in-escape.toml
+new file mode 100644
+index 0000000000..713ea544f8
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/basic-str-ends-in-escape.toml
+@@ -0,0 +1 @@
++"backslash is the last char\
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/boolean/invalid-false-casing.toml b/Lib/test/test_tomllib/data/invalid/boolean/invalid-false-casing.toml
+new file mode 100644
+index 0000000000..336d2d808e
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/boolean/invalid-false-casing.toml
+@@ -0,0 +1 @@
++val=falsE
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/boolean/invalid-true-casing.toml b/Lib/test/test_tomllib/data/invalid/boolean/invalid-true-casing.toml
+new file mode 100644
+index 0000000000..0370d6cdb6
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/boolean/invalid-true-casing.toml
+@@ -0,0 +1 @@
++val=trUe
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/dates-and-times/invalid-day.toml b/Lib/test/test_tomllib/data/invalid/dates-and-times/invalid-day.toml
+new file mode 100644
+index 0000000000..c69f091445
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/dates-and-times/invalid-day.toml
+@@ -0,0 +1 @@
++"only 28 or 29 days in february" = 1988-02-30
+diff --git a/Lib/test/test_tomllib/data/invalid/dotted-keys/access-non-table.toml b/Lib/test/test_tomllib/data/invalid/dotted-keys/access-non-table.toml
+new file mode 100644
+index 0000000000..ada02005a3
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/dotted-keys/access-non-table.toml
+@@ -0,0 +1,2 @@
++a = false
++a.b = true
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-aot.toml b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-aot.toml
+new file mode 100644
+index 0000000000..1c3c34b857
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-aot.toml
+@@ -0,0 +1,3 @@
++[[tab.arr]]
++[tab]
++arr.val1=1
+diff --git a/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table-with-subtable.toml b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table-with-subtable.toml
+new file mode 100644
+index 0000000000..70e2ac5be8
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table-with-subtable.toml
+@@ -0,0 +1,4 @@
++[a.b.c.d]
++  z = 9
++[a]
++  b.c.d.k.t = 8
+diff --git a/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table.toml b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table.toml
+new file mode 100644
+index 0000000000..c88c179d3c
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/dotted-keys/extend-defined-table.toml
+@@ -0,0 +1,4 @@
++[a.b.c]
++  z = 9
++[a]
++  b.c.t = 9
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table-missing-comma.toml b/Lib/test/test_tomllib/data/invalid/inline-table-missing-comma.toml
+new file mode 100644
+index 0000000000..d98b41dd03
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table-missing-comma.toml
+@@ -0,0 +1 @@
++arrr = { comma-missing = true valid-toml = false }
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/define-twice-in-subtable.toml b/Lib/test/test_tomllib/data/invalid/inline-table/define-twice-in-subtable.toml
+new file mode 100644
+index 0000000000..706834135d
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/define-twice-in-subtable.toml
+@@ -0,0 +1 @@
++table1 = { table2.dupe = 1, table2.dupe = 2 }
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/define-twice.toml b/Lib/test/test_tomllib/data/invalid/inline-table/define-twice.toml
+new file mode 100644
+index 0000000000..8202b98ff2
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/define-twice.toml
+@@ -0,0 +1 @@
++table = { dupe = 1, dupe = 2 }
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/file-end-after-key-val.toml b/Lib/test/test_tomllib/data/invalid/inline-table/file-end-after-key-val.toml
+new file mode 100644
+index 0000000000..52d4e77970
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/file-end-after-key-val.toml
+@@ -0,0 +1 @@
++a={b=1
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/mutate.toml b/Lib/test/test_tomllib/data/invalid/inline-table/mutate.toml
+new file mode 100644
+index 0000000000..4e5e9ff156
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/mutate.toml
+@@ -0,0 +1,2 @@
++a = { b = 1 }
++a.b = 2
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/override-val-in-table.toml b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-in-table.toml
+new file mode 100644
+index 0000000000..6e87cfa456
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-in-table.toml
+@@ -0,0 +1,5 @@
++[tab.nested]
++inline-t = { nest = {} }
++
++[tab]
++nested.inline-t.nest = 2
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-array.toml b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-array.toml
+new file mode 100644
+index 0000000000..79b4f32587
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-array.toml
+@@ -0,0 +1,3 @@
++inline-t = { nest = {} }
++
++[[inline-t.nest]]
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-table.toml b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-table.toml
+new file mode 100644
+index 0000000000..d0cd6b641a
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/override-val-with-table.toml
+@@ -0,0 +1,3 @@
++inline-t = { nest = {} }
++
++[inline-t.nest]
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-implicitly.toml b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-implicitly.toml
+new file mode 100644
+index 0000000000..462c28f168
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-implicitly.toml
+@@ -0,0 +1 @@
++a = { b = 1, b.c = 2 }
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-array.toml b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-array.toml
+new file mode 100644
+index 0000000000..34ddb85eee
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-array.toml
+@@ -0,0 +1 @@
++tab = { inner.table = [{}], inner.table.val = "bad" }
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-table.toml b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-table.toml
+new file mode 100644
+index 0000000000..750853f0d9
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/overwrite-value-in-inner-table.toml
+@@ -0,0 +1 @@
++tab = { inner = { dog = "best" }, inner.cat = "worst" }
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/inline-table/unclosed-empty.toml b/Lib/test/test_tomllib/data/invalid/inline-table/unclosed-empty.toml
+new file mode 100644
+index 0000000000..032edb7266
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/inline-table/unclosed-empty.toml
+@@ -0,0 +1 @@
++a={
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/invalid-comment-char.toml b/Lib/test/test_tomllib/data/invalid/invalid-comment-char.toml
+new file mode 100644
+index 0000000000..dc5ae336c6
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/invalid-comment-char.toml
+@@ -0,0 +1 @@
++# form feed () not allowed in comments
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/invalid-escaped-unicode.toml b/Lib/test/test_tomllib/data/invalid/invalid-escaped-unicode.toml
+new file mode 100644
+index 0000000000..8feba3a30a
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/invalid-escaped-unicode.toml
+@@ -0,0 +1 @@
++escaped-unicode = "\uabag"
+diff --git a/Lib/test/test_tomllib/data/invalid/invalid-hex.toml b/Lib/test/test_tomllib/data/invalid/invalid-hex.toml
+new file mode 100644
+index 0000000000..5c55fe80c4
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/invalid-hex.toml
+@@ -0,0 +1 @@
++hex = 0xgabba00f1
+diff --git a/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early-table-def.toml b/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early-table-def.toml
+new file mode 100644
+index 0000000000..75d43a37ed
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early-table-def.toml
+@@ -0,0 +1 @@
++[fwfw.wafw
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early.toml b/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early.toml
+new file mode 100644
+index 0000000000..e70e265ae2
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/keys-and-vals/ends-early.toml
+@@ -0,0 +1 @@
++fs.fw
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/keys-and-vals/no-value.toml b/Lib/test/test_tomllib/data/invalid/keys-and-vals/no-value.toml
+new file mode 100644
+index 0000000000..4f9ab16c61
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/keys-and-vals/no-value.toml
+@@ -0,0 +1 @@
++why-no-value=
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/keys-and-vals/only-ws-after-dot.toml b/Lib/test/test_tomllib/data/invalid/keys-and-vals/only-ws-after-dot.toml
+new file mode 100644
+index 0000000000..abe52587c9
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/keys-and-vals/only-ws-after-dot.toml
+@@ -0,0 +1 @@
++fs.
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/keys-and-vals/overwrite-with-deep-table.toml b/Lib/test/test_tomllib/data/invalid/keys-and-vals/overwrite-with-deep-table.toml
+new file mode 100644
+index 0000000000..103d928bcf
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/keys-and-vals/overwrite-with-deep-table.toml
+@@ -0,0 +1,2 @@
++a=1
++[a.b.c.d]
+diff --git a/Lib/test/test_tomllib/data/invalid/literal-str/unclosed.toml b/Lib/test/test_tomllib/data/invalid/literal-str/unclosed.toml
+new file mode 100644
+index 0000000000..b1612aa1f6
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/literal-str/unclosed.toml
+@@ -0,0 +1 @@
++unclosed='dwdd
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/missing-closing-double-square-bracket.toml b/Lib/test/test_tomllib/data/invalid/missing-closing-double-square-bracket.toml
+new file mode 100644
+index 0000000000..ae1d0d9cf9
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/missing-closing-double-square-bracket.toml
+@@ -0,0 +1,2 @@
++[[closing-bracket.missing]
++blaa=2
+diff --git a/Lib/test/test_tomllib/data/invalid/missing-closing-square-bracket.toml b/Lib/test/test_tomllib/data/invalid/missing-closing-square-bracket.toml
+new file mode 100644
+index 0000000000..354d0167fc
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/missing-closing-square-bracket.toml
+@@ -0,0 +1,2 @@
++[closing-bracket.missingö
++blaa=2
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-basic-str/carriage-return.toml b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/carriage-return.toml
+new file mode 100644
+index 0000000000..4c455cfe0e
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/carriage-return.toml
+@@ -0,0 +1,2 @@
++s="""cr is not an allowed line endingbut we just tried to use it
++"""
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-basic-str/escape-only.toml b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/escape-only.toml
+new file mode 100644
+index 0000000000..f3bd9fca23
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/escape-only.toml
+@@ -0,0 +1 @@
++bee = """\"""
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-basic-str/file-ends-after-opening.toml b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/file-ends-after-opening.toml
+new file mode 100644
+index 0000000000..1c2a564444
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/file-ends-after-opening.toml
+@@ -0,0 +1 @@
++a="""
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-basic-str/last-line-escape.toml b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/last-line-escape.toml
+new file mode 100644
+index 0000000000..92b22b0656
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/last-line-escape.toml
+@@ -0,0 +1,4 @@
++bee = """
++hee \
++
++gee \   """
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-basic-str/unclosed-ends-in-whitespace-escape.toml b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/unclosed-ends-in-whitespace-escape.toml
+new file mode 100644
+index 0000000000..3ba7febbd0
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-basic-str/unclosed-ends-in-whitespace-escape.toml
+@@ -0,0 +1,3 @@
++bee = """
++hee
++gee\	 
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-literal-str/file-ends-after-opening.toml b/Lib/test/test_tomllib/data/invalid/multiline-literal-str/file-ends-after-opening.toml
+new file mode 100644
+index 0000000000..9a3924a103
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-literal-str/file-ends-after-opening.toml
+@@ -0,0 +1 @@
++a='''
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/multiline-literal-str/unclosed.toml b/Lib/test/test_tomllib/data/invalid/multiline-literal-str/unclosed.toml
+new file mode 100644
+index 0000000000..decd378991
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/multiline-literal-str/unclosed.toml
+@@ -0,0 +1,3 @@
++bee = '''
++hee
++gee ''
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/non-scalar-escaped.toml b/Lib/test/test_tomllib/data/invalid/non-scalar-escaped.toml
+new file mode 100644
+index 0000000000..c787f9ad35
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/non-scalar-escaped.toml
+@@ -0,0 +1 @@
++a="\ud800"
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/table/eof-after-opening.toml b/Lib/test/test_tomllib/data/invalid/table/eof-after-opening.toml
+new file mode 100644
+index 0000000000..8e2f0bef13
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/table/eof-after-opening.toml
+@@ -0,0 +1 @@
++[
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/invalid/table/redefine-1.toml b/Lib/test/test_tomllib/data/invalid/table/redefine-1.toml
+new file mode 100644
+index 0000000000..d2c66eb38c
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/table/redefine-1.toml
+@@ -0,0 +1,3 @@
++[t1]
++t2.t3.v = 0
++[t1.t2]
+diff --git a/Lib/test/test_tomllib/data/invalid/table/redefine-2.toml b/Lib/test/test_tomllib/data/invalid/table/redefine-2.toml
+new file mode 100644
+index 0000000000..918017f892
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/table/redefine-2.toml
+@@ -0,0 +1,3 @@
++[t1]
++t2.t3.v = 0
++[t1.t2.t3]
+diff --git a/Lib/test/test_tomllib/data/invalid/unclosed-multiline-string.toml b/Lib/test/test_tomllib/data/invalid/unclosed-multiline-string.toml
+new file mode 100644
+index 0000000000..401adec2a3
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/unclosed-multiline-string.toml
+@@ -0,0 +1,4 @@
++not-closed= """
++diibaa
++blibae ete
++eteta
+diff --git a/Lib/test/test_tomllib/data/invalid/unclosed-string.toml b/Lib/test/test_tomllib/data/invalid/unclosed-string.toml
+new file mode 100644
+index 0000000000..89f75acf77
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/invalid/unclosed-string.toml
+@@ -0,0 +1 @@
++"a-string".must-be = "closed
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.json b/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.json
+new file mode 100644
+index 0000000000..fddafe7769
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.json
+@@ -0,0 +1 @@
++{"this-str-has-apostrophes": {"type": "string", "value": "' there's one already\n'' two more\n''"}}
+diff --git a/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.toml b/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.toml
+new file mode 100644
+index 0000000000..4288d080ca
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/apostrophes-in-literal-string.toml
+@@ -0,0 +1,3 @@
++this-str-has-apostrophes='''' there's one already
++'' two more
++'''''
+diff --git a/Lib/test/test_tomllib/data/valid/array/array-subtables.json b/Lib/test/test_tomllib/data/valid/array/array-subtables.json
+new file mode 100644
+index 0000000000..69ad37e983
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/array/array-subtables.json
+@@ -0,0 +1,11 @@
++{"arr":
++  {"type":"array","value":
++    [
++      {"subtab":
++        {"val": {"type":"integer","value":"1"}
++        }
++      },
++      {"subtab": {"val": {"type":"integer","value":"2"}}}
++    ]
++  }
++}
+diff --git a/Lib/test/test_tomllib/data/valid/array/array-subtables.toml b/Lib/test/test_tomllib/data/valid/array/array-subtables.toml
+new file mode 100644
+index 0000000000..7075307841
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/array/array-subtables.toml
+@@ -0,0 +1,7 @@
++[[arr]]
++[arr.subtab]
++val=1
++
++[[arr]]
++[arr.subtab]
++val=2
+diff --git a/Lib/test/test_tomllib/data/valid/array/open-parent-table.json b/Lib/test/test_tomllib/data/valid/array/open-parent-table.json
+new file mode 100644
+index 0000000000..7dba1b69d6
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/array/open-parent-table.json
+@@ -0,0 +1,6 @@
++{
++  "parent-table": {
++    "arr": {"type":"array","value":[{},{}]},
++    "not-arr": {"type":"integer","value":"1"}
++  }
++}
+diff --git a/Lib/test/test_tomllib/data/valid/array/open-parent-table.toml b/Lib/test/test_tomllib/data/valid/array/open-parent-table.toml
+new file mode 100644
+index 0000000000..8eaad12fe3
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/array/open-parent-table.toml
+@@ -0,0 +1,4 @@
++[[parent-table.arr]]
++[[parent-table.arr]]
++[parent-table]
++not-arr = 1
+diff --git a/Lib/test/test_tomllib/data/valid/boolean.json b/Lib/test/test_tomllib/data/valid/boolean.json
+new file mode 100644
+index 0000000000..2540d25277
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/boolean.json
+@@ -0,0 +1,4 @@
++{
++  "a": {"type":"bool","value":"true"},
++  "b": {"type":"bool","value":"false"}
++}
+diff --git a/Lib/test/test_tomllib/data/valid/boolean.toml b/Lib/test/test_tomllib/data/valid/boolean.toml
+new file mode 100644
+index 0000000000..e5aaba35ea
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/boolean.toml
+@@ -0,0 +1,2 @@
++'a'=true
++"b"=false
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.json b/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.json
+new file mode 100644
+index 0000000000..99aca87348
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.json
+@@ -0,0 +1,4 @@
++{
++  "local-dt": {"type":"datetime-local","value":"1988-10-27t01:01:01"},
++  "zulu-dt": {"type":"datetime","value":"1988-10-27t01:01:01z"}
++}
+diff --git a/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.toml b/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.toml
+new file mode 100644
+index 0000000000..cf84159de4
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/dates-and-times/datetimes.toml
+@@ -0,0 +1,2 @@
++local-dt=1988-10-27t01:01:01
++zulu-dt=1988-10-27t01:01:01z
+diff --git a/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.json b/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.json
+new file mode 100644
+index 0000000000..4d96abcbc7
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.json
+@@ -0,0 +1,2 @@
++{"t":
++  {"type":"time-local","value":"00:00:00.999999"}}
+diff --git a/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.toml b/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.toml
+new file mode 100644
+index 0000000000..87547c1cf3
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/dates-and-times/localtime.toml
+@@ -0,0 +1 @@
++t=00:00:00.99999999999999
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/empty-inline-table.json b/Lib/test/test_tomllib/data/valid/empty-inline-table.json
+new file mode 100644
+index 0000000000..2655cfd3ab
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/empty-inline-table.json
+@@ -0,0 +1 @@
++{"empty":  {}}
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/empty-inline-table.toml b/Lib/test/test_tomllib/data/valid/empty-inline-table.toml
+new file mode 100644
+index 0000000000..d2d15ab9e0
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/empty-inline-table.toml
+@@ -0,0 +1 @@
++empty ={            }#nothing here
+diff --git a/Lib/test/test_tomllib/data/valid/five-quotes.json b/Lib/test/test_tomllib/data/valid/five-quotes.json
+new file mode 100644
+index 0000000000..5cc527408e
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/five-quotes.json
+@@ -0,0 +1,4 @@
++{
++  "five-quotes": {"type":"string","value":"Closing with five quotes\n\"\""},
++  "four-quotes": {"type":"string","value":"Closing with four quotes\n\""}
++}
+diff --git a/Lib/test/test_tomllib/data/valid/five-quotes.toml b/Lib/test/test_tomllib/data/valid/five-quotes.toml
+new file mode 100644
+index 0000000000..ccc98c0741
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/five-quotes.toml
+@@ -0,0 +1,6 @@
++five-quotes = """
++Closing with five quotes
++"""""
++four-quotes = """
++Closing with four quotes
++""""
+diff --git a/Lib/test/test_tomllib/data/valid/hex-char.json b/Lib/test/test_tomllib/data/valid/hex-char.json
+new file mode 100644
+index 0000000000..e632e202fa
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/hex-char.json
+@@ -0,0 +1,5 @@
++{
++  "a": {"type":"string","value":"a"},
++  "b": {"type":"string","value":"b"},
++  "c": {"type":"string","value":"c"}
++}
+diff --git a/Lib/test/test_tomllib/data/valid/hex-char.toml b/Lib/test/test_tomllib/data/valid/hex-char.toml
+new file mode 100644
+index 0000000000..1d9cdf6a43
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/hex-char.toml
+@@ -0,0 +1,3 @@
++a="\u0061"
++b="\u0062"
++c="\U00000063"
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.json b/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.json
+new file mode 100644
+index 0000000000..fc54a7c2a3
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.json
+@@ -0,0 +1 @@
++{"beee": {"type": "string", "value": "heeee\ngeeee"}}
+diff --git a/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.toml b/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.toml
+new file mode 100644
+index 0000000000..4dffe55fcb
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/multiline-basic-str/ends-in-whitespace-escape.toml
+@@ -0,0 +1,6 @@
++beee = """
++heeee
++geeee\  
++
++
++      """
+diff --git a/Lib/test/test_tomllib/data/valid/no-newlines.json b/Lib/test/test_tomllib/data/valid/no-newlines.json
+new file mode 100644
+index 0000000000..0967ef424b
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/no-newlines.json
+@@ -0,0 +1 @@
++{}
+diff --git a/Lib/test/test_tomllib/data/valid/no-newlines.toml b/Lib/test/test_tomllib/data/valid/no-newlines.toml
+new file mode 100644
+index 0000000000..4b87f4c77c
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/no-newlines.toml
+@@ -0,0 +1 @@
++#no newlines at all here
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/data/valid/trailing-comma.json b/Lib/test/test_tomllib/data/valid/trailing-comma.json
+new file mode 100644
+index 0000000000..dc6f1665d1
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/trailing-comma.json
+@@ -0,0 +1,7 @@
++{"arr":
++  {"type":"array","value":
++    [
++      {"type":"integer","value":"1"}
++    ]
++  }
++}
+diff --git a/Lib/test/test_tomllib/data/valid/trailing-comma.toml b/Lib/test/test_tomllib/data/valid/trailing-comma.toml
+new file mode 100644
+index 0000000000..c5d5b9b412
+--- /dev/null
++++ b/Lib/test/test_tomllib/data/valid/trailing-comma.toml
+@@ -0,0 +1 @@
++arr=[1,]
+\ No newline at end of file
+diff --git a/Lib/test/test_tomllib/test_data.py b/Lib/test/test_tomllib/test_data.py
+new file mode 100644
+index 0000000000..3483d93022
+--- /dev/null
++++ b/Lib/test/test_tomllib/test_data.py
+@@ -0,0 +1,64 @@
++# SPDX-License-Identifier: MIT
++# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
++# Licensed to PSF under a Contributor Agreement.
++
++import json
++from pathlib import Path
++import unittest
++
++from . import burntsushi, tomllib
++
++
++class MissingFile:
++    def __init__(self, path: Path):
++        self.path = path
++
++
++DATA_DIR = Path(__file__).parent / "data"
++
++VALID_FILES = tuple((DATA_DIR / "valid").glob("**/*.toml"))
++assert VALID_FILES, "Valid TOML test files not found"
++
++_expected_files = []
++for p in VALID_FILES:
++    json_path = p.with_suffix(".json")
++    try:
++        text = json.loads(json_path.read_bytes().decode())
++    except FileNotFoundError:
++        text = MissingFile(json_path)
++    _expected_files.append(text)
++VALID_FILES_EXPECTED = tuple(_expected_files)
++
++INVALID_FILES = tuple((DATA_DIR / "invalid").glob("**/*.toml"))
++assert INVALID_FILES, "Invalid TOML test files not found"
++
++
++class TestData(unittest.TestCase):
++    def test_invalid(self):
++        for invalid in INVALID_FILES:
++            with self.subTest(msg=invalid.stem):
++                toml_bytes = invalid.read_bytes()
++                try:
++                    toml_str = toml_bytes.decode()
++                except UnicodeDecodeError:
++                    # Some BurntSushi tests are not valid UTF-8. Skip those.
++                    continue
++                with self.assertRaises(tomllib.TOMLDecodeError):
++                    tomllib.loads(toml_str)
++
++    def test_valid(self):
++        for valid, expected in zip(VALID_FILES, VALID_FILES_EXPECTED):
++            with self.subTest(msg=valid.stem):
++                if isinstance(expected, MissingFile):
++                    # For a poor man's xfail, assert that this is one of the
++                    # test cases where expected data is known to be missing.
++                    assert valid.stem in {
++                        "qa-array-inline-nested-1000",
++                        "qa-table-inline-nested-1000",
++                    }
++                    continue
++                toml_str = valid.read_bytes().decode()
++                actual = tomllib.loads(toml_str)
++                actual = burntsushi.convert(actual)
++                expected = burntsushi.normalize(expected)
++                self.assertEqual(actual, expected)
+diff --git a/Lib/test/test_tomllib/test_error.py b/Lib/test/test_tomllib/test_error.py
+new file mode 100644
+index 0000000000..72446267f0
+--- /dev/null
++++ b/Lib/test/test_tomllib/test_error.py
+@@ -0,0 +1,57 @@
++# SPDX-License-Identifier: MIT
++# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
++# Licensed to PSF under a Contributor Agreement.
++
++import unittest
++
++from . import tomllib
++
++
++class TestError(unittest.TestCase):
++    def test_line_and_col(self):
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads("val=.")
++        self.assertIsNotNone(exc_info.exception)
++
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads(".")
++        self.assertIsNotNone(
++            exc_info.exception
++        )
++
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads("\n\nval=.")
++        self.assertIsNotNone(exc_info.exception)
++
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads("\n\n.")
++        self.assertIsNotNone(
++            exc_info.exception
++        )
++
++    def test_missing_value(self):
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads("\n\nfwfw=")
++        self.assertIsNotNone(exc_info.exception)
++
++    def test_invalid_char_quotes(self):
++        with self.assertRaises(tomllib.TOMLDecodeError) as exc_info:
++            tomllib.loads("v = '\n'")
++        self.assertIsNotNone(exc_info.exception)
++
++    def test_module_name(self):
++        self.assertEqual(tomllib.TOMLDecodeError().__module__, tomllib.__name__)
++
++    def test_invalid_parse_float(self):
++        def dict_returner(s: str) -> dict:
++            return {}
++
++        def list_returner(s: str) -> list:
++            return []
++
++        for invalid_parse_float in (dict_returner, list_returner):
++            with self.assertRaises(ValueError) as exc_info:
++                tomllib.loads("f=0.1", parse_float=invalid_parse_float)
++            self.assertIsNotNone(
++                exc_info.exception
++            )
+diff --git a/Lib/test/test_tomllib/test_misc.py b/Lib/test/test_tomllib/test_misc.py
+new file mode 100644
+index 0000000000..76fa5905fa
+--- /dev/null
++++ b/Lib/test/test_tomllib/test_misc.py
+@@ -0,0 +1,101 @@
++# SPDX-License-Identifier: MIT
++# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
++# Licensed to PSF under a Contributor Agreement.
++
++import copy
++import datetime
++from decimal import Decimal as D
++from pathlib import Path
++import tempfile
++import unittest
++
++from . import tomllib
++
++
++class TestMiscellaneous(unittest.TestCase):
++    def test_load(self):
++        content = "one=1 \n two='two' \n arr=[]"
++        expected = {"one": 1, "two": "two", "arr": []}
++        with tempfile.TemporaryDirectory() as tmp_dir_path:
++            file_path = Path(tmp_dir_path) / "test.toml"
++            file_path.write_text(content)
++
++            with open(file_path, "rb") as bin_f:
++                actual = tomllib.load(bin_f)
++        self.assertEqual(actual, expected)
++
++    def test_incorrect_load(self):
++        content = "one=1"
++        with tempfile.TemporaryDirectory() as tmp_dir_path:
++            file_path = Path(tmp_dir_path) / "test.toml"
++            file_path.write_text(content)
++
++            with open(file_path, "r") as txt_f:
++                with self.assertRaises(TypeError):
++                    tomllib.load(txt_f)  # type: ignore[arg-type]
++
++    def test_parse_float(self):
++        doc = """
++              val=0.1
++              biggest1=inf
++              biggest2=+inf
++              smallest=-inf
++              notnum1=nan
++              notnum2=-nan
++              notnum3=+nan
++              """
++        obj = tomllib.loads(doc, parse_float=D)
++        expected = {
++            "val": D("0.1"),
++            "biggest1": D("inf"),
++            "biggest2": D("inf"),
++            "smallest": D("-inf"),
++            "notnum1": D("nan"),
++            "notnum2": D("-nan"),
++            "notnum3": D("nan"),
++        }
++        for k, expected_val in expected.items():
++            actual_val = obj[k]
++            self.assertIsInstance(actual_val, D)
++            if actual_val.is_nan():
++                self.assertTrue(expected_val.is_nan())
++            else:
++                self.assertEqual(actual_val, expected_val)
++
++    def test_deepcopy(self):
++        doc = """
++              [bliibaa.diibaa]
++              offsettime=[1979-05-27T00:32:00.999999-07:00]
++              """
++        obj = tomllib.loads(doc)
++        obj_copy = copy.deepcopy(obj)
++        self.assertEqual(obj_copy, obj)
++        expected_obj = {
++            "bliibaa": {
++                "diibaa": {
++                    "offsettime": [
++                        datetime.datetime(
++                            1979,
++                            5,
++                            27,
++                            0,
++                            32,
++                            0,
++                            999999,
++                            tzinfo=datetime.timezone(datetime.timedelta(hours=-7)),
++                        )
++                    ]
++                }
++            }
++        }
++        self.assertEqual(obj_copy, expected_obj)
++
++    def test_inline_array_recursion_limit(self):
++        nest_count = 470
++        recursive_array_toml = "arr = " + nest_count * "[" + nest_count * "]"
++        tomllib.loads(recursive_array_toml)
++
++    def test_inline_table_recursion_limit(self):
++        nest_count = 310
++        recursive_table_toml = nest_count * "key = {" + nest_count * "}"
++        tomllib.loads(recursive_table_toml)

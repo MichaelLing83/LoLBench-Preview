@@ -1,0 +1,8 @@
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testLongWatermarkCombineMax
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testLongWatermarkCombineMin
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testBoolWatermarkCombineAnd
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testBoolWatermarkCombineOr
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testCombineWaitForAllChannels
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testWatermarkHandlingResultIsPoll
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testDefaultHandlingStrategyIgnore
+org.apache.flink.test.streaming.api.datastream.WatermarkITCase#testSourceDeclareAndEmitWatermark

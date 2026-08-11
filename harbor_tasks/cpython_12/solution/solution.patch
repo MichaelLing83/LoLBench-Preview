@@ -1,0 +1,1393 @@
+diff --git a/Lib/annotationlib.py b/Lib/annotationlib.py
+new file mode 100644
+index 0000000000..b4036ffb18
+--- /dev/null
++++ b/Lib/annotationlib.py
+@@ -0,0 +1,655 @@
++"""Helpers for introspecting and wrapping annotations."""
++
++import ast
++import enum
++import functools
++import sys
++import types
++
++__all__ = ["Format", "ForwardRef", "call_annotate_function", "get_annotations"]
++
++
++class Format(enum.IntEnum):
++    VALUE = 1
++    FORWARDREF = 2
++    SOURCE = 3
++
++
++_Union = None
++_sentinel = object()
++
++# Slots shared by ForwardRef and _Stringifier. The __forward__ names must be
++# preserved for compatibility with the old typing.ForwardRef class. The remaining
++# names are private.
++_SLOTS = (
++    "__forward_evaluated__",
++    "__forward_value__",
++    "__forward_is_argument__",
++    "__forward_is_class__",
++    "__forward_module__",
++    "__weakref__",
++    "__arg__",
++    "__ast_node__",
++    "__code__",
++    "__globals__",
++    "__owner__",
++    "__cell__",
++)
++
++
++class ForwardRef:
++    """Wrapper that holds a forward reference."""
++
++    __slots__ = _SLOTS
++
++    def __init__(
++        self,
++        arg,
++        *,
++        module=None,
++        owner=None,
++        is_argument=True,
++        is_class=False,
++        _globals=None,
++        _cell=None,
++    ):
++        if not isinstance(arg, str):
++            raise TypeError(f"Forward reference must be a string -- got {arg!r}")
++
++        self.__arg__ = arg
++        self.__forward_evaluated__ = False
++        self.__forward_value__ = None
++        self.__forward_is_argument__ = is_argument
++        self.__forward_is_class__ = is_class
++        self.__forward_module__ = module
++        self.__code__ = None
++        self.__ast_node__ = None
++        self.__globals__ = _globals
++        self.__cell__ = _cell
++        self.__owner__ = owner
++
++    def __init_subclass__(cls, /, *args, **kwds):
++        raise TypeError("Cannot subclass ForwardRef")
++
++    def evaluate(self, *, globals=None, locals=None, type_params=None, owner=None):
++        """Evaluate the forward reference and return the value.
++
++        If the forward reference is not evaluatable, raise an exception.
++        """
++        if self.__forward_evaluated__:
++            return self.__forward_value__
++        if self.__cell__ is not None:
++            try:
++                value = self.__cell__.cell_contents
++            except ValueError:
++                pass
++            else:
++                self.__forward_evaluated__ = True
++                self.__forward_value__ = value
++                return value
++        if owner is None:
++            owner = self.__owner__
++        if type_params is None and owner is None:
++            raise TypeError("Either 'type_params' or 'owner' must be provided")
++
++        if self.__forward_module__ is not None:
++            globals = getattr(
++                sys.modules.get(self.__forward_module__, None), "__dict__", globals
++            )
++        if globals is None:
++            globals = self.__globals__
++        if globals is None:
++            if isinstance(owner, type):
++                module_name = getattr(owner, "__module__", None)
++                if module_name:
++                    module = sys.modules.get(module_name, None)
++                    if module:
++                        globals = getattr(module, "__dict__", None)
++            elif isinstance(owner, types.ModuleType):
++                globals = getattr(owner, "__dict__", None)
++            elif callable(owner):
++                globals = getattr(owner, "__globals__", None)
++
++        if locals is None:
++            locals = {}
++            if isinstance(self.__owner__, type):
++                locals.update(vars(self.__owner__))
++
++        if type_params is None and self.__owner__ is not None:
++            # "Inject" type parameters into the local namespace
++            # (unless they are shadowed by assignments *in* the local namespace),
++            # as a way of emulating annotation scopes when calling `eval()`
++            type_params = getattr(self.__owner__, "__type_params__", None)
++
++        # type parameters require some special handling,
++        # as they exist in their own scope
++        # but `eval()` does not have a dedicated parameter for that scope.
++        # For classes, names in type parameter scopes should override
++        # names in the global scope (which here are called `localns`!),
++        # but should in turn be overridden by names in the class scope
++        # (which here are called `globalns`!)
++        if type_params is not None:
++            globals, locals = dict(globals), dict(locals)
++            for param in type_params:
++                param_name = param.__name__
++                if not self.__forward_is_class__ or param_name not in globals:
++                    globals[param_name] = param
++                    locals.pop(param_name, None)
++
++        code = self.__forward_code__
++        value = eval(code, globals=globals, locals=locals)
++        self.__forward_evaluated__ = True
++        self.__forward_value__ = value
++        return value
++
++    def _evaluate(self, globalns, localns, type_params=_sentinel, *, recursive_guard):
++        import typing
++        import warnings
++
++        if type_params is _sentinel:
++            typing._deprecation_warning_for_no_type_params_passed(
++                "typing.ForwardRef._evaluate"
++            )
++            type_params = ()
++        warnings._deprecated(
++            "ForwardRef._evaluate",
++            "{name} is a private API and is retained for compatibility, but will be removed"
++            " in Python 3.16. Use ForwardRef.evaluate() or typing.evaluate_forward_ref() instead.",
++            remove=(3, 16),
++        )
++        return typing.evaluate_forward_ref(
++            self,
++            globals=globalns,
++            locals=localns,
++            type_params=type_params,
++            _recursive_guard=recursive_guard,
++        )
++
++    @property
++    def __forward_arg__(self):
++        if self.__arg__ is not None:
++            return self.__arg__
++        if self.__ast_node__ is not None:
++            self.__arg__ = ast.unparse(self.__ast_node__)
++            return self.__arg__
++        raise AssertionError(
++            "Attempted to access '__forward_arg__' on an uninitialized ForwardRef"
++        )
++
++    @property
++    def __forward_code__(self):
++        if self.__code__ is not None:
++            return self.__code__
++        arg = self.__forward_arg__
++        # If we do `def f(*args: *Ts)`, then we'll have `arg = '*Ts'`.
++        # Unfortunately, this isn't a valid expression on its own, so we
++        # do the unpacking manually.
++        if arg.startswith("*"):
++            arg_to_compile = f"({arg},)[0]"  # E.g. (*Ts,)[0] or (*tuple[int, int],)[0]
++        else:
++            arg_to_compile = arg
++        try:
++            self.__code__ = compile(arg_to_compile, "<string>", "eval")
++        except SyntaxError:
++            raise SyntaxError(f"Forward reference must be an expression -- got {arg!r}")
++        return self.__code__
++
++    def __eq__(self, other):
++        if not isinstance(other, ForwardRef):
++            return NotImplemented
++        if self.__forward_evaluated__ and other.__forward_evaluated__:
++            return (
++                self.__forward_arg__ == other.__forward_arg__
++                and self.__forward_value__ == other.__forward_value__
++            )
++        return (
++            self.__forward_arg__ == other.__forward_arg__
++            and self.__forward_module__ == other.__forward_module__
++        )
++
++    def __hash__(self):
++        return hash((self.__forward_arg__, self.__forward_module__))
++
++    def __or__(self, other):
++        global _Union
++        if _Union is None:
++            from typing import Union as _Union
++        return _Union[self, other]
++
++    def __ror__(self, other):
++        global _Union
++        if _Union is None:
++            from typing import Union as _Union
++        return _Union[other, self]
++
++    def __repr__(self):
++        if self.__forward_module__ is None:
++            module_repr = ""
++        else:
++            module_repr = f", module={self.__forward_module__!r}"
++        return f"ForwardRef({self.__forward_arg__!r}{module_repr})"
++
++
++class _Stringifier:
++    # Must match the slots on ForwardRef, so we can turn an instance of one into an
++    # instance of the other in place.
++    __slots__ = _SLOTS
++
++    def __init__(self, node, globals=None, owner=None, is_class=False, cell=None):
++        assert isinstance(node, ast.AST)
++        self.__arg__ = None
++        self.__forward_evaluated__ = False
++        self.__forward_value__ = None
++        self.__forward_is_argument__ = False
++        self.__forward_is_class__ = is_class
++        self.__forward_module__ = None
++        self.__code__ = None
++        self.__ast_node__ = node
++        self.__globals__ = globals
++        self.__cell__ = cell
++        self.__owner__ = owner
++
++    def __convert(self, other):
++        if isinstance(other, _Stringifier):
++            return other.__ast_node__
++        elif isinstance(other, slice):
++            return ast.Slice(
++                lower=self.__convert(other.start) if other.start is not None else None,
++                upper=self.__convert(other.stop) if other.stop is not None else None,
++                step=self.__convert(other.step) if other.step is not None else None,
++            )
++        else:
++            return ast.Constant(value=other)
++
++    def __make_new(self, node):
++        return _Stringifier(
++            node, self.__globals__, self.__owner__, self.__forward_is_class__
++        )
++
++    # Must implement this since we set __eq__. We hash by identity so that
++    # stringifiers in dict keys are kept separate.
++    def __hash__(self):
++        return id(self)
++
++    def __getitem__(self, other):
++        # Special case, to avoid stringifying references to class-scoped variables
++        # as '__classdict__["x"]'.
++        if (
++            isinstance(self.__ast_node__, ast.Name)
++            and self.__ast_node__.id == "__classdict__"
++        ):
++            raise KeyError
++        if isinstance(other, tuple):
++            elts = [self.__convert(elt) for elt in other]
++            other = ast.Tuple(elts)
++        else:
++            other = self.__convert(other)
++        assert isinstance(other, ast.AST), repr(other)
++        return self.__make_new(ast.Subscript(self.__ast_node__, other))
++
++    def __getattr__(self, attr):
++        return self.__make_new(ast.Attribute(self.__ast_node__, attr))
++
++    def __call__(self, *args, **kwargs):
++        return self.__make_new(
++            ast.Call(
++                self.__ast_node__,
++                [self.__convert(arg) for arg in args],
++                [
++                    ast.keyword(key, self.__convert(value))
++                    for key, value in kwargs.items()
++                ],
++            )
++        )
++
++    def __iter__(self):
++        yield self.__make_new(ast.Starred(self.__ast_node__))
++
++    def __repr__(self):
++        return ast.unparse(self.__ast_node__)
++
++    def __format__(self, format_spec):
++        raise TypeError("Cannot stringify annotation containing string formatting")
++
++    def _make_binop(op: ast.AST):
++        def binop(self, other):
++            return self.__make_new(
++                ast.BinOp(self.__ast_node__, op, self.__convert(other))
++            )
++
++        return binop
++
++    __add__ = _make_binop(ast.Add())
++    __sub__ = _make_binop(ast.Sub())
++    __mul__ = _make_binop(ast.Mult())
++    __matmul__ = _make_binop(ast.MatMult())
++    __truediv__ = _make_binop(ast.Div())
++    __mod__ = _make_binop(ast.Mod())
++    __lshift__ = _make_binop(ast.LShift())
++    __rshift__ = _make_binop(ast.RShift())
++    __or__ = _make_binop(ast.BitOr())
++    __xor__ = _make_binop(ast.BitXor())
++    __and__ = _make_binop(ast.BitAnd())
++    __floordiv__ = _make_binop(ast.FloorDiv())
++    __pow__ = _make_binop(ast.Pow())
++
++    del _make_binop
++
++    def _make_rbinop(op: ast.AST):
++        def rbinop(self, other):
++            return self.__make_new(
++                ast.BinOp(self.__convert(other), op, self.__ast_node__)
++            )
++
++        return rbinop
++
++    __radd__ = _make_rbinop(ast.Add())
++    __rsub__ = _make_rbinop(ast.Sub())
++    __rmul__ = _make_rbinop(ast.Mult())
++    __rmatmul__ = _make_rbinop(ast.MatMult())
++    __rtruediv__ = _make_rbinop(ast.Div())
++    __rmod__ = _make_rbinop(ast.Mod())
++    __rlshift__ = _make_rbinop(ast.LShift())
++    __rrshift__ = _make_rbinop(ast.RShift())
++    __ror__ = _make_rbinop(ast.BitOr())
++    __rxor__ = _make_rbinop(ast.BitXor())
++    __rand__ = _make_rbinop(ast.BitAnd())
++    __rfloordiv__ = _make_rbinop(ast.FloorDiv())
++    __rpow__ = _make_rbinop(ast.Pow())
++
++    del _make_rbinop
++
++    def _make_compare(op):
++        def compare(self, other):
++            return self.__make_new(
++                ast.Compare(
++                    left=self.__ast_node__,
++                    ops=[op],
++                    comparators=[self.__convert(other)],
++                )
++            )
++
++        return compare
++
++    __lt__ = _make_compare(ast.Lt())
++    __le__ = _make_compare(ast.LtE())
++    __eq__ = _make_compare(ast.Eq())
++    __ne__ = _make_compare(ast.NotEq())
++    __gt__ = _make_compare(ast.Gt())
++    __ge__ = _make_compare(ast.GtE())
++
++    del _make_compare
++
++    def _make_unary_op(op):
++        def unary_op(self):
++            return self.__make_new(ast.UnaryOp(op, self.__ast_node__))
++
++        return unary_op
++
++    __invert__ = _make_unary_op(ast.Invert())
++    __pos__ = _make_unary_op(ast.UAdd())
++    __neg__ = _make_unary_op(ast.USub())
++
++    del _make_unary_op
++
++
++class _StringifierDict(dict):
++    def __init__(self, namespace, globals=None, owner=None, is_class=False):
++        super().__init__(namespace)
++        self.namespace = namespace
++        self.globals = globals
++        self.owner = owner
++        self.is_class = is_class
++        self.stringifiers = []
++
++    def __missing__(self, key):
++        fwdref = _Stringifier(
++            ast.Name(id=key),
++            globals=self.globals,
++            owner=self.owner,
++            is_class=self.is_class,
++        )
++        self.stringifiers.append(fwdref)
++        return fwdref
++
++
++def call_annotate_function(annotate, format, owner=None):
++    """Call an __annotate__ function. __annotate__ functions are normally
++    generated by the compiler to defer the evaluation of annotations. They
++    can be called with any of the format arguments in the Format enum, but
++    compiler-generated __annotate__ functions only support the VALUE format.
++    This function provides additional functionality to call __annotate__
++    functions with the FORWARDREF and SOURCE formats.
++
++    *annotate* must be an __annotate__ function, which takes a single argument
++    and returns a dict of annotations.
++
++    *format* must be a member of the Format enum or one of the corresponding
++    integer values.
++
++    *owner* can be the object that owns the annotations (i.e., the module,
++    class, or function that the __annotate__ function derives from). With the
++    FORWARDREF format, it is used to provide better evaluation capabilities
++    on the generated ForwardRef objects.
++
++    """
++    try:
++        return annotate(format)
++    except NotImplementedError:
++        pass
++    if format == Format.SOURCE:
++        # SOURCE is implemented by calling the annotate function in a special
++        # environment where every name lookup results in an instance of _Stringifier.
++        # _Stringifier supports every dunder operation and returns a new _Stringifier.
++        # At the end, we get a dictionary that mostly contains _Stringifier objects (or
++        # possibly constants if the annotate function uses them directly). We then
++        # convert each of those into a string to get an approximation of the
++        # original source.
++        globals = _StringifierDict({})
++        if annotate.__closure__:
++            freevars = annotate.__code__.co_freevars
++            new_closure = []
++            for i, cell in enumerate(annotate.__closure__):
++                if i < len(freevars):
++                    name = freevars[i]
++                else:
++                    name = "__cell__"
++                fwdref = _Stringifier(ast.Name(id=name))
++                new_closure.append(types.CellType(fwdref))
++            closure = tuple(new_closure)
++        else:
++            closure = None
++        func = types.FunctionType(annotate.__code__, globals, closure=closure)
++        annos = func(Format.VALUE)
++        return {
++            key: val if isinstance(val, str) else repr(val)
++            for key, val in annos.items()
++        }
++    elif format == Format.FORWARDREF:
++        # FORWARDREF is implemented similarly to SOURCE, but there are two changes,
++        # at the beginning and the end of the process.
++        # First, while SOURCE uses an empty dictionary as the namespace, so that all
++        # name lookups result in _Stringifier objects, FORWARDREF uses the globals
++        # and builtins, so that defined names map to their real values.
++        # Second, instead of returning strings, we want to return either real values
++        # or ForwardRef objects. To do this, we keep track of all _Stringifier objects
++        # created while the annotation is being evaluated, and at the end we convert
++        # them all to ForwardRef objects by assigning to __class__. To make this
++        # technique work, we have to ensure that the _Stringifier and ForwardRef
++        # classes share the same attributes.
++        # We use this technique because while the annotations are being evaluated,
++        # we want to support all operations that the language allows, including even
++        # __getattr__ and __eq__, and return new _Stringifier objects so we can accurately
++        # reconstruct the source. But in the dictionary that we eventually return, we
++        # want to return objects with more user-friendly behavior, such as an __eq__
++        # that returns a bool and an defined set of attributes.
++        namespace = {**annotate.__builtins__, **annotate.__globals__}
++        is_class = isinstance(owner, type)
++        globals = _StringifierDict(namespace, annotate.__globals__, owner, is_class)
++        if annotate.__closure__:
++            freevars = annotate.__code__.co_freevars
++            new_closure = []
++            for i, cell in enumerate(annotate.__closure__):
++                try:
++                    cell.cell_contents
++                except ValueError:
++                    if i < len(freevars):
++                        name = freevars[i]
++                    else:
++                        name = "__cell__"
++                    fwdref = _Stringifier(
++                        ast.Name(id=name),
++                        cell=cell,
++                        owner=owner,
++                        globals=annotate.__globals__,
++                        is_class=is_class,
++                    )
++                    globals.stringifiers.append(fwdref)
++                    new_closure.append(types.CellType(fwdref))
++                else:
++                    new_closure.append(cell)
++            closure = tuple(new_closure)
++        else:
++            closure = None
++        func = types.FunctionType(annotate.__code__, globals, closure=closure)
++        result = func(Format.VALUE)
++        for obj in globals.stringifiers:
++            obj.__class__ = ForwardRef
++        return result
++    elif format == Format.VALUE:
++        # Should be impossible because __annotate__ functions must not raise
++        # NotImplementedError for this format.
++        raise RuntimeError("annotate function does not support VALUE format")
++    else:
++        raise ValueError(f"Invalid format: {format!r}")
++
++
++def get_annotations(
++    obj, *, globals=None, locals=None, eval_str=False, format=Format.VALUE
++):
++    """Compute the annotations dict for an object.
++
++    obj may be a callable, class, or module.
++    Passing in an object of any other type raises TypeError.
++
++    Returns a dict.  get_annotations() returns a new dict every time
++    it's called; calling it twice on the same object will return two
++    different but equivalent dicts.
++
++    This function handles several details for you:
++
++      * If eval_str is true, values of type str will
++        be un-stringized using eval().  This is intended
++        for use with stringized annotations
++        ("from __future__ import annotations").
++      * If obj doesn't have an annotations dict, returns an
++        empty dict.  (Functions and methods always have an
++        annotations dict; classes, modules, and other types of
++        callables may not.)
++      * Ignores inherited annotations on classes.  If a class
++        doesn't have its own annotations dict, returns an empty dict.
++      * All accesses to object members and dict values are done
++        using getattr() and dict.get() for safety.
++      * Always, always, always returns a freshly-created dict.
++
++    eval_str controls whether or not values of type str are replaced
++    with the result of calling eval() on those values:
++
++      * If eval_str is true, eval() is called on values of type str.
++      * If eval_str is false (the default), values of type str are unchanged.
++
++    globals and locals are passed in to eval(); see the documentation
++    for eval() for more information.  If either globals or locals is
++    None, this function may replace that value with a context-specific
++    default, contingent on type(obj):
++
++      * If obj is a module, globals defaults to obj.__dict__.
++      * If obj is a class, globals defaults to
++        sys.modules[obj.__module__].__dict__ and locals
++        defaults to the obj class namespace.
++      * If obj is a callable, globals defaults to obj.__globals__,
++        although if obj is a wrapped function (using
++        functools.update_wrapper()) it is first unwrapped.
++    """
++    if eval_str and format != Format.VALUE:
++        raise ValueError("eval_str=True is only supported with format=Format.VALUE")
++
++    # For VALUE format, we look at __annotations__ directly.
++    if format != Format.VALUE:
++        annotate = getattr(obj, "__annotate__", None)
++        if annotate is not None:
++            ann = call_annotate_function(annotate, format, owner=obj)
++            if not isinstance(ann, dict):
++                raise ValueError(f"{obj!r}.__annotate__ returned a non-dict")
++            return dict(ann)
++
++    ann = getattr(obj, "__annotations__", None)
++    if ann is None:
++        return {}
++
++    if not isinstance(ann, dict):
++        raise ValueError(f"{obj!r}.__annotations__ is neither a dict nor None")
++
++    if not ann:
++        return {}
++
++    if not eval_str:
++        return dict(ann)
++
++    if isinstance(obj, type):
++        # class
++        obj_globals = None
++        module_name = getattr(obj, "__module__", None)
++        if module_name:
++            module = sys.modules.get(module_name, None)
++            if module:
++                obj_globals = getattr(module, "__dict__", None)
++        obj_locals = dict(vars(obj))
++        unwrap = obj
++    elif isinstance(obj, types.ModuleType):
++        # module
++        obj_globals = getattr(obj, "__dict__")
++        obj_locals = None
++        unwrap = None
++    elif callable(obj):
++        # this includes types.Function, types.BuiltinFunctionType,
++        # types.BuiltinMethodType, functools.partial, functools.singledispatch,
++        # "class funclike" from Lib/test/test_inspect... on and on it goes.
++        obj_globals = getattr(obj, "__globals__", None)
++        obj_locals = None
++        unwrap = obj
++    elif ann is not None:
++        obj_globals = obj_locals = unwrap = None
++    else:
++        raise TypeError(f"{obj!r} is not a module, class, or callable.")
++
++    if unwrap is not None:
++        while True:
++            if hasattr(unwrap, "__wrapped__"):
++                unwrap = unwrap.__wrapped__
++                continue
++            if isinstance(unwrap, functools.partial):
++                unwrap = unwrap.func
++                continue
++            break
++        if hasattr(unwrap, "__globals__"):
++            obj_globals = unwrap.__globals__
++
++    if globals is None:
++        globals = obj_globals
++    if locals is None:
++        locals = obj_locals
++
++    # "Inject" type parameters into the local namespace
++    # (unless they are shadowed by assignments *in* the local namespace),
++    # as a way of emulating annotation scopes when calling `eval()`
++    if type_params := getattr(obj, "__type_params__", ()):
++        if locals is None:
++            locals = {}
++        locals = {param.__name__: param for param in type_params} | locals
++
++    return_value = {
++        key: value if not isinstance(value, str) else eval(value, globals, locals)
++        for key, value in ann.items()
++    }
++    return return_value
+diff --git a/Lib/dataclasses.py b/Lib/dataclasses.py
+index 74011b7e28..4cba606dd8 100644
+--- a/Lib/dataclasses.py
++++ b/Lib/dataclasses.py
+@@ -5,6 +5,7 @@
+ import inspect
+ import keyword
+ import itertools
++import annotationlib
+ import abc
+ from reprlib import recursive_repr
+ 
+@@ -981,7 +982,8 @@ def _process_class(cls, init, repr, eq, order, unsafe_hash, frozen,
+     # actual default value.  Pseudo-fields ClassVars and InitVars are
+     # included, despite the fact that they're not real fields.  That's
+     # dealt with later.
+-    cls_annotations = inspect.get_annotations(cls)
++    cls_annotations = annotationlib.get_annotations(
++        cls, format=annotationlib.Format.FORWARDREF)
+ 
+     # Now find fields in our class.  While doing so, validate some
+     # things, and set the default values (as class attributes) where
+diff --git a/Lib/functools.py b/Lib/functools.py
+index a10493f0e2..49ea9a2f69 100644
+--- a/Lib/functools.py
++++ b/Lib/functools.py
+@@ -32,7 +32,7 @@
+ # wrapper functions that can handle naive introspection
+ 
+ WRAPPER_ASSIGNMENTS = ('__module__', '__name__', '__qualname__', '__doc__',
+-                       '__annotations__', '__type_params__')
++                       '__annotate__', '__type_params__')
+ WRAPPER_UPDATES = ('__dict__',)
+ def update_wrapper(wrapper,
+                    wrapped,
+@@ -882,8 +882,8 @@ def register(cls, func=None):
+                     f"Invalid first argument to `register()`. "
+                     f"{cls!r} is not a class or union type."
+                 )
+-            ann = getattr(cls, '__annotations__', {})
+-            if not ann:
++            ann = getattr(cls, '__annotate__', None)
++            if ann is None:
+                 raise TypeError(
+                     f"Invalid first argument to `register()`: {cls!r}. "
+                     f"Use either `@register(some_class)` or plain `@register` "
+@@ -893,13 +893,19 @@ def register(cls, func=None):
+ 
+             # only import typing if annotation parsing is necessary
+             from typing import get_type_hints
+-            argname, cls = next(iter(get_type_hints(func).items()))
++            from annotationlib import Format, ForwardRef
++            argname, cls = next(iter(get_type_hints(func, format=Format.FORWARDREF).items()))
+             if not _is_valid_dispatch_type(cls):
+                 if _is_union_type(cls):
+                     raise TypeError(
+                         f"Invalid annotation for {argname!r}. "
+                         f"{cls!r} not all arguments are classes."
+                     )
++                elif isinstance(cls, ForwardRef):
++                    raise TypeError(
++                        f"Invalid annotation for {argname!r}. "
++                        f"{cls!r} is an unresolved forward reference."
++                    )
+                 else:
+                     raise TypeError(
+                         f"Invalid annotation for {argname!r}. "
+diff --git a/Lib/inspect.py b/Lib/inspect.py
+index 0e7b40eb39..ba3ecbb87c 100644
+--- a/Lib/inspect.py
++++ b/Lib/inspect.py
+@@ -142,6 +142,7 @@
+ 
+ 
+ import abc
++from annotationlib import get_annotations
+ import ast
+ import dis
+ import collections.abc
+@@ -173,121 +174,6 @@
+ TPFLAGS_IS_ABSTRACT = 1 << 20
+ 
+ 
+-def get_annotations(obj, *, globals=None, locals=None, eval_str=False):
+-    """Compute the annotations dict for an object.
+-
+-    obj may be a callable, class, or module.
+-    Passing in an object of any other type raises TypeError.
+-
+-    Returns a dict.  get_annotations() returns a new dict every time
+-    it's called; calling it twice on the same object will return two
+-    different but equivalent dicts.
+-
+-    This function handles several details for you:
+-
+-      * If eval_str is true, values of type str will
+-        be un-stringized using eval().  This is intended
+-        for use with stringized annotations
+-        ("from __future__ import annotations").
+-      * If obj doesn't have an annotations dict, returns an
+-        empty dict.  (Functions and methods always have an
+-        annotations dict; classes, modules, and other types of
+-        callables may not.)
+-      * Ignores inherited annotations on classes.  If a class
+-        doesn't have its own annotations dict, returns an empty dict.
+-      * All accesses to object members and dict values are done
+-        using getattr() and dict.get() for safety.
+-      * Always, always, always returns a freshly-created dict.
+-
+-    eval_str controls whether or not values of type str are replaced
+-    with the result of calling eval() on those values:
+-
+-      * If eval_str is true, eval() is called on values of type str.
+-      * If eval_str is false (the default), values of type str are unchanged.
+-
+-    globals and locals are passed in to eval(); see the documentation
+-    for eval() for more information.  If either globals or locals is
+-    None, this function may replace that value with a context-specific
+-    default, contingent on type(obj):
+-
+-      * If obj is a module, globals defaults to obj.__dict__.
+-      * If obj is a class, globals defaults to
+-        sys.modules[obj.__module__].__dict__ and locals
+-        defaults to the obj class namespace.
+-      * If obj is a callable, globals defaults to obj.__globals__,
+-        although if obj is a wrapped function (using
+-        functools.update_wrapper()) it is first unwrapped.
+-    """
+-    if isinstance(obj, type):
+-        # class
+-        ann = obj.__annotations__
+-
+-        obj_globals = None
+-        module_name = getattr(obj, '__module__', None)
+-        if module_name:
+-            module = sys.modules.get(module_name, None)
+-            if module:
+-                obj_globals = getattr(module, '__dict__', None)
+-        obj_locals = dict(vars(obj))
+-        unwrap = obj
+-    elif isinstance(obj, types.ModuleType):
+-        # module
+-        ann = getattr(obj, '__annotations__', None)
+-        obj_globals = getattr(obj, '__dict__')
+-        obj_locals = None
+-        unwrap = None
+-    elif callable(obj):
+-        # this includes types.Function, types.BuiltinFunctionType,
+-        # types.BuiltinMethodType, functools.partial, functools.singledispatch,
+-        # "class funclike" from Lib/test/test_inspect... on and on it goes.
+-        ann = getattr(obj, '__annotations__', None)
+-        obj_globals = getattr(obj, '__globals__', None)
+-        obj_locals = None
+-        unwrap = obj
+-    else:
+-        raise TypeError(f"{obj!r} is not a module, class, or callable.")
+-
+-    if ann is None:
+-        return {}
+-
+-    if not isinstance(ann, dict):
+-        raise ValueError(f"{obj!r}.__annotations__ is neither a dict nor None")
+-
+-    if not ann:
+-        return {}
+-
+-    if not eval_str:
+-        return dict(ann)
+-
+-    if unwrap is not None:
+-        while True:
+-            if hasattr(unwrap, '__wrapped__'):
+-                unwrap = unwrap.__wrapped__
+-                continue
+-            if isinstance(unwrap, functools.partial):
+-                unwrap = unwrap.func
+-                continue
+-            break
+-        if hasattr(unwrap, "__globals__"):
+-            obj_globals = unwrap.__globals__
+-
+-    if globals is None:
+-        globals = obj_globals
+-    if locals is None:
+-        locals = obj_locals or {}
+-
+-    # "Inject" type parameters into the local namespace
+-    # (unless they are shadowed by assignments *in* the local namespace),
+-    # as a way of emulating annotation scopes when calling `eval()`
+-    if type_params := getattr(obj, "__type_params__", ()):
+-        locals = {param.__name__: param for param in type_params} | locals
+-
+-    return_value = {key:
+-        value if not isinstance(value, str) else eval(value, globals, locals)
+-        for key, value in ann.items() }
+-    return return_value
+-
+-
+ # ----------------------------------------------------------- type-checking
+ def ismodule(object):
+     """Return true if the object is a module."""
+diff --git a/Lib/typing.py b/Lib/typing.py
+index bc17d13608..626053d816 100644
+--- a/Lib/typing.py
++++ b/Lib/typing.py
+@@ -19,6 +19,8 @@
+ """
+ 
+ from abc import abstractmethod, ABCMeta
++import annotationlib
++from annotationlib import ForwardRef
+ import collections
+ from collections import defaultdict
+ import collections.abc
+@@ -125,6 +127,7 @@
+     'cast',
+     'clear_overloads',
+     'dataclass_transform',
++    'evaluate_forward_ref',
+     'final',
+     'get_args',
+     'get_origin',
+@@ -165,7 +168,7 @@ def _type_convert(arg, module=None, *, allow_special_forms=False):
+     if arg is None:
+         return type(None)
+     if isinstance(arg, str):
+-        return ForwardRef(arg, module=module, is_class=allow_special_forms)
++        return _make_forward_ref(arg, module=module, is_class=allow_special_forms)
+     return arg
+ 
+ 
+@@ -459,7 +462,8 @@ def __repr__(self):
+ _sentinel = _Sentinel()
+ 
+ 
+-def _eval_type(t, globalns, localns, type_params=_sentinel, *, recursive_guard=frozenset()):
++def _eval_type(t, globalns, localns, type_params=_sentinel, *, recursive_guard=frozenset(),
++               format=annotationlib.Format.VALUE, owner=None):
+     """Evaluate all forward references in the given type t.
+ 
+     For use of globalns and localns see the docstring for get_type_hints().
+@@ -470,11 +474,13 @@ def _eval_type(t, globalns, localns, type_params=_sentinel, *, recursive_guard=f
+         _deprecation_warning_for_no_type_params_passed("typing._eval_type")
+         type_params = ()
+     if isinstance(t, ForwardRef):
+-        return t._evaluate(globalns, localns, type_params, recursive_guard=recursive_guard)
++        return evaluate_forward_ref(t, globals=globalns, locals=localns,
++                                    type_params=type_params, owner=owner,
++                                    _recursive_guard=recursive_guard, format=format)
+     if isinstance(t, (_GenericAlias, GenericAlias, types.UnionType)):
+         if isinstance(t, GenericAlias):
+             args = tuple(
+-                ForwardRef(arg) if isinstance(arg, str) else arg
++                _make_forward_ref(arg) if isinstance(arg, str) else arg
+                 for arg in t.__args__
+             )
+             is_unpacked = t.__unpacked__
+@@ -487,7 +493,8 @@ def _eval_type(t, globalns, localns, type_params=_sentinel, *, recursive_guard=f
+ 
+         ev_args = tuple(
+             _eval_type(
+-                a, globalns, localns, type_params, recursive_guard=recursive_guard
++                a, globalns, localns, type_params, recursive_guard=recursive_guard,
++                format=format, owner=owner,
+             )
+             for a in t.__args__
+         )
+@@ -1011,111 +1018,77 @@ def run(arg: Child | Unrelated):
+     return _GenericAlias(self, (item,))
+ 
+ 
+-class ForwardRef(_Final, _root=True):
+-    """Internal wrapper to hold a forward reference."""
++def _make_forward_ref(code, **kwargs):
++    forward_ref = ForwardRef(code, **kwargs)
++    # For compatibility, eagerly compile the forwardref's code.
++    forward_ref.__forward_code__
++    return forward_ref
+ 
+-    __slots__ = ('__forward_arg__', '__forward_code__',
+-                 '__forward_evaluated__', '__forward_value__',
+-                 '__forward_is_argument__', '__forward_is_class__',
+-                 '__forward_module__')
+ 
+-    def __init__(self, arg, is_argument=True, module=None, *, is_class=False):
+-        if not isinstance(arg, str):
+-            raise TypeError(f"Forward reference must be a string -- got {arg!r}")
+-
+-        # If we do `def f(*args: *Ts)`, then we'll have `arg = '*Ts'`.
+-        # Unfortunately, this isn't a valid expression on its own, so we
+-        # do the unpacking manually.
+-        if arg.startswith('*'):
+-            arg_to_compile = f'({arg},)[0]'  # E.g. (*Ts,)[0] or (*tuple[int, int],)[0]
+-        else:
+-            arg_to_compile = arg
+-        try:
+-            code = compile(arg_to_compile, '<string>', 'eval')
+-        except SyntaxError:
+-            raise SyntaxError(f"Forward reference must be an expression -- got {arg!r}")
+-
+-        self.__forward_arg__ = arg
+-        self.__forward_code__ = code
+-        self.__forward_evaluated__ = False
+-        self.__forward_value__ = None
+-        self.__forward_is_argument__ = is_argument
+-        self.__forward_is_class__ = is_class
+-        self.__forward_module__ = module
+-
+-    def _evaluate(self, globalns, localns, type_params=_sentinel, *, recursive_guard):
+-        if type_params is _sentinel:
+-            _deprecation_warning_for_no_type_params_passed("typing.ForwardRef._evaluate")
+-            type_params = ()
+-        if self.__forward_arg__ in recursive_guard:
+-            return self
+-        if not self.__forward_evaluated__ or localns is not globalns:
+-            if globalns is None and localns is None:
+-                globalns = localns = {}
+-            elif globalns is None:
+-                globalns = localns
+-            elif localns is None:
+-                localns = globalns
+-            if self.__forward_module__ is not None:
+-                globalns = getattr(
+-                    sys.modules.get(self.__forward_module__, None), '__dict__', globalns
+-                )
+-
+-            # type parameters require some special handling,
+-            # as they exist in their own scope
+-            # but `eval()` does not have a dedicated parameter for that scope.
+-            # For classes, names in type parameter scopes should override
+-            # names in the global scope (which here are called `localns`!),
+-            # but should in turn be overridden by names in the class scope
+-            # (which here are called `globalns`!)
+-            if type_params:
+-                globalns, localns = dict(globalns), dict(localns)
+-                for param in type_params:
+-                    param_name = param.__name__
+-                    if not self.__forward_is_class__ or param_name not in globalns:
+-                        globalns[param_name] = param
+-                        localns.pop(param_name, None)
+-
+-            type_ = _type_check(
+-                eval(self.__forward_code__, globalns, localns),
+-                "Forward references must evaluate to types.",
+-                is_argument=self.__forward_is_argument__,
+-                allow_special_forms=self.__forward_is_class__,
+-            )
+-            self.__forward_value__ = _eval_type(
+-                type_,
+-                globalns,
+-                localns,
+-                type_params,
+-                recursive_guard=(recursive_guard | {self.__forward_arg__}),
+-            )
+-            self.__forward_evaluated__ = True
+-        return self.__forward_value__
+-
+-    def __eq__(self, other):
+-        if not isinstance(other, ForwardRef):
+-            return NotImplemented
+-        if self.__forward_evaluated__ and other.__forward_evaluated__:
+-            return (self.__forward_arg__ == other.__forward_arg__ and
+-                    self.__forward_value__ == other.__forward_value__)
+-        return (self.__forward_arg__ == other.__forward_arg__ and
+-                self.__forward_module__ == other.__forward_module__)
+-
+-    def __hash__(self):
+-        return hash((self.__forward_arg__, self.__forward_module__))
+-
+-    def __or__(self, other):
+-        return Union[self, other]
++def evaluate_forward_ref(
++    forward_ref,
++    *,
++    owner=None,
++    globals=None,
++    locals=None,
++    type_params=None,
++    format=annotationlib.Format.VALUE,
++    _recursive_guard=frozenset(),
++):
++    """Evaluate a forward reference as a type hint.
++
++    This is similar to calling the ForwardRef.evaluate() method,
++    but unlike that method, evaluate_forward_ref() also:
++
++    * Recursively evaluates forward references nested within the type hint.
++    * Rejects certain objects that are not valid type hints.
++    * Replaces type hints that evaluate to None with types.NoneType.
++    * Supports the *FORWARDREF* and *SOURCE* formats.
++
++    *forward_ref* must be an instance of ForwardRef. *owner*, if given,
++    should be the object that holds the annotations that the forward reference
++    derived from, such as a module, class object, or function. It is used to
++    infer the namespaces to use for looking up names. *globals* and *locals*
++    can also be explicitly given to provide the global and local namespaces.
++    *type_params* is a tuple of type parameters that are in scope when
++    evaluating the forward reference. This parameter must be provided (though
++    it may be an empty tuple) if *owner* is not given and the forward reference
++    does not already have an owner set. *format* specifies the format of the
++    annotation and is a member of the annoations.Format enum.
+ 
+-    def __ror__(self, other):
+-        return Union[other, self]
++    """
++    if type_params is _sentinel:
++        _deprecation_warning_for_no_type_params_passed("typing.evaluate_forward_ref")
++        type_params = ()
++    if format == annotationlib.Format.SOURCE:
++        return forward_ref.__forward_arg__
++    if forward_ref.__forward_arg__ in _recursive_guard:
++        return forward_ref
+ 
+-    def __repr__(self):
+-        if self.__forward_module__ is None:
+-            module_repr = ''
++    try:
++        value = forward_ref.evaluate(globals=globals, locals=locals,
++                                     type_params=type_params, owner=owner)
++    except NameError:
++        if format == annotationlib.Format.FORWARDREF:
++            return forward_ref
+         else:
+-            module_repr = f', module={self.__forward_module__!r}'
+-        return f'ForwardRef({self.__forward_arg__!r}{module_repr})'
++            raise
++
++    type_ = _type_check(
++        value,
++        "Forward references must evaluate to types.",
++        is_argument=forward_ref.__forward_is_argument__,
++        allow_special_forms=forward_ref.__forward_is_class__,
++    )
++    return _eval_type(
++        type_,
++        globals,
++        locals,
++        type_params,
++        recursive_guard=_recursive_guard | {forward_ref.__forward_arg__},
++        format=format,
++        owner=owner,
++    )
+ 
+ 
+ def _is_unpacked_typevartuple(x: Any) -> bool:
+@@ -2196,7 +2169,7 @@ class _AnnotatedAlias(_NotIterable, _GenericAlias, _root=True):
+     """Runtime representation of an annotated type.
+ 
+     At its core 'Annotated[t, dec1, dec2, ...]' is an alias for the type 't'
+-    with extra annotations. The alias behaves like a normal typing alias.
++    with extra metadata. The alias behaves like a normal typing alias.
+     Instantiating is the same as instantiating the underlying type; binding
+     it to types is also the same.
+ 
+@@ -2380,7 +2353,8 @@ def greet(name: str) -> None:
+                   WrapperDescriptorType, MethodWrapperType, MethodDescriptorType)
+ 
+ 
+-def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
++def get_type_hints(obj, globalns=None, localns=None, include_extras=False,
++                   *, format=annotationlib.Format.VALUE):
+     """Return type hints for an object.
+ 
+     This is often the same as obj.__annotations__, but it handles
+@@ -2417,13 +2391,14 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+     if isinstance(obj, type):
+         hints = {}
+         for base in reversed(obj.__mro__):
++            ann = annotationlib.get_annotations(base, format=format)
++            if format is annotationlib.Format.SOURCE:
++                hints.update(ann)
++                continue
+             if globalns is None:
+                 base_globals = getattr(sys.modules.get(base.__module__, None), '__dict__', {})
+             else:
+                 base_globals = globalns
+-            ann = getattr(base, '__annotations__', {})
+-            if isinstance(ann, types.GetSetDescriptorType):
+-                ann = {}
+             base_locals = dict(vars(base)) if localns is None else localns
+             if localns is None and globalns is None:
+                 # This is surprising, but required.  Before Python 3.10,
+@@ -2437,10 +2412,26 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+                 if value is None:
+                     value = type(None)
+                 if isinstance(value, str):
+-                    value = ForwardRef(value, is_argument=False, is_class=True)
+-                value = _eval_type(value, base_globals, base_locals, base.__type_params__)
++                    value = _make_forward_ref(value, is_argument=False, is_class=True)
++                value = _eval_type(value, base_globals, base_locals, base.__type_params__,
++                                   format=format, owner=obj)
+                 hints[name] = value
+-        return hints if include_extras else {k: _strip_annotations(t) for k, t in hints.items()}
++        if include_extras or format is annotationlib.Format.SOURCE:
++            return hints
++        else:
++            return {k: _strip_annotations(t) for k, t in hints.items()}
++
++    hints = annotationlib.get_annotations(obj, format=format)
++    if (
++        not hints
++        and not isinstance(obj, types.ModuleType)
++        and not callable(obj)
++        and not hasattr(obj, '__annotations__')
++        and not hasattr(obj, '__annotate__')
++    ):
++        raise TypeError(f"{obj!r} is not a module, class, or callable.")
++    if format is annotationlib.Format.SOURCE:
++        return hints
+ 
+     if globalns is None:
+         if isinstance(obj, types.ModuleType):
+@@ -2455,15 +2446,6 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+             localns = globalns
+     elif localns is None:
+         localns = globalns
+-    hints = getattr(obj, '__annotations__', None)
+-    if hints is None:
+-        # Return empty annotations for something that _could_ have them.
+-        if isinstance(obj, _allowed_types):
+-            return {}
+-        else:
+-            raise TypeError('{!r} is not a module, class, method, '
+-                            'or function.'.format(obj))
+-    hints = dict(hints)
+     type_params = getattr(obj, "__type_params__", ())
+     for name, value in hints.items():
+         if value is None:
+@@ -2471,12 +2453,12 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+         if isinstance(value, str):
+             # class-level forward refs were handled above, this must be either
+             # a module-level annotation or a function argument annotation
+-            value = ForwardRef(
++            value = _make_forward_ref(
+                 value,
+                 is_argument=not isinstance(obj, types.ModuleType),
+                 is_class=False,
+             )
+-        hints[name] = _eval_type(value, globalns, localns, type_params)
++        hints[name] = _eval_type(value, globalns, localns, type_params, format=format, owner=obj)
+     return hints if include_extras else {k: _strip_annotations(t) for k, t in hints.items()}
+ 
+ 
+@@ -2953,22 +2935,34 @@ def __round__(self, ndigits: int = 0) -> T:
+         pass
+ 
+ 
+-def _make_nmtuple(name, types, module, defaults = ()):
+-    fields = [n for n, t in types]
+-    types = {n: _type_check(t, f"field {n} annotation must be a type")
+-             for n, t in types}
++def _make_nmtuple(name, fields, annotate_func, module, defaults = ()):
+     nm_tpl = collections.namedtuple(name, fields,
+                                     defaults=defaults, module=module)
+-    nm_tpl.__annotations__ = nm_tpl.__new__.__annotations__ = types
++    nm_tpl.__annotate__ = nm_tpl.__new__.__annotate__ = annotate_func
+     return nm_tpl
+ 
+ 
++def _make_eager_annotate(types):
++    checked_types = {key: _type_check(val, f"field {key} annotation must be a type")
++                     for key, val in types.items()}
++    def annotate(format):
++        if format in (annotationlib.Format.VALUE, annotationlib.Format.FORWARDREF):
++            return checked_types
++        else:
++            return _convert_to_source(types)
++    return annotate
++
++
++def _convert_to_source(types):
++    return {n: t if isinstance(t, str) else _type_repr(t) for n, t in types.items()}
++
++
+ # attributes prohibited to set in NamedTuple class syntax
+ _prohibited = frozenset({'__new__', '__init__', '__slots__', '__getnewargs__',
+                          '_fields', '_field_defaults',
+                          '_make', '_replace', '_asdict', '_source'})
+ 
+-_special = frozenset({'__module__', '__name__', '__annotations__'})
++_special = frozenset({'__module__', '__name__', '__annotations__', '__annotate__'})
+ 
+ 
+ class NamedTupleMeta(type):
+@@ -2981,12 +2975,29 @@ def __new__(cls, typename, bases, ns):
+         bases = tuple(tuple if base is _NamedTuple else base for base in bases)
+         if "__annotations__" in ns:
+             types = ns["__annotations__"]
++            field_names = list(types)
++            annotate = _make_eager_annotate(types)
+         elif "__annotate__" in ns:
+-            types = ns["__annotate__"](1)  # VALUE
++            original_annotate = ns["__annotate__"]
++            types = annotationlib.call_annotate_function(original_annotate, annotationlib.Format.FORWARDREF)
++            field_names = list(types)
++
++            # For backward compatibility, type-check all the types at creation time
++            for typ in types.values():
++                _type_check(typ, "field annotation must be a type")
++
++            def annotate(format):
++                annos = annotationlib.call_annotate_function(original_annotate, format)
++                if format != annotationlib.Format.SOURCE:
++                    return {key: _type_check(val, f"field {key} annotation must be a type")
++                            for key, val in annos.items()}
++                return annos
+         else:
+-            types = {}
++            # Empty NamedTuple
++            field_names = []
++            annotate = lambda format: {}
+         default_names = []
+-        for field_name in types:
++        for field_name in field_names:
+             if field_name in ns:
+                 default_names.append(field_name)
+             elif default_names:
+@@ -2994,7 +3005,7 @@ def __new__(cls, typename, bases, ns):
+                                 f"cannot follow default field"
+                                 f"{'s' if len(default_names) > 1 else ''} "
+                                 f"{', '.join(default_names)}")
+-        nm_tpl = _make_nmtuple(typename, types.items(),
++        nm_tpl = _make_nmtuple(typename, field_names, annotate,
+                                defaults=[ns[n] for n in default_names],
+                                module=ns['__module__'])
+         nm_tpl.__bases__ = bases
+@@ -3085,7 +3096,11 @@ class Employee(NamedTuple):
+         import warnings
+         warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 15))
+         fields = kwargs.items()
+-    nt = _make_nmtuple(typename, fields, module=_caller())
++    types = {n: _type_check(t, f"field {n} annotation must be a type")
++             for n, t in fields}
++    field_names = [n for n, _ in fields]
++
++    nt = _make_nmtuple(typename, field_names, _make_eager_annotate(types), module=_caller())
+     nt.__orig_bases__ = (NamedTuple,)
+     return nt
+ 
+@@ -3144,15 +3159,19 @@ def __new__(cls, name, bases, ns, total=True):
+         if not hasattr(tp_dict, '__orig_bases__'):
+             tp_dict.__orig_bases__ = bases
+ 
+-        annotations = {}
+         if "__annotations__" in ns:
++            own_annotate = None
+             own_annotations = ns["__annotations__"]
+         elif "__annotate__" in ns:
+-            own_annotations = ns["__annotate__"](1)  # VALUE
++            own_annotate = ns["__annotate__"]
++            own_annotations = annotationlib.call_annotate_function(
++                own_annotate, annotationlib.Format.FORWARDREF, owner=tp_dict
++            )
+         else:
++            own_annotate = None
+             own_annotations = {}
+         msg = "TypedDict('Name', {f0: t0, f1: t1, ...}); each t must be a type"
+-        own_annotations = {
++        own_checked_annotations = {
+             n: _type_check(tp, msg, module=tp_dict.__module__)
+             for n, tp in own_annotations.items()
+         }
+@@ -3162,13 +3181,6 @@ def __new__(cls, name, bases, ns, total=True):
+         mutable_keys = set()
+ 
+         for base in bases:
+-            # TODO: Avoid eagerly evaluating annotations in VALUE format.
+-            # Instead, evaluate in FORWARDREF format to figure out which
+-            # keys have Required/NotRequired/ReadOnly qualifiers, and create
+-            # a new __annotate__ function for the resulting TypedDict that
+-            # combines the annotations from this class and its parents.
+-            annotations.update(base.__annotations__)
+-
+             base_required = base.__dict__.get('__required_keys__', set())
+             required_keys |= base_required
+             optional_keys -= base_required
+@@ -3180,8 +3192,7 @@ def __new__(cls, name, bases, ns, total=True):
+             readonly_keys.update(base.__dict__.get('__readonly_keys__', ()))
+             mutable_keys.update(base.__dict__.get('__mutable_keys__', ()))
+ 
+-        annotations.update(own_annotations)
+-        for annotation_key, annotation_type in own_annotations.items():
++        for annotation_key, annotation_type in own_checked_annotations.items():
+             qualifiers = set(_get_typeddict_qualifiers(annotation_type))
+             if Required in qualifiers:
+                 is_required = True
+@@ -3212,7 +3223,32 @@ def __new__(cls, name, bases, ns, total=True):
+             f"Required keys overlap with optional keys in {name}:"
+             f" {required_keys=}, {optional_keys=}"
+         )
+-        tp_dict.__annotations__ = annotations
++
++        def __annotate__(format):
++            annos = {}
++            for base in bases:
++                if base is Generic:
++                    continue
++                base_annotate = base.__annotate__
++                if base_annotate is None:
++                    continue
++                base_annos = annotationlib.call_annotate_function(base.__annotate__, format, owner=base)
++                annos.update(base_annos)
++            if own_annotate is not None:
++                own = annotationlib.call_annotate_function(own_annotate, format, owner=tp_dict)
++                if format != annotationlib.Format.SOURCE:
++                    own = {
++                        n: _type_check(tp, msg, module=tp_dict.__module__)
++                        for n, tp in own.items()
++                    }
++            elif format == annotationlib.Format.SOURCE:
++                own = _convert_to_source(own_annotations)
++            else:
++                own = own_checked_annotations
++            annos.update(own)
++            return annos
++
++        tp_dict.__annotate__ = __annotate__
+         tp_dict.__required_keys__ = frozenset(required_keys)
+         tp_dict.__optional_keys__ = frozenset(optional_keys)
+         tp_dict.__readonly_keys__ = frozenset(readonly_keys)
+diff --git a/Python/stdlib_module_names.h b/Python/stdlib_module_names.h
+index 9686d10563..4d595d9844 100644
+--- a/Python/stdlib_module_names.h
++++ b/Python/stdlib_module_names.h
+@@ -99,6 +99,7 @@ static const char* _Py_stdlib_module_names[] = {
+ "_winapi",
+ "_zoneinfo",
+ "abc",
++"annotationlib",
+ "antigravity",
+ "argparse",
+ "array",

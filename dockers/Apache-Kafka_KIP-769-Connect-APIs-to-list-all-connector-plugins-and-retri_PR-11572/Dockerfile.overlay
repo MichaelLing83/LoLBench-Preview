@@ -1,0 +1,11 @@
+# Overlay image: re-ships the updated KIP-769 augmented sidecar files on top of the
+# already-built eval image. Does NOT rebuild base/source.
+FROM lolbench/apache-kafka-kip-769-pr-11572:1
+
+COPY spec.json solution.patch eval_tests.patch omitted.patch f2p.txt p2p.txt \
+     eval_tests_aug.patch f2p_aug.txt p2p_aug.txt \
+     /opt/lolbench/private/
+COPY run_tests.sh /opt/lolbench/private/
+RUN chmod +x /opt/lolbench/private/run_tests.sh
+
+ENTRYPOINT ["/opt/lolbench/private/run_tests.sh"]

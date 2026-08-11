@@ -1,0 +1,312 @@
+{
+  "instance_id": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "9b072042c4732f2589628c4f4ac30ed2a9cdfe9d7c6ee9690d2012b481c85d55",
+    "f2p_aug.txt": "c625e2a1e671a711ececd477a622bcc9cf9ba54818b9168378de6d516d41e2bd",
+    "p2p_aug.txt": "76ddaf5312b65b0509906ab793972923aa48d03abd4dd6ed6c627e13dfc4f81c",
+    "coverage_report.json": "64724a34c5ac940a8fe6aea399f6cc4dd37d4486ec79ef5ea72a8806e7c80f56"
+  },
+  "public_surface_summary": {
+    "f2p": [
+      "ExecutionConfigOptions public async-table configuration keys",
+      "TableEnvironment temporary system function registration",
+      "SQL LATERAL TABLE execution for AsyncTableFunction correlates",
+      "AsyncWaitOperator ordered output mode through SQL correlate results",
+      "Planner validation of supported and unsupported async correlate shapes",
+      "TableEnvironment EXPLAIN plans for async correlate nodes",
+      "SQL execution of internally-bridged atomic async table outputs",
+      "PR SQL planner-rule verification for async correlate split rules",
+      "Generated async correlate function execution from SQL-derived expressions"
+    ],
+    "p2p": [
+      "CliFrontendParser RUN_OPTIONS parsing",
+      "ProgramOptions public option-to-Configuration flow"
+    ],
+    "internal_symbol_check": "No augmented selector calls production private methods or internal-only helpers; helper UDFs are local test fixtures."
+  },
+  "fail_to_pass": {
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableOptionKeysAreDistinctFromScalarOptions": {
+      "source": "mutation-driven public configuration contract",
+      "requirement_sections": [
+        "Public Interfaces"
+      ],
+      "mutants_targeted": [
+        "mutant_001",
+        "mutant_002",
+        "mutant_003",
+        "mutant_004",
+        "mutant_005"
+      ],
+      "expected_pre_state": "compile error because the async-table ExecutionConfigOptions constants are absent at base",
+      "golden_oracle": "async-table configuration keys use the table.exec.async-table prefix and remain distinct from async-scalar keys"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableTimeoutUsesAsyncTableTimeoutOption": {
+      "source": "mutation-driven runtime configuration path",
+      "requirement_sections": [
+        "Public Interfaces",
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_002",
+        "mutant_024"
+      ],
+      "expected_pre_state": "compile error because AsyncTableFunction correlate support and async-table timeout configuration are absent at base",
+      "golden_oracle": "a slow async table function succeeds when it completes within the async-table timeout even if the async-scalar timeout is lower"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAsyncTableCorrelateKeepsOrderedOutputMode": {
+      "source": "mutation-driven ordered async correlate output mode",
+      "requirement_sections": [
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_022"
+      ],
+      "expected_pre_state": "compile or planner error because async table correlate operator support is absent at base",
+      "golden_oracle": "SQL correlate output remains ordered by input row even when the second async table result completes before the first"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInvalidAsyncTableFutureTypeRejectedThroughSql": {
+      "source": "mutation-driven validation contract",
+      "requirement_sections": [
+        "Public Interfaces"
+      ],
+      "mutants_targeted": [
+        "mutant_006",
+        "mutant_007",
+        "mutant_008"
+      ],
+      "expected_pre_state": "compile error because AsyncTableFunction validation support is absent at base",
+      "golden_oracle": "AsyncTableFunction registration must validate eval methods as CompletableFuture<Collection<...>> results and reject scalar futures"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testProjectedOperandKeepsHintedRowTypeInAsyncTableSplit": {
+      "source": "mutation-driven split-rule and async-kind detection path",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Split Rules",
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_013"
+      ],
+      "expected_pre_state": "compile or planner error because async table correlate split and code generation support are absent at base",
+      "golden_oracle": "a public SQL query with a projected operand produces an AsyncCorrelate plan and preserves the hinted multi-field Row output"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testInternalAtomicAsyncTableOutputIsRowWrapped": {
+      "source": "mutation-driven internal representation wrapping path",
+      "requirement_sections": [
+        "Public Interfaces",
+        "Proposed Changes > Runtime Changes > Code Generation",
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_028",
+        "mutant_031",
+        "mutant_032",
+        "mutant_033",
+        "mutant_034"
+      ],
+      "expected_pre_state": "compile or runtime error because async table correlate code generation and delegating result wrapping are absent at base",
+      "golden_oracle": "atomic async table outputs bridged to StringData are implicitly wrapped into one-field rows and converted back to public SQL results"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateAugITCase#testAtomicAsyncTableOutputCanBeProjectedAfterCorrelate": {
+      "source": "mutation-driven downstream SQL projection over atomic async-table output",
+      "requirement_sections": [
+        "Public Interfaces",
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_033",
+        "mutant_034"
+      ],
+      "expected_pre_state": "compile or runtime error because async table correlate code generation is absent at base",
+      "golden_oracle": "an atomic async table output is exposed as a logical one-field row so a downstream SQL projection can consume the column"
+    },
+    "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithScalar": {
+      "source": "mutation-driven SQL planner split-rule selector from the PR test patch",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Split Rules",
+        "Test Plan"
+      ],
+      "mutants_targeted": [
+        "mutant_013"
+      ],
+      "expected_pre_state": "compile or planner error because async table split-rule support is absent at base",
+      "golden_oracle": "SQL plan verification keeps async table calls detectable and correctly typed when a scalar operand must be projected"
+    },
+    "org.apache.flink.table.planner.plan.rules.logical.AsyncCorrelateSplitRuleTest#testCorrelateWithCast": {
+      "source": "mutation-driven SQL planner split-rule selector from the PR test patch",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Split Rules",
+        "Test Plan"
+      ],
+      "mutants_targeted": [
+        "mutant_013"
+      ],
+      "expected_pre_state": "compile or planner error because async table split-rule support is absent at base",
+      "golden_oracle": "SQL plan verification preserves async table call type while splitting nested cast operands"
+    },
+    "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testStringReturnType": {
+      "source": "mutation-driven generated async correlate selector from the PR test patch",
+      "requirement_sections": [
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_028",
+        "mutant_031",
+        "mutant_033",
+        "mutant_034"
+      ],
+      "expected_pre_state": "compile error because AsyncCorrelateCodeGenerator support is absent at base",
+      "golden_oracle": "generated async correlate code wraps atomic string outputs into one-field rows"
+    },
+    "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowReturnType": {
+      "source": "mutation-driven generated async correlate selector from the PR test patch",
+      "requirement_sections": [
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_013",
+        "mutant_030"
+      ],
+      "expected_pre_state": "compile error because AsyncCorrelateCodeGenerator support is absent at base",
+      "golden_oracle": "generated async correlate code preserves explicit Row output hints and logical row type"
+    },
+    "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorTest#testRowDataReturnType": {
+      "source": "mutation-driven generated async correlate selector from the PR test patch",
+      "requirement_sections": [
+        "Proposed Changes > Runtime Changes > Code Generation",
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_028",
+        "mutant_032"
+      ],
+      "expected_pre_state": "compile error because AsyncCorrelateCodeGenerator support is absent at base",
+      "golden_oracle": "generated async correlate code preserves internal RowData outputs without nulling fields"
+    },
+    "org.apache.flink.table.planner.codegen.AsyncCorrelateCodeGeneratorAugTest#testAtomicAsyncTableGeneratedExpressionKeepsLogicalRowType": {
+      "source": "mutation-driven generated expression type assertion",
+      "requirement_sections": [
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_034"
+      ],
+      "expected_pre_state": "compile error because async table function code generation support is absent at base",
+      "golden_oracle": "GeneratedExpression.resultType remains the logical one-field Row type for atomic AsyncTableFunction output"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFuncNoArg": {
+      "source": "coverage-guided existing system selector promoted into the augmented suite",
+      "requirement_sections": [
+        "Public Interfaces",
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_010",
+        "mutant_011",
+        "mutant_028",
+        "mutant_031",
+        "mutant_033",
+        "mutant_034"
+      ],
+      "expected_pre_state": "compile or planner error because async table correlate support is absent at base",
+      "golden_oracle": "constant async table functions without input arguments register and produce generated correlate rows correctly"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncRowTypeWithHints": {
+      "source": "coverage-guided public type-hint path",
+      "requirement_sections": [
+        "Public Interfaces",
+        "Proposed Changes > Runtime Changes > Code Generation"
+      ],
+      "mutants_targeted": [
+        "mutant_007",
+        "mutant_009",
+        "mutant_013",
+        "mutant_030"
+      ],
+      "expected_pre_state": "compile or validation error because async table type extraction is absent at base",
+      "golden_oracle": "explicit Row output hints on AsyncTableFunction are preserved through SQL correlate execution"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithAsyncCalc": {
+      "source": "mutation-driven planner split-rule path",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Split Rules",
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_012",
+        "mutant_017",
+        "mutant_021"
+      ],
+      "expected_pre_state": "compile or planner error because async table correlate rules are absent at base",
+      "golden_oracle": "async correlate and async calc calls are split and executed in the supported public SQL flow"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcSelectStar": {
+      "source": "mutation-driven physical-rule and runtime row-order path",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Physical Rules",
+        "Proposed Changes > Runtime Changes > Operator"
+      ],
+      "mutants_targeted": [
+        "mutant_014",
+        "mutant_015",
+        "mutant_018",
+        "mutant_019",
+        "mutant_027"
+      ],
+      "expected_pre_state": "compile or planner error because async physical correlate support is absent at base",
+      "golden_oracle": "the async physical correlate rule matches supported right-side calculations and preserves left/right row ordering"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithSelect": {
+      "source": "mutation-driven unsupported projection guard",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Physical Rules",
+        "Test Plan"
+      ],
+      "mutants_targeted": [
+        "mutant_016"
+      ],
+      "expected_pre_state": "compile or planner error because async correlate support is absent at base",
+      "golden_oracle": "right-side projections on async correlates are rejected with the documented TableException"
+    },
+    "org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithRightCalcWithConditions": {
+      "source": "mutation-driven unsupported condition guard",
+      "requirement_sections": [
+        "Proposed Changes > Planner Changes > Physical Rules",
+        "Test Plan"
+      ],
+      "mutants_targeted": [
+        "mutant_016"
+      ],
+      "expected_pre_state": "compile or planner error because async correlate support is absent at base",
+      "golden_oracle": "right-side conditions on async correlates are rejected with the documented TableException"
+    }
+  },
+  "pass_to_pass": {
+    "org.apache.flink.client.cli.ClientCliAugTest#testRunOptionsPreserveAttachedShutdownAndProgramArgs": {
+      "source": "compatibility clause and adjacent unchanged flink-clients surface",
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "expected_all_patches": "pass",
+      "oracle": "attached execution, shutdown-on-attached-exit, default parallelism, jar path, and program arguments keep existing CLI semantics"
+    },
+    "org.apache.flink.client.cli.ClientCliAugTest#testDetachedRunOptionKeepsShutdownFlagIndependent": {
+      "source": "compatibility clause and adjacent unchanged flink-clients surface",
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "expected_all_patches": "pass",
+      "oracle": "detached execution remains independent from shutdown-on-attached-exit parsing"
+    }
+  },
+  "validation": {
+    "status": "passed",
+    "coverage_floor_pct": 80.0,
+    "coverage_union_pct": 93.8,
+    "coverage_report": "coverage_report.json",
+    "coverage_complete": true,
+    "mutant_suite": "union",
+    "mutant_validation": "validation_mutants_final2",
+    "mutants_killed_by_f2p": true,
+    "p2p_clean": true
+  }
+}

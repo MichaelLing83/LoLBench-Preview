@@ -1,0 +1,3051 @@
+diff --git a/flink-core/src/main/java/org/apache/flink/api/common/eventtime/WatermarksWithIdleness.java b/flink-core/src/main/java/org/apache/flink/api/common/eventtime/WatermarksWithIdleness.java
+--- a/flink-core/src/main/java/org/apache/flink/api/common/eventtime/WatermarksWithIdleness.java
++++ b/flink-core/src/main/java/org/apache/flink/api/common/eventtime/WatermarksWithIdleness.java
+@@ -18,6 +18,7 @@
+ 
+ package org.apache.flink.api.common.eventtime;
+ 
++import org.apache.flink.annotation.Internal;
+ import org.apache.flink.annotation.Public;
+ import org.apache.flink.annotation.VisibleForTesting;
+ import org.apache.flink.util.clock.Clock;
+@@ -84,7 +85,8 @@ public void onPeriodicEmit(WatermarkOutput output) {
+     // ------------------------------------------------------------------------
+ 
+     @VisibleForTesting
+-    static final class IdlenessTimer {
++    @Internal
++    public static final class IdlenessTimer {
+ 
+         /** The clock used to measure elapsed time. */
+         private final RelativeClock clock;
+@@ -104,7 +106,7 @@ static final class IdlenessTimer {
+         /** The duration before the output is marked as idle. */
+         private final long maxIdleTimeNanos;
+ 
+-        IdlenessTimer(RelativeClock clock, Duration idleTimeout) {
++        public IdlenessTimer(RelativeClock clock, Duration idleTimeout) {
+             this.clock = clock;
+ 
+             long idleNanos;
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/EventTimeExtension.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/EventTimeExtension.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/EventTimeExtension.java
+@@ -0,0 +1,273 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.api.common.watermark.BoolWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.LongWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkDeclarations;
++import org.apache.flink.datastream.api.extension.eventtime.function.EventTimeProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.OneInputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputNonBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoOutputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.strategy.EventTimeExtractor;
++import org.apache.flink.datastream.api.extension.eventtime.strategy.EventTimeWatermarkGeneratorBuilder;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.datastream.api.function.ProcessFunction;
++import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/**
++ * The entry point for the event-time extension, which provides the following functionality:
++ *
++ * <ul>
++ *   <li>defines the event-time watermark and idle status watermark. If you use the {@link
++ *       EventTimeWatermarkGeneratorBuilder} below, then you don't need to declare these watermarks
++ *       manually in your application; otherwise you need to declare them in your own {@link
++ *       ProcessFunction}.
++ *   <li>provides the {@link EventTimeWatermarkGeneratorBuilder} to facilitate the generation of
++ *       event time watermarks. An example of using {@link EventTimeWatermarkGeneratorBuilder} is as
++ *       follows:
++ *       <pre>{@code
++ * OneInputStreamProcessFunction<POJO, POJO> watermarkGeneratorProcessFunction
++ *       = EventTimeExtension
++ *       .newWatermarkGeneratorBuilder(POJO::getEventTime)
++ *       .periodicWatermark()
++ *       .buildAsProcessFunction();
++ * source.process(watermarkGeneratorProcessFunction)
++ *       .process(...)
++ * }</pre>
++ *   <li>provides a tool to encapsulate a user-defined {@link EventTimeProcessFunction} to provide
++ *       the relevant components of the event-time extension.
++ *       <pre>{@code
++ * stream.process(
++ *          EventTimeExtension.wrapProcessFunction(
++ *              new CustomEventTimeProcessFunction()
++ *          )
++ *       )
++ *       .process(...)
++ * }</pre>
++ * </ul>
++ */
++@Experimental
++public class EventTimeExtension {
++
++    // =============== Event Time related Watermark Declarations ===============
++
++    /**
++     * Definition of EventTimeWatermark. The EventTimeWatermark represents a specific timestamp,
++     * signifying the passage of time. Once a process function receives an EventTimeWatermark, it
++     * will no longer receive events with a timestamp earlier than that watermark.
++     */
++    public static final LongWatermarkDeclaration EVENT_TIME_WATERMARK_DECLARATION =
++            WatermarkDeclarations.newBuilder("BUILTIN_API_EVENT_TIME")
++                    .typeLong()
++                    .combineFunctionMin()
++                    .combineWaitForAllChannels(true)
++                    .defaultHandlingStrategyForward()
++                    .build();
++
++    /**
++     * Definition of IdleStatusWatermark. The IdleStatusWatermark indicates that a particular input
++     * is in an idle state. When a ProcessFunction receives an IdleStatusWatermark from an input, it
++     * should ignore that input when combining EventTimeWatermarks.
++     */
++    public static final BoolWatermarkDeclaration IDLE_STATUS_WATERMARK_DECLARATION =
++            WatermarkDeclarations.newBuilder("BUILTIN_API_EVENT_TIME_IDLE")
++                    .typeBool()
++                    .combineFunctionAND()
++                    .combineWaitForAllChannels(true)
++                    .defaultHandlingStrategyForward()
++                    .build();
++
++    /**
++     * Determine if the received watermark is an EventTimeWatermark.
++     *
++     * @param watermark The watermark to be checked.
++     * @return true if the watermark is an EventTimeWatermark; false otherwise.
++     */
++    public static boolean isEventTimeWatermark(Watermark watermark) {
++        return isEventTimeWatermark(watermark.getIdentifier());
++    }
++
++    /**
++     * Determine if the received watermark is an EventTimeWatermark by watermark identifier.
++     *
++     * @param watermarkIdentifier The identifier of the watermark to be checked.
++     * @return true if the watermark is an EventTimeWatermark; false otherwise.
++     */
++    public static boolean isEventTimeWatermark(String watermarkIdentifier) {
++        return watermarkIdentifier.equals(EVENT_TIME_WATERMARK_DECLARATION.getIdentifier());
++    }
++
++    /**
++     * Determine if the received watermark is an IdleStatusWatermark.
++     *
++     * @param watermark The watermark to be checked.
++     * @return true if the watermark is an IdleStatusWatermark; false otherwise.
++     */
++    public static boolean isIdleStatusWatermark(Watermark watermark) {
++        return isIdleStatusWatermark(watermark.getIdentifier());
++    }
++
++    /**
++     * Determine if the received watermark is an IdleStatusWatermark by watermark identifier.
++     *
++     * @param watermarkIdentifier The identifier of the watermark to be checked.
++     * @return true if the watermark is an IdleStatusWatermark; false otherwise.
++     */
++    public static boolean isIdleStatusWatermark(String watermarkIdentifier) {
++        return watermarkIdentifier.equals(IDLE_STATUS_WATERMARK_DECLARATION.getIdentifier());
++    }
++
++    // ======== EventTimeWatermarkGeneratorBuilder to generate event time watermarks =========
++
++    /**
++     * Create an instance of {@link EventTimeWatermarkGeneratorBuilder}, which contains a {@code
++     * EventTimeExtractor}.
++     *
++     * @param eventTimeExtractor An instance of {@code EventTimeExtractor} used to extract event
++     *     time information from data records.
++     * @param <T> The type of data records.
++     * @return An instance of {@code EventTimeWatermarkGeneratorBuilder} containing the specified
++     *     event time extractor.
++     */
++    public static <T> EventTimeWatermarkGeneratorBuilder<T> newWatermarkGeneratorBuilder(
++            EventTimeExtractor<T> eventTimeExtractor) {
++        return new EventTimeWatermarkGeneratorBuilder<>(eventTimeExtractor);
++    }
++
++    // ======== Wrap user-defined {@link EventTimeProcessFunction} =========
++
++    /**
++     * Wrap the user-defined {@link OneInputEventTimeStreamProcessFunction}, which will provide
++     * related components such as {@link EventTimeManager} and declare the necessary built-in state
++     * required for the Timer, etc. Note that registering event timers of {@link
++     * EventTimeProcessFunction} can only be used with {@link KeyedPartitionStream}.
++     *
++     * @param processFunction The user-defined {@link OneInputEventTimeStreamProcessFunction} that
++     *     needs to be wrapped.
++     * @return The wrapped {@link OneInputStreamProcessFunction}.
++     */
++    public static <IN, OUT> OneInputStreamProcessFunction<IN, OUT> wrapProcessFunction(
++            OneInputEventTimeStreamProcessFunction<IN, OUT> processFunction) {
++        try {
++            return (OneInputStreamProcessFunction<IN, OUT>)
++                    getEventTimeExtensionImplClass()
++                            .getMethod(
++                                    "wrapProcessFunction",
++                                    OneInputEventTimeStreamProcessFunction.class)
++                            .invoke(null, processFunction);
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    /**
++     * Wrap the user-defined {@link TwoOutputStreamProcessFunction}, which will provide related
++     * components such as {@link EventTimeManager} and declare the necessary built-in state required
++     * for the Timer, etc. Note that registering event timers of {@link EventTimeProcessFunction}
++     * can only be used with {@link KeyedPartitionStream}.
++     *
++     * @param processFunction The user-defined {@link TwoOutputEventTimeStreamProcessFunction} that
++     *     needs to be wrapped.
++     * @return The wrapped {@link TwoOutputStreamProcessFunction}.
++     */
++    public static <IN, OUT1, OUT2>
++            TwoOutputStreamProcessFunction<IN, OUT1, OUT2> wrapProcessFunction(
++                    TwoOutputEventTimeStreamProcessFunction<IN, OUT1, OUT2> processFunction) {
++        try {
++            return (TwoOutputStreamProcessFunction<IN, OUT1, OUT2>)
++                    getEventTimeExtensionImplClass()
++                            .getMethod(
++                                    "wrapProcessFunction",
++                                    TwoOutputEventTimeStreamProcessFunction.class)
++                            .invoke(null, processFunction);
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    /**
++     * Wrap the user-defined {@link TwoInputNonBroadcastEventTimeStreamProcessFunction}, which will
++     * provide related components such as {@link EventTimeManager} and declare the necessary
++     * built-in state required for the Timer, etc. Note that registering event timers of {@link
++     * EventTimeProcessFunction} can only be used with {@link KeyedPartitionStream}.
++     *
++     * @param processFunction The user-defined {@link
++     *     TwoInputNonBroadcastEventTimeStreamProcessFunction} that needs to be wrapped.
++     * @return The wrapped {@link TwoInputNonBroadcastStreamProcessFunction}.
++     */
++    public static <IN1, IN2, OUT>
++            TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> wrapProcessFunction(
++                    TwoInputNonBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++                            processFunction) {
++        try {
++            return (TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT>)
++                    getEventTimeExtensionImplClass()
++                            .getMethod(
++                                    "wrapProcessFunction",
++                                    TwoInputNonBroadcastEventTimeStreamProcessFunction.class)
++                            .invoke(null, processFunction);
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    /**
++     * Wrap the user-defined {@link TwoInputBroadcastEventTimeStreamProcessFunction}, which will
++     * provide related components such as {@link EventTimeManager} and declare the necessary
++     * built-in state required for the Timer, etc. Note that registering event timers of {@link
++     * EventTimeProcessFunction} can only be used with {@link KeyedPartitionStream}.
++     *
++     * @param processFunction The user-defined {@link
++     *     TwoInputBroadcastEventTimeStreamProcessFunction} that needs to be wrapped.
++     * @return The wrapped {@link TwoInputBroadcastStreamProcessFunction}.
++     */
++    public static <IN1, IN2, OUT>
++            TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> wrapProcessFunction(
++                    TwoInputBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++                            processFunction) {
++        try {
++            return (TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT>)
++                    getEventTimeExtensionImplClass()
++                            .getMethod(
++                                    "wrapProcessFunction",
++                                    TwoInputBroadcastEventTimeStreamProcessFunction.class)
++                            .invoke(null, processFunction);
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    /** Get the implementation class of EventTimeExtension. */
++    private static Class<?> getEventTimeExtensionImplClass() {
++        try {
++            return Class.forName(
++                    "org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl");
++        } catch (ClassNotFoundException e) {
++            throw new RuntimeException("Please ensure that flink-datastream in your class path");
++        }
++    }
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/EventTimeProcessFunction.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/EventTimeProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/EventTimeProcessFunction.java
+@@ -0,0 +1,40 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.function;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.ProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/**
++ * The base interface for event time processing, indicating that the {@link ProcessFunction} will be
++ * enriched with event time processing functions, such as registering event timers and handle event
++ * time watermarks.
++ *
++ * <p>Note that registering event timers can only be used with {@link KeyedPartitionStream}.
++ */
++@Experimental
++public interface EventTimeProcessFunction extends ProcessFunction {
++    /**
++     * Initialize the {@link EventTimeProcessFunction} with an instance of {@link EventTimeManager}.
++     * Note that this method should be invoked before the open method.
++     */
++    void initEventTimeProcessFunction(EventTimeManager eventTimeManager);
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/OneInputEventTimeStreamProcessFunction.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/OneInputEventTimeStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/OneInputEventTimeStreamProcessFunction.java
+@@ -0,0 +1,47 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.function;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/** The {@link OneInputStreamProcessFunction} that extends with event time support. */
++@Experimental
++public interface OneInputEventTimeStreamProcessFunction<IN, OUT>
++        extends EventTimeProcessFunction, OneInputStreamProcessFunction<IN, OUT> {
++
++    /**
++     * The {@code #onEventTimeWatermark} method signifies that the EventTimeProcessFunction has
++     * received an EventTimeWatermark. Other types of watermarks will be processed by the {@code
++     * ProcessFunction#onWatermark} method.
++     */
++    default void onEventTimeWatermark(
++            long watermarkTimestamp, Collector<OUT> output, NonPartitionedContext<OUT> ctx)
++            throws Exception {}
++
++    /**
++     * Invoked when an event-time timer fires. Note that it is only used in {@link
++     * KeyedPartitionStream}.
++     */
++    default void onEventTimer(long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {}
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputBroadcastEventTimeStreamProcessFunction.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputBroadcastEventTimeStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputBroadcastEventTimeStreamProcessFunction.java
+@@ -0,0 +1,47 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.function;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/** The {@link TwoInputBroadcastStreamProcessFunction} that extends with event time support. */
++@Experimental
++public interface TwoInputBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++        extends EventTimeProcessFunction, TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> {
++
++    /**
++     * The {@code #onEventTimeWatermark} method signifies that the EventTimeProcessFunction has
++     * received an EventTimeWatermark. Other types of watermarks will be processed by the {@code
++     * ProcessFunction#onWatermark} method.
++     */
++    default void onEventTimeWatermark(
++            long watermarkTimestamp, Collector<OUT> output, NonPartitionedContext<OUT> ctx)
++            throws Exception {}
++
++    /**
++     * Invoked when an event-time timer fires. Note that it is only used in {@link
++     * KeyedPartitionStream}.
++     */
++    default void onEventTimer(long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {}
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputNonBroadcastEventTimeStreamProcessFunction.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputNonBroadcastEventTimeStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoInputNonBroadcastEventTimeStreamProcessFunction.java
+@@ -0,0 +1,47 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.function;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/** The {@link TwoInputNonBroadcastStreamProcessFunction} that extends with event time support. */
++@Experimental
++public interface TwoInputNonBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++        extends EventTimeProcessFunction, TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> {
++
++    /**
++     * The {@code #onEventTimeWatermark} method signifies that the EventTimeProcessFunction has
++     * received an EventTimeWatermark. Other types of watermarks will be processed by the {@code
++     * ProcessFunction#onWatermark} method.
++     */
++    default void onEventTimeWatermark(
++            long watermarkTimestamp, Collector<OUT> output, NonPartitionedContext<OUT> ctx)
++            throws Exception {}
++
++    /**
++     * Invoked when an event-time timer fires. Note that it is only used in {@link
++     * KeyedPartitionStream}.
++     */
++    default void onEventTimer(long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {}
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoOutputEventTimeStreamProcessFunction.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoOutputEventTimeStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/function/TwoOutputEventTimeStreamProcessFunction.java
+@@ -0,0 +1,54 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.function;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.TwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
++import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/** The {@link TwoOutputStreamProcessFunction} that extends with event time support. */
++@Experimental
++public interface TwoOutputEventTimeStreamProcessFunction<IN, OUT1, OUT2>
++        extends EventTimeProcessFunction, TwoOutputStreamProcessFunction<IN, OUT1, OUT2> {
++
++    /**
++     * The {@code #onEventTimeWatermark} method signifies that the EventTimeProcessFunction has
++     * received an EventTimeWatermark. Other types of watermarks will be processed by the {@code
++     * ProcessFunction#onWatermark} method.
++     */
++    default void onEventTimeWatermark(
++            long watermarkTimestamp,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputNonPartitionedContext<OUT1, OUT2> ctx)
++            throws Exception {}
++
++    /**
++     * Invoked when an event-time timer fires. Note that it is only used in {@link
++     * KeyedPartitionStream}.
++     */
++    default void onEventTimer(
++            long timestamp,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputPartitionedContext<OUT1, OUT2> ctx) {}
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeExtractor.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeExtractor.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeExtractor.java
+@@ -0,0 +1,31 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.strategy;
++
++import org.apache.flink.annotation.Experimental;
++
++import java.io.Serializable;
++
++/** A user function designed to extract event time from an event. */
++@Experimental
++public interface EventTimeExtractor<T> extends Serializable {
++
++    /** Extract the event time from the event, with the result provided in milliseconds. */
++    long extractTimestamp(T event);
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkGeneratorBuilder.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkGeneratorBuilder.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkGeneratorBuilder.java
+@@ -0,0 +1,125 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.strategy;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++
++import java.time.Duration;
++
++/**
++ * A utility class for constructing a processing function that extracts event time and generates
++ * event time watermarks in the {@link EventTimeExtension}.
++ */
++@Experimental
++public class EventTimeWatermarkGeneratorBuilder<T> {
++    // how to extract event time from event
++    private EventTimeExtractor<T> eventTimeExtractor;
++
++    // what frequency to generate event time watermark
++    private EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode generateMode =
++            EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PERIODIC;
++
++    // if not set, it will default to the value of the "pipeline.auto-watermark-interval"
++    // configuration.
++    private Duration periodicWatermarkInterval = Duration.ZERO;
++
++    // if set to zero, it will not generate idle status watermark
++    private Duration idleTimeout = Duration.ZERO;
++
++    // max out-of-order time
++    private Duration maxOutOfOrderTime = Duration.ZERO;
++
++    // =========  how to extract event times from events =========
++
++    public EventTimeWatermarkGeneratorBuilder(EventTimeExtractor<T> eventTimeExtractor) {
++        this.eventTimeExtractor = eventTimeExtractor;
++    }
++
++    // =========  generate the event time watermark with what value =========
++
++    public EventTimeWatermarkGeneratorBuilder<T> withIdleness(Duration idleTimeout) {
++        this.idleTimeout = idleTimeout;
++        return this;
++    }
++
++    public EventTimeWatermarkGeneratorBuilder<T> withMaxOutOfOrderTime(Duration maxOutOfOrderTime) {
++        this.maxOutOfOrderTime = maxOutOfOrderTime;
++        return this;
++    }
++
++    // =========  when to generate event time watermark =========
++
++    public EventTimeWatermarkGeneratorBuilder<T> noWatermark() {
++        this.generateMode = EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.NO_WATERMARK;
++        return this;
++    }
++
++    /**
++     * The periodic watermark interval will be set to the value specified by
++     * PipelineOptions#AUTO_WATERMARK_INTERVAL.
++     */
++    public EventTimeWatermarkGeneratorBuilder<T> periodicWatermark() {
++        this.generateMode = EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PERIODIC;
++        return this;
++    }
++
++    public EventTimeWatermarkGeneratorBuilder<T> periodicWatermark(
++            Duration periodicWatermarkInterval) {
++        this.generateMode = EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PERIODIC;
++        this.periodicWatermarkInterval = periodicWatermarkInterval;
++        return this;
++    }
++
++    public EventTimeWatermarkGeneratorBuilder<T> perEventWatermark() {
++        this.generateMode = EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PER_EVENT;
++        return this;
++    }
++
++    // =========  build the watermark generator as process function =========
++
++    public OneInputStreamProcessFunction<T, T> buildAsProcessFunction() {
++        EventTimeWatermarkStrategy<T> watermarkStrategy =
++                new EventTimeWatermarkStrategy<>(
++                        this.eventTimeExtractor,
++                        this.generateMode,
++                        this.periodicWatermarkInterval,
++                        this.idleTimeout,
++                        this.maxOutOfOrderTime);
++
++        try {
++            return (OneInputStreamProcessFunction<T, T>)
++                    getEventTimeExtensionImplClass()
++                            .getMethod("buildAsProcessFunction", EventTimeWatermarkStrategy.class)
++                            .invoke(null, watermarkStrategy);
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    private static Class<?> getEventTimeExtensionImplClass() {
++        try {
++            return Class.forName(
++                    "org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl");
++        } catch (ClassNotFoundException e) {
++            throw new RuntimeException("Please ensure that flink-datastream in your class path");
++        }
++    }
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkStrategy.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkStrategy.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/strategy/EventTimeWatermarkStrategy.java
+@@ -0,0 +1,98 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.strategy;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.annotation.Internal;
++
++import java.io.Serializable;
++import java.time.Duration;
++
++/** Component which encapsulates the logic of how and when to extract event time and watermarks. */
++@Experimental
++public class EventTimeWatermarkStrategy<T> implements Serializable {
++    // how to extract event time from event
++    private final EventTimeExtractor<T> eventTimeExtractor;
++
++    // what frequency to generate event time watermark
++    private final EventTimeWatermarkGenerateMode generateMode;
++
++    // if not set, it will default to the value of the "pipeline.auto-watermark-interval"
++    // configuration.
++    private final Duration periodicWatermarkInterval;
++
++    // if set to zero, it will not generate idle status watermark
++    private final Duration idleTimeout;
++
++    // max out-of-order time
++    private final Duration maxOutOfOrderTime;
++
++    public EventTimeWatermarkStrategy(EventTimeExtractor<T> eventTimeExtractor) {
++        this(
++                eventTimeExtractor,
++                EventTimeWatermarkGenerateMode.PERIODIC,
++                Duration.ZERO,
++                Duration.ZERO,
++                Duration.ZERO);
++    }
++
++    public EventTimeWatermarkStrategy(
++            EventTimeExtractor<T> eventTimeExtractor,
++            EventTimeWatermarkGenerateMode generateMode,
++            Duration periodicWatermarkInterval,
++            Duration idleTimeout,
++            Duration maxOutOfOrderTime) {
++        this.eventTimeExtractor = eventTimeExtractor;
++        this.generateMode = generateMode;
++        this.periodicWatermarkInterval = periodicWatermarkInterval;
++        this.idleTimeout = idleTimeout;
++        this.maxOutOfOrderTime = maxOutOfOrderTime;
++    }
++
++    public EventTimeExtractor<T> getEventTimeExtractor() {
++        return eventTimeExtractor;
++    }
++
++    public EventTimeWatermarkGenerateMode getGenerateMode() {
++        return generateMode;
++    }
++
++    public Duration getPeriodicWatermarkInterval() {
++        return periodicWatermarkInterval;
++    }
++
++    public Duration getIdleTimeout() {
++        return idleTimeout;
++    }
++
++    public Duration getMaxOutOfOrderTime() {
++        return maxOutOfOrderTime;
++    }
++
++    /**
++     * {@link EventTimeWatermarkGenerateMode} indicates the frequency at which event-time watermarks
++     * are generated.
++     */
++    @Internal
++    public enum EventTimeWatermarkGenerateMode {
++        NO_WATERMARK,
++        PERIODIC,
++        PER_EVENT,
++    }
++}
+diff --git a/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/timer/EventTimeManager.java b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/timer/EventTimeManager.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream-api/src/main/java/org/apache/flink/datastream/api/extension/eventtime/timer/EventTimeManager.java
+@@ -0,0 +1,53 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.api.extension.eventtime.timer;
++
++import org.apache.flink.annotation.Experimental;
++import org.apache.flink.datastream.api.stream.KeyedPartitionStream;
++
++/**
++ * This class is responsible for managing stuff related to event-time/timer. For example, register
++ * and delete event timers, as well as retrieve event time. Note that methods for timer can only be
++ * used in {@link KeyedPartitionStream}.
++ */
++@Experimental
++public interface EventTimeManager {
++    /**
++     * Register an event timer for this process function. The {@code onEventTimer} method will be
++     * invoked when the event time is reached.
++     *
++     * @param timestamp to trigger timer callback.
++     */
++    void registerTimer(long timestamp);
++
++    /**
++     * Deletes the event-time timer with the given trigger timestamp. This method has only an effect
++     * if such a timer was previously registered and did not already expire.
++     *
++     * @param timestamp indicates the timestamp of the timer to delete.
++     */
++    void deleteTimer(long timestamp);
++
++    /**
++     * Get the current event time.
++     *
++     * @return current event time.
++     */
++    long currentTime();
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/EventTimeExtensionImpl.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/EventTimeExtensionImpl.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/EventTimeExtensionImpl.java
+@@ -0,0 +1,83 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime;
++
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
++import org.apache.flink.datastream.api.extension.eventtime.function.OneInputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputNonBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoOutputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.strategy.EventTimeWatermarkStrategy;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedOneInputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.ExtractEventTimeProcessFunction;
++
++/** The implementation of {@link EventTimeExtension}. */
++public class EventTimeExtensionImpl {
++
++    // ============= Extract Event Time Process Function =============
++
++    /**
++     * Build an {@link ExtractEventTimeProcessFunction} to extract event time according to {@link
++     * EventTimeWatermarkStrategy}.
++     */
++    public static <T> OneInputStreamProcessFunction<T, T> buildAsProcessFunction(
++            EventTimeWatermarkStrategy<T> strategy) {
++        return new ExtractEventTimeProcessFunction<>(strategy);
++    }
++
++    // ============= Wrap Event Time Process Function =============
++
++    public static <IN, OUT> OneInputStreamProcessFunction<IN, OUT> wrapProcessFunction(
++            OneInputEventTimeStreamProcessFunction<IN, OUT> processFunction) {
++        return new EventTimeWrappedOneInputStreamProcessFunction<>(processFunction);
++    }
++
++    public static <IN, OUT1, OUT2>
++            TwoOutputStreamProcessFunction<IN, OUT1, OUT2> wrapProcessFunction(
++                    TwoOutputEventTimeStreamProcessFunction<IN, OUT1, OUT2> processFunction) {
++        return new EventTimeWrappedTwoOutputStreamProcessFunction<>(processFunction);
++    }
++
++    public static <IN1, IN2, OUT>
++            TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> wrapProcessFunction(
++                    TwoInputNonBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++                            processFunction) {
++        return new EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction<>(processFunction);
++    }
++
++    public static <IN1, IN2, OUT>
++            TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> wrapProcessFunction(
++                    TwoInputBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++                            processFunction) {
++        return new EventTimeWrappedTwoInputBroadcastStreamProcessFunction<>(processFunction);
++    }
++
++    // ============= Other Utils =============
++    public static boolean isEventTimeExtensionWatermark(Watermark watermark) {
++        return EventTimeExtension.isEventTimeWatermark(watermark)
++                || EventTimeExtension.isIdleStatusWatermark(watermark);
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedOneInputStreamProcessFunction.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedOneInputStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedOneInputStreamProcessFunction.java
+@@ -0,0 +1,143 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.functions;
++
++import org.apache.flink.api.common.state.StateDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkHandlingResult;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.extension.eventtime.function.OneInputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.timer.DefaultEventTimeManager;
++import org.apache.flink.runtime.state.VoidNamespace;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
++import org.apache.flink.util.ExceptionUtils;
++import org.apache.flink.util.Preconditions;
++
++import javax.annotation.Nullable;
++
++import java.util.Set;
++import java.util.function.Supplier;
++
++/**
++ * The wrapped {@link OneInputEventTimeStreamProcessFunction} that take care of event-time alignment
++ * with idleness.
++ */
++public class EventTimeWrappedOneInputStreamProcessFunction<IN, OUT>
++        implements OneInputStreamProcessFunction<IN, OUT> {
++
++    private final OneInputEventTimeStreamProcessFunction<IN, OUT> wrappedUserFunction;
++
++    private transient EventTimeManager eventTimeManager;
++
++    private transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
++    public EventTimeWrappedOneInputStreamProcessFunction(
++            OneInputEventTimeStreamProcessFunction<IN, OUT> wrappedUserFunction) {
++        this.wrappedUserFunction = Preconditions.checkNotNull(wrappedUserFunction);
++    }
++
++    @Override
++    public void open(NonPartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.initEventTimeProcessFunction(eventTimeManager);
++        wrappedUserFunction.open(ctx);
++    }
++
++    /**
++     * Initialize the event time extension, note that this method should be invoked before open
++     * method.
++     */
++    public void initEventTimeExtension(
++            @Nullable InternalTimerService<VoidNamespace> timerService,
++            Supplier<Long> eventTimeSupplier,
++            EventTimeWatermarkHandler eventTimeWatermarkHandler) {
++        this.eventTimeManager = new DefaultEventTimeManager(timerService, eventTimeSupplier);
++        this.eventTimeWatermarkHandler = eventTimeWatermarkHandler;
++    }
++
++    @Override
++    public void processRecord(IN record, Collector<OUT> output, PartitionedContext<OUT> ctx)
++            throws Exception {
++        wrappedUserFunction.processRecord(record, output, ctx);
++    }
++
++    @Override
++    public void endInput(NonPartitionedContext<OUT> ctx) {
++        wrappedUserFunction.endInput(ctx);
++    }
++
++    @Override
++    public void onProcessingTimer(
++            long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {
++        wrappedUserFunction.onProcessingTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermark(
++            Watermark watermark, Collector<OUT> output, NonPartitionedContext<OUT> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 0);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermark(watermark, output, ctx);
++        }
++    }
++
++    public void onEventTime(long timestamp, Collector<OUT> output, PartitionedContext ctx) {
++        wrappedUserFunction.onEventTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public Set<StateDeclaration> usesStates() {
++        return wrappedUserFunction.usesStates();
++    }
++
++    @Override
++    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++        return wrappedUserFunction.declareWatermarks();
++    }
++
++    @Override
++    public void close() throws Exception {
++        wrappedUserFunction.close();
++    }
++
++    public OneInputStreamProcessFunction<IN, OUT> getWrappedUserFunction() {
++        return wrappedUserFunction;
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputBroadcastStreamProcessFunction.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputBroadcastStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputBroadcastStreamProcessFunction.java
+@@ -0,0 +1,180 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.functions;
++
++import org.apache.flink.api.common.state.StateDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkHandlingResult;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.TwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.timer.DefaultEventTimeManager;
++import org.apache.flink.runtime.state.VoidNamespace;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
++import org.apache.flink.util.ExceptionUtils;
++import org.apache.flink.util.Preconditions;
++
++import javax.annotation.Nullable;
++
++import java.util.Set;
++import java.util.function.Supplier;
++
++/**
++ * The wrapped {@link TwoInputBroadcastEventTimeStreamProcessFunction} that take care of event-time
++ * alignment with idleness.
++ */
++public class EventTimeWrappedTwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT>
++        implements TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> {
++
++    private final TwoInputBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++            wrappedUserFunction;
++
++    private transient EventTimeManager eventTimeManager;
++
++    private transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
++    public EventTimeWrappedTwoInputBroadcastStreamProcessFunction(
++            TwoInputBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT> wrappedUserFunction) {
++        this.wrappedUserFunction = Preconditions.checkNotNull(wrappedUserFunction);
++    }
++
++    @Override
++    public void open(NonPartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.initEventTimeProcessFunction(eventTimeManager);
++        wrappedUserFunction.open(ctx);
++    }
++
++    /**
++     * Initialize the event time extension, note that this method should be invoked before open
++     * method.
++     */
++    public void initEventTimeExtension(
++            @Nullable InternalTimerService<VoidNamespace> timerService,
++            Supplier<Long> eventTimeSupplier,
++            EventTimeWatermarkHandler eventTimeWatermarkHandler) {
++        this.eventTimeManager = new DefaultEventTimeManager(timerService, eventTimeSupplier);
++        this.eventTimeWatermarkHandler = eventTimeWatermarkHandler;
++    }
++
++    @Override
++    public void processRecordFromNonBroadcastInput(
++            IN1 record, Collector<OUT> output, PartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.processRecordFromNonBroadcastInput(record, output, ctx);
++    }
++
++    @Override
++    public void processRecordFromBroadcastInput(IN2 record, NonPartitionedContext<OUT> ctx)
++            throws Exception {
++        wrappedUserFunction.processRecordFromBroadcastInput(record, ctx);
++    }
++
++    @Override
++    public void endBroadcastInput(NonPartitionedContext<OUT> ctx) {
++        wrappedUserFunction.endBroadcastInput(ctx);
++    }
++
++    @Override
++    public void endNonBroadcastInput(NonPartitionedContext<OUT> ctx) {
++        wrappedUserFunction.endNonBroadcastInput(ctx);
++    }
++
++    @Override
++    public void onProcessingTimer(
++            long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {
++        wrappedUserFunction.onProcessingTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermarkFromBroadcastInput(
++            Watermark watermark, Collector<OUT> output, NonPartitionedContext<OUT> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 0);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermarkFromBroadcastInput(watermark, output, ctx);
++        }
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermarkFromNonBroadcastInput(
++            Watermark watermark, Collector<OUT> output, NonPartitionedContext<OUT> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 1);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermarkFromBroadcastInput(watermark, output, ctx);
++        }
++    }
++
++    public void onEventTime(long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {
++        wrappedUserFunction.onEventTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public void close() throws Exception {
++        wrappedUserFunction.close();
++    }
++
++    @Override
++    public Set<StateDeclaration> usesStates() {
++        return wrappedUserFunction.usesStates();
++    }
++
++    @Override
++    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++        return wrappedUserFunction.declareWatermarks();
++    }
++
++    public TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> getWrappedUserFunction() {
++        return wrappedUserFunction;
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction.java
+@@ -0,0 +1,179 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.functions;
++
++import org.apache.flink.api.common.state.StateDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkHandlingResult;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.NonPartitionedContext;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoInputNonBroadcastEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.timer.DefaultEventTimeManager;
++import org.apache.flink.runtime.state.VoidNamespace;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
++import org.apache.flink.util.ExceptionUtils;
++import org.apache.flink.util.Preconditions;
++
++import javax.annotation.Nullable;
++
++import java.util.Set;
++import java.util.function.Supplier;
++
++/**
++ * The wrapped {@link TwoInputNonBroadcastEventTimeStreamProcessFunction} that take care of
++ * event-time alignment with idleness.
++ */
++public class EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT>
++        implements TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> {
++
++    private final TwoInputNonBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT>
++            wrappedUserFunction;
++
++    private transient EventTimeManager eventTimeManager;
++
++    private transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
++    public EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction(
++            TwoInputNonBroadcastEventTimeStreamProcessFunction<IN1, IN2, OUT> wrappedUserFunction) {
++        this.wrappedUserFunction = Preconditions.checkNotNull(wrappedUserFunction);
++    }
++
++    @Override
++    public void open(NonPartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.initEventTimeProcessFunction(eventTimeManager);
++        wrappedUserFunction.open(ctx);
++    }
++
++    /**
++     * Initialize the event time extension, note that this method should be invoked before open
++     * method.
++     */
++    public void initEventTimeExtension(
++            @Nullable InternalTimerService<VoidNamespace> timerService,
++            Supplier<Long> eventTimeSupplier,
++            EventTimeWatermarkHandler eventTimeWatermarkHandler) {
++        this.eventTimeManager = new DefaultEventTimeManager(timerService, eventTimeSupplier);
++        this.eventTimeWatermarkHandler = eventTimeWatermarkHandler;
++    }
++
++    @Override
++    public void processRecordFromFirstInput(
++            IN1 record, Collector<OUT> output, PartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.processRecordFromFirstInput(record, output, ctx);
++    }
++
++    @Override
++    public void processRecordFromSecondInput(
++            IN2 record, Collector<OUT> output, PartitionedContext<OUT> ctx) throws Exception {
++        wrappedUserFunction.processRecordFromSecondInput(record, output, ctx);
++    }
++
++    @Override
++    public void endFirstInput(NonPartitionedContext<OUT> ctx) {
++        wrappedUserFunction.endFirstInput(ctx);
++    }
++
++    @Override
++    public void endSecondInput(NonPartitionedContext<OUT> ctx) {
++        wrappedUserFunction.endSecondInput(ctx);
++    }
++
++    @Override
++    public void onProcessingTimer(
++            long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {
++        wrappedUserFunction.onProcessingTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermarkFromFirstInput(
++            Watermark watermark, Collector<OUT> output, NonPartitionedContext<OUT> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 0);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermarkFromFirstInput(watermark, output, ctx);
++        }
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermarkFromSecondInput(
++            Watermark watermark, Collector<OUT> output, NonPartitionedContext<OUT> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 1);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermarkFromSecondInput(watermark, output, ctx);
++        }
++    }
++
++    public void onEventTime(long timestamp, Collector<OUT> output, PartitionedContext<OUT> ctx) {
++        wrappedUserFunction.onEventTimer(timestamp, output, ctx);
++    }
++
++    @Override
++    public void close() throws Exception {
++        wrappedUserFunction.close();
++    }
++
++    @Override
++    public Set<StateDeclaration> usesStates() {
++        return wrappedUserFunction.usesStates();
++    }
++
++    @Override
++    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++        return wrappedUserFunction.declareWatermarks();
++    }
++
++    public TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> getWrappedUserFunction() {
++        return wrappedUserFunction;
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoOutputStreamProcessFunction.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoOutputStreamProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/EventTimeWrappedTwoOutputStreamProcessFunction.java
+@@ -0,0 +1,156 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.functions;
++
++import org.apache.flink.api.common.state.StateDeclaration;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkHandlingResult;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.TwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.api.context.TwoOutputPartitionedContext;
++import org.apache.flink.datastream.api.extension.eventtime.function.TwoOutputEventTimeStreamProcessFunction;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.datastream.api.function.TwoOutputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.timer.DefaultEventTimeManager;
++import org.apache.flink.runtime.state.VoidNamespace;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
++import org.apache.flink.util.ExceptionUtils;
++import org.apache.flink.util.Preconditions;
++
++import javax.annotation.Nullable;
++
++import java.util.Set;
++import java.util.function.Supplier;
++
++/**
++ * The wrapped {@link TwoOutputEventTimeStreamProcessFunction} that take care of event-time
++ * alignment with idleness.
++ */
++public class EventTimeWrappedTwoOutputStreamProcessFunction<IN, OUT1, OUT2>
++        implements TwoOutputStreamProcessFunction<IN, OUT1, OUT2> {
++
++    private final TwoOutputEventTimeStreamProcessFunction<IN, OUT1, OUT2> wrappedUserFunction;
++
++    private transient EventTimeManager eventTimeManager;
++
++    private transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
++    public EventTimeWrappedTwoOutputStreamProcessFunction(
++            TwoOutputEventTimeStreamProcessFunction<IN, OUT1, OUT2> wrappedUserFunction) {
++        this.wrappedUserFunction = Preconditions.checkNotNull(wrappedUserFunction);
++    }
++
++    @Override
++    public void open(TwoOutputNonPartitionedContext<OUT1, OUT2> ctx) throws Exception {
++        wrappedUserFunction.initEventTimeProcessFunction(eventTimeManager);
++        wrappedUserFunction.open(ctx);
++    }
++
++    /**
++     * Initialize the event time extension, note that this method should be invoked before open
++     * method.
++     */
++    public void initEventTimeExtension(
++            @Nullable InternalTimerService<VoidNamespace> timerService,
++            Supplier<Long> eventTimeSupplier,
++            EventTimeWatermarkHandler eventTimeWatermarkHandler) {
++        this.eventTimeManager = new DefaultEventTimeManager(timerService, eventTimeSupplier);
++        this.eventTimeWatermarkHandler = eventTimeWatermarkHandler;
++    }
++
++    @Override
++    public void processRecord(
++            IN record,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputPartitionedContext<OUT1, OUT2> ctx)
++            throws Exception {
++        wrappedUserFunction.processRecord(record, output1, output2, ctx);
++    }
++
++    @Override
++    public void endInput(TwoOutputNonPartitionedContext<OUT1, OUT2> ctx) {
++        wrappedUserFunction.endInput(ctx);
++    }
++
++    @Override
++    public void onProcessingTimer(
++            long timestamp,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputPartitionedContext<OUT1, OUT2> ctx) {
++        wrappedUserFunction.onProcessingTimer(timestamp, output1, output2, ctx);
++    }
++
++    @Override
++    public WatermarkHandlingResult onWatermark(
++            Watermark watermark,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputNonPartitionedContext<OUT1, OUT2> ctx) {
++        if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark)) {
++            // If the watermark is from the event time extension, process it and call {@code
++            // userFunction#onEventTimeWatermark} when the event time is updated; otherwise, forward
++            // the watermark.
++            try {
++                EventTimeWatermarkHandler.EventTimeUpdateStatus eventTimeUpdateStatus =
++                        eventTimeWatermarkHandler.processWatermark(watermark, 0);
++                if (eventTimeUpdateStatus.isEventTimeUpdated()) {
++                    wrappedUserFunction.onEventTimeWatermark(
++                            eventTimeUpdateStatus.getNewEventTime(), output1, output2, ctx);
++                }
++            } catch (Exception e) {
++                ExceptionUtils.rethrow(e);
++            }
++            // return POLL to indicate that the watermark has been processed
++            return WatermarkHandlingResult.POLL;
++        } else {
++            return wrappedUserFunction.onWatermark(watermark, output1, output2, ctx);
++        }
++    }
++
++    public void onEventTime(
++            long timestamp,
++            Collector<OUT1> output1,
++            Collector<OUT2> output2,
++            TwoOutputPartitionedContext<OUT1, OUT2> ctx) {
++        wrappedUserFunction.onEventTimer(timestamp, output1, output2, ctx);
++    }
++
++    @Override
++    public Set<StateDeclaration> usesStates() {
++        return wrappedUserFunction.usesStates();
++    }
++
++    @Override
++    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++        return wrappedUserFunction.declareWatermarks();
++    }
++
++    @Override
++    public void close() throws Exception {
++        wrappedUserFunction.close();
++    }
++
++    public TwoOutputStreamProcessFunction<IN, OUT1, OUT2> getWrappedUserFunction() {
++        return wrappedUserFunction;
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/ExtractEventTimeProcessFunction.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/ExtractEventTimeProcessFunction.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/functions/ExtractEventTimeProcessFunction.java
+@@ -0,0 +1,194 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.functions;
++
++import org.apache.flink.api.common.ExecutionConfig;
++import org.apache.flink.api.common.eventtime.WatermarksWithIdleness.IdlenessTimer;
++import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkManager;
++import org.apache.flink.configuration.PipelineOptions;
++import org.apache.flink.datastream.api.common.Collector;
++import org.apache.flink.datastream.api.context.PartitionedContext;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
++import org.apache.flink.datastream.api.extension.eventtime.strategy.EventTimeWatermarkStrategy;
++import org.apache.flink.datastream.api.function.OneInputStreamProcessFunction;
++import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
++
++import java.io.IOException;
++import java.util.HashSet;
++import java.util.Set;
++
++import static org.apache.flink.util.Preconditions.checkState;
++
++/** A specialized process function designed for extracting event timestamps. */
++public class ExtractEventTimeProcessFunction<IN>
++        implements OneInputStreamProcessFunction<IN, IN>,
++                ProcessingTimeService.ProcessingTimeCallback {
++
++    /** User-defined watermark strategy. */
++    private final EventTimeWatermarkStrategy<IN> watermarkStrategy;
++
++    /** The maximum timestamp encountered so far. */
++    private long currentMaxEventTime = Long.MIN_VALUE;
++
++    private long lastEmittedEventTime = Long.MIN_VALUE;
++
++    /**
++     * The periodic processing timer interval; if not configured by user in {@link
++     * EventTimeWatermarkStrategy}, it will default to the value specified by {@link
++     * PipelineOptions#AUTO_WATERMARK_INTERVAL}.
++     */
++    private long periodicTimerInterval = 0;
++
++    /**
++     * Whether enable create and send {@link EventTimeExtension#IDLE_STATUS_WATERMARK_DECLARATION}.
++     */
++    private boolean enableIdleStatus;
++
++    /** The {@link IdlenessTimer} is utilized to check whether the input is currently idle. */
++    private IdlenessTimer idlenessTimer;
++
++    private boolean isIdleNow = false;
++
++    private final long maxOutOfOrderTimeInMs;
++
++    private ProcessingTimeService processingTimeService;
++
++    private WatermarkManager watermarkManager;
++
++    public ExtractEventTimeProcessFunction(EventTimeWatermarkStrategy<IN> watermarkStrategy) {
++        this.watermarkStrategy = watermarkStrategy;
++        if (watermarkStrategy.getIdleTimeout().toMillis() > 0) {
++            this.enableIdleStatus = true;
++        }
++        this.maxOutOfOrderTimeInMs = watermarkStrategy.getMaxOutOfOrderTime().toMillis();
++    }
++
++    public void initEventTimeExtension(
++            ExecutionConfig config,
++            WatermarkManager watermarkManager,
++            ProcessingTimeService processingTimeService) {
++        this.processingTimeService = processingTimeService;
++        this.watermarkManager = watermarkManager;
++
++        if (enableIdleStatus) {
++            this.idlenessTimer =
++                    new IdlenessTimer(
++                            processingTimeService.getClock(), watermarkStrategy.getIdleTimeout());
++        }
++
++        // May need register timer to check whether the input is idle and periodically send event
++        // time watermarks
++        boolean needRegisterTimer =
++                watermarkStrategy.getGenerateMode()
++                                == EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode
++                                        .PERIODIC
++                        || enableIdleStatus;
++        // set timer interval default to config option {@link
++        // PipelineOptions#AUTO_WATERMARK_INTERVAL}
++        this.periodicTimerInterval = config.getAutoWatermarkInterval();
++        if (watermarkStrategy.getGenerateMode()
++                        == EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PERIODIC
++                && !watermarkStrategy.getPeriodicWatermarkInterval().isZero()) {
++            this.periodicTimerInterval =
++                    watermarkStrategy.getPeriodicWatermarkInterval().toMillis();
++        }
++        checkState(
++                periodicTimerInterval > 0,
++                "Watermark interval " + periodicTimerInterval + " should large to 0.");
++
++        if (needRegisterTimer) {
++            processingTimeService.registerTimer(
++                    processingTimeService.getCurrentProcessingTime() + periodicTimerInterval, this);
++        }
++    }
++
++    @Override
++    public Set<? extends WatermarkDeclaration> declareWatermarks() {
++        // declare EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION
++        // if idle status is enabled, also declare
++        // EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.
++        Set<WatermarkDeclaration> watermarkDeclarations = new HashSet<>();
++        watermarkDeclarations.add(EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION);
++        if (enableIdleStatus) {
++            watermarkDeclarations.add(EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION);
++        }
++        return watermarkDeclarations;
++    }
++
++    @Override
++    public void processRecord(IN record, Collector<IN> output, PartitionedContext<IN> ctx)
++            throws Exception {
++        if (enableIdleStatus) {
++            if (isIdleNow) {
++                watermarkManager.emitWatermark(
++                        EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.newWatermark(false));
++                isIdleNow = false;
++            }
++
++            // mark current input as active
++            idlenessTimer.activity();
++        }
++
++        // extract event time from record
++        long extractedEventTime =
++                watermarkStrategy.getEventTimeExtractor().extractTimestamp(record);
++        currentMaxEventTime = Math.max(currentMaxEventTime, extractedEventTime);
++        output.collectAndOverwriteTimestamp(record, extractedEventTime);
++
++        if (watermarkStrategy.getGenerateMode()
++                == EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PER_EVENT) {
++            // If the per event watermark is utilized, create event time watermark and send
++            tryEmitEventTimeWatermark(ctx.getNonPartitionedContext().getWatermarkManager());
++        }
++    }
++
++    /**
++     * The processing timer has two goals: 1. check whether the input is idle 2. periodically emit
++     * event time watermark
++     */
++    @Override
++    public void onProcessingTime(long time) throws IOException, InterruptedException, Exception {
++        if (enableIdleStatus && idlenessTimer.checkIfIdle()) {
++            if (!isIdleNow) {
++                watermarkManager.emitWatermark(
++                        EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.newWatermark(true));
++                isIdleNow = true;
++            }
++        } else if (watermarkStrategy.getGenerateMode()
++                == EventTimeWatermarkStrategy.EventTimeWatermarkGenerateMode.PERIODIC) {
++            tryEmitEventTimeWatermark(watermarkManager);
++        }
++
++        processingTimeService.registerTimer(time + periodicTimerInterval, this);
++    }
++
++    private void tryEmitEventTimeWatermark(WatermarkManager watermarkManager) {
++        if (currentMaxEventTime == Long.MIN_VALUE) {
++            return;
++        }
++
++        long needEmittedEventTime = currentMaxEventTime - maxOutOfOrderTimeInMs;
++        if (needEmittedEventTime > lastEmittedEventTime) {
++            watermarkManager.emitWatermark(
++                    EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION.newWatermark(
++                            needEmittedEventTime));
++            lastEmittedEventTime = needEmittedEventTime;
++        }
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/timer/DefaultEventTimeManager.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/timer/DefaultEventTimeManager.java
+new file mode 100644
+--- /dev/null
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/extension/eventtime/timer/DefaultEventTimeManager.java
+@@ -0,0 +1,72 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.datastream.impl.extension.eventtime.timer;
++
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
++import org.apache.flink.runtime.state.VoidNamespace;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
++
++import javax.annotation.Nullable;
++
++import java.util.function.Supplier;
++
++/** The implementation of {@link EventTimeManager}. */
++public class DefaultEventTimeManager implements EventTimeManager {
++
++    /**
++     * The timer service of operator, used in register event timer. Note that it cloud be null if
++     * the operator is not a keyed operator.
++     */
++    @Nullable private final InternalTimerService<VoidNamespace> timerService;
++
++    /** The supplier of the current event time. */
++    private final Supplier<Long> eventTimeSupplier;
++
++    public DefaultEventTimeManager(
++            @Nullable InternalTimerService<VoidNamespace> timerService,
++            Supplier<Long> eventTimeSupplier) {
++        this.timerService = timerService;
++        this.eventTimeSupplier = eventTimeSupplier;
++    }
++
++    @Override
++    public void registerTimer(long timestamp) {
++        if (timerService == null) {
++            throw new UnsupportedOperationException(
++                    "Registering event timer is not allowed in NonKeyed Stream.");
++        }
++
++        timerService.registerEventTimeTimer(VoidNamespace.INSTANCE, timestamp);
++    }
++
++    @Override
++    public void deleteTimer(long timestamp) {
++        if (timerService == null) {
++            throw new UnsupportedOperationException(
++                    "Deleting event timer is not allowed in NonKeyed Stream.");
++        }
++
++        timerService.deleteEventTimeTimer(VoidNamespace.INSTANCE, timestamp);
++    }
++
++    @Override
++    public long currentTime() {
++        return eventTimeSupplier.get();
++    }
++}
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedProcessOperator.java
+@@ -28,6 +28,7 @@
+ import org.apache.flink.datastream.impl.common.TimestampCollector;
+ import org.apache.flink.datastream.impl.context.DefaultNonPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedOneInputStreamProcessFunction;
+ import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.runtime.state.VoidNamespaceSerializer;
+ import org.apache.flink.streaming.api.operators.InternalTimer;
+@@ -39,6 +40,7 @@
+ 
+ import java.util.HashSet;
+ import java.util.Set;
++import java.util.function.Supplier;
+ 
+ /** Operator for {@link OneInputStreamProcessFunction} in {@link KeyedPartitionStream}. */
+ public class KeyedProcessOperator<KEY, IN, OUT> extends ProcessOperator<IN, OUT>
+@@ -84,7 +86,10 @@ protected Object currentKey() {
+ 
+     @Override
+     public void onEventTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
+-        // do nothing at the moment.
++        if (userFunction instanceof EventTimeWrappedOneInputStreamProcessFunction) {
++            ((EventTimeWrappedOneInputStreamProcessFunction<IN, OUT>) userFunction)
++                    .onEventTime(timer.getTimestamp(), getOutputCollector(), partitionedContext);
++        }
+     }
+ 
+     @Override
+@@ -121,4 +126,14 @@ public void setKeyContextElement1(StreamRecord record) throws Exception {
+     public boolean isAsyncStateProcessingEnabled() {
+         return true;
+     }
++
++    @Override
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return timerService;
++    }
++
++    @Override
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> timerService.currentWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputBroadcastProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputBroadcastProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputBroadcastProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputBroadcastProcessOperator.java
+@@ -28,6 +28,7 @@
+ import org.apache.flink.datastream.impl.common.TimestampCollector;
+ import org.apache.flink.datastream.impl.context.DefaultNonPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputBroadcastStreamProcessFunction;
+ import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.runtime.state.VoidNamespaceSerializer;
+ import org.apache.flink.streaming.api.operators.InternalTimer;
+@@ -39,6 +40,7 @@
+ 
+ import java.util.HashSet;
+ import java.util.Set;
++import java.util.function.Supplier;
+ 
+ /** Operator for {@link TwoInputBroadcastStreamProcessFunction} in {@link KeyedPartitionStream}. */
+ public class KeyedTwoInputBroadcastProcessOperator<KEY, IN1, IN2, OUT>
+@@ -90,7 +92,10 @@ protected ProcessingTimeManager getProcessingTimeManager() {
+ 
+     @Override
+     public void onEventTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
+-        // do nothing at the moment.
++        if (userFunction instanceof EventTimeWrappedTwoInputBroadcastStreamProcessFunction) {
++            ((EventTimeWrappedTwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT>) userFunction)
++                    .onEventTime(timer.getTimestamp(), getOutputCollector(), partitionedContext);
++        }
+     }
+ 
+     @Override
+@@ -123,4 +128,14 @@ public void setKeyContextElement1(StreamRecord record) throws Exception {
+     public boolean isAsyncStateProcessingEnabled() {
+         return true;
+     }
++
++    @Override
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return timerService;
++    }
++
++    @Override
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> timerService.currentWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputNonBroadcastProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputNonBroadcastProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputNonBroadcastProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoInputNonBroadcastProcessOperator.java
+@@ -28,6 +28,7 @@
+ import org.apache.flink.datastream.impl.common.TimestampCollector;
+ import org.apache.flink.datastream.impl.context.DefaultNonPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction;
+ import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.runtime.state.VoidNamespaceSerializer;
+ import org.apache.flink.streaming.api.operators.InternalTimer;
+@@ -39,6 +40,7 @@
+ 
+ import java.util.HashSet;
+ import java.util.Set;
++import java.util.function.Supplier;
+ 
+ /**
+  * Operator for {@link TwoInputNonBroadcastStreamProcessFunction} in {@link KeyedPartitionStream}.
+@@ -92,7 +94,11 @@ protected ProcessingTimeManager getProcessingTimeManager() {
+ 
+     @Override
+     public void onEventTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
+-        // do nothing at the moment.
++        if (userFunction instanceof EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction) {
++            ((EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT>)
++                            userFunction)
++                    .onEventTime(timer.getTimestamp(), getOutputCollector(), partitionedContext);
++        }
+     }
+ 
+     @Override
+@@ -131,4 +137,14 @@ public void setKeyContextElement2(StreamRecord record) throws Exception {
+     public boolean isAsyncStateProcessingEnabled() {
+         return true;
+     }
++
++    @Override
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return timerService;
++    }
++
++    @Override
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> timerService.currentWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/KeyedTwoOutputProcessOperator.java
+@@ -27,6 +27,7 @@
+ import org.apache.flink.datastream.impl.common.TimestampCollector;
+ import org.apache.flink.datastream.impl.context.DefaultProcessingTimeManager;
+ import org.apache.flink.datastream.impl.context.DefaultTwoOutputNonPartitionedContext;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoOutputStreamProcessFunction;
+ import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.runtime.state.VoidNamespaceSerializer;
+ import org.apache.flink.streaming.api.operators.InternalTimer;
+@@ -40,6 +41,7 @@
+ 
+ import java.util.HashSet;
+ import java.util.Set;
++import java.util.function.Supplier;
+ 
+ /** */
+ public class KeyedTwoOutputProcessOperator<KEY, IN, OUT_MAIN, OUT_SIDE>
+@@ -113,7 +115,14 @@ protected ProcessingTimeManager getProcessingTimeManager() {
+ 
+     @Override
+     public void onEventTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
+-        // do nothing at the moment.
++        if (userFunction instanceof EventTimeWrappedTwoOutputStreamProcessFunction) {
++            ((EventTimeWrappedTwoOutputStreamProcessFunction<IN, OUT_MAIN, OUT_SIDE>) userFunction)
++                    .onEventTime(
++                            timer.getTimestamp(),
++                            getMainCollector(),
++                            getSideCollector(),
++                            partitionedContext);
++        }
+     }
+ 
+     @Override
+@@ -146,4 +155,14 @@ public void setKeyContextElement1(StreamRecord record) throws Exception {
+     public boolean isAsyncStateProcessingEnabled() {
+         return true;
+     }
++
++    @Override
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return timerService;
++    }
++
++    @Override
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> timerService.currentWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/ProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/ProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/ProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/ProcessOperator.java
+@@ -30,17 +30,24 @@
+ import org.apache.flink.datastream.impl.context.DefaultPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultRuntimeContext;
+ import org.apache.flink.datastream.impl.context.UnsupportedProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedOneInputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.ExtractEventTimeProcessFunction;
+ import org.apache.flink.runtime.asyncprocessing.operators.AbstractAsyncStateUdfStreamOperator;
+ import org.apache.flink.runtime.event.WatermarkEvent;
++import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.streaming.api.operators.BoundedOneInput;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
+ import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
+ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
+ 
+ import java.util.Map;
+ import java.util.function.BiConsumer;
+ import java.util.function.Function;
++import java.util.function.Supplier;
+ import java.util.stream.Collectors;
+ 
+ /** Operator for {@link OneInputStreamProcessFunction}. */
+@@ -59,6 +66,9 @@ public class ProcessOperator<IN, OUT>
+     protected transient Map<String, AbstractInternalWatermarkDeclaration<?>>
+             watermarkDeclarationMap;
+ 
++    // {@link EventTimeWatermarkHandler} will be used to process event time related watermarks
++    protected transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
+     public ProcessOperator(OneInputStreamProcessFunction<IN, OUT> userFunction) {
+         super(userFunction);
+     }
+@@ -98,6 +108,24 @@ public void open() throws Exception {
+         outputCollector = getOutputCollector();
+         nonPartitionedContext = getNonPartitionedContext();
+         partitionedContext.setNonPartitionedContext(nonPartitionedContext);
++        this.eventTimeWatermarkHandler =
++                new EventTimeWatermarkHandler(1, output, timeServiceManager);
++
++        // Initialize event time extension related ProcessFunction
++        if (userFunction instanceof ExtractEventTimeProcessFunction) {
++            ((ExtractEventTimeProcessFunction<IN>) userFunction)
++                    .initEventTimeExtension(
++                            getExecutionConfig(),
++                            partitionedContext.getNonPartitionedContext().getWatermarkManager(),
++                            getProcessingTimeService());
++        } else if (userFunction instanceof EventTimeWrappedOneInputStreamProcessFunction) {
++            // note that the {@code initEventTimeExtension} in EventTimeWrappedProcessFunction
++            // should be invoked before the {@code open}.
++            ((EventTimeWrappedOneInputStreamProcessFunction<IN, OUT>) userFunction)
++                    .initEventTimeExtension(
++                            getTimerService(), getEventTimeSupplier(), eventTimeWatermarkHandler);
++        }
++
+         userFunction.open(nonPartitionedContext);
+     }
+ 
+@@ -117,7 +145,14 @@ public void processWatermarkInternal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 0);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -140,6 +175,7 @@ protected BiConsumer<Runnable, Object> getProcessorWithKey() {
+         } else {
+             return (r, k) -> {
+                 Object oldKey = currentKey();
++                setCurrentKey(k);
+                 try {
+                     r.run();
+                 } finally {
+@@ -175,4 +211,12 @@ public boolean isAsyncStateProcessingEnabled() {
+         // For non-keyed operators, we disable async state processing.
+         return false;
+     }
++
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return null;
++    }
++
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> eventTimeWatermarkHandler.getLastEmitWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputBroadcastProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputBroadcastProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputBroadcastProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputBroadcastProcessOperator.java
+@@ -30,17 +30,23 @@
+ import org.apache.flink.datastream.impl.context.DefaultPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultRuntimeContext;
+ import org.apache.flink.datastream.impl.context.UnsupportedProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputBroadcastStreamProcessFunction;
+ import org.apache.flink.runtime.asyncprocessing.operators.AbstractAsyncStateUdfStreamOperator;
+ import org.apache.flink.runtime.event.WatermarkEvent;
++import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.streaming.api.operators.BoundedMultiInput;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
+ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+ import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
+ 
+ import java.util.Map;
+ import java.util.function.BiConsumer;
+ import java.util.function.Function;
++import java.util.function.Supplier;
+ import java.util.stream.Collectors;
+ 
+ import static org.apache.flink.util.Preconditions.checkState;
+@@ -62,6 +68,9 @@ public class TwoInputBroadcastProcessOperator<IN1, IN2, OUT>
+     protected transient Map<String, AbstractInternalWatermarkDeclaration<?>>
+             watermarkDeclarationMap;
+ 
++    // {@link EventTimeWatermarkHandler} will be used to process event time related watermarks
++    protected transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
+     public TwoInputBroadcastProcessOperator(
+             TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> userFunction) {
+         super(userFunction);
+@@ -100,6 +109,17 @@ public void open() throws Exception {
+                         getOperatorStateBackend());
+         this.nonPartitionedContext = getNonPartitionedContext();
+         this.partitionedContext.setNonPartitionedContext(this.nonPartitionedContext);
++        this.eventTimeWatermarkHandler =
++                new EventTimeWatermarkHandler(2, output, timeServiceManager);
++
++        if (userFunction instanceof EventTimeWrappedTwoInputBroadcastStreamProcessFunction) {
++            // note that the {@code initEventTimeExtension} in EventTimeWrappedProcessFunction
++            // should be invoked before the {@code open}.
++            ((EventTimeWrappedTwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT>) userFunction)
++                    .initEventTimeExtension(
++                            getTimerService(), getEventTimeSupplier(), eventTimeWatermarkHandler);
++        }
++
+         this.userFunction.open(this.nonPartitionedContext);
+     }
+ 
+@@ -126,7 +146,13 @@ public void processWatermark1Internal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 0);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -140,7 +166,13 @@ public void processWatermark2Internal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 1);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -204,4 +236,12 @@ public boolean isAsyncStateProcessingEnabled() {
+         // For non-keyed operators, we disable async state processing.
+         return false;
+     }
++
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return null;
++    }
++
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> eventTimeWatermarkHandler.getLastEmitWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputNonBroadcastProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputNonBroadcastProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputNonBroadcastProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoInputNonBroadcastProcessOperator.java
+@@ -23,25 +23,33 @@
+ import org.apache.flink.api.common.watermark.WatermarkHandlingStrategy;
+ import org.apache.flink.datastream.api.context.NonPartitionedContext;
+ import org.apache.flink.datastream.api.context.ProcessingTimeManager;
++import org.apache.flink.datastream.api.extension.eventtime.timer.EventTimeManager;
+ import org.apache.flink.datastream.api.function.TwoInputNonBroadcastStreamProcessFunction;
+ import org.apache.flink.datastream.impl.common.OutputCollector;
+ import org.apache.flink.datastream.impl.common.TimestampCollector;
+ import org.apache.flink.datastream.impl.context.DefaultNonPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultRuntimeContext;
+ import org.apache.flink.datastream.impl.context.UnsupportedProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.timer.DefaultEventTimeManager;
+ import org.apache.flink.runtime.asyncprocessing.operators.AbstractAsyncStateUdfStreamOperator;
+ import org.apache.flink.runtime.event.WatermarkEvent;
+ import org.apache.flink.runtime.state.OperatorStateBackend;
++import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.streaming.api.operators.BoundedMultiInput;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
+ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+ import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
+ 
+ import java.util.Map;
+ import java.util.function.BiConsumer;
+ import java.util.function.Function;
++import java.util.function.Supplier;
+ import java.util.stream.Collectors;
+ 
+ import static org.apache.flink.util.Preconditions.checkState;
+@@ -63,6 +71,9 @@ public class TwoInputNonBroadcastProcessOperator<IN1, IN2, OUT>
+     protected transient Map<String, AbstractInternalWatermarkDeclaration<?>>
+             watermarkDeclarationMap;
+ 
++    // {@link EventTimeWatermarkHandler} will be used to process event time related watermarks
++    protected transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
+     public TwoInputNonBroadcastProcessOperator(
+             TwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT> userFunction) {
+         super(userFunction);
+@@ -103,6 +114,20 @@ public void open() throws Exception {
+                         operatorStateBackend);
+         this.nonPartitionedContext = getNonPartitionedContext();
+         this.partitionedContext.setNonPartitionedContext(this.nonPartitionedContext);
++        this.eventTimeWatermarkHandler =
++                new EventTimeWatermarkHandler(2, output, timeServiceManager);
++
++        if (userFunction instanceof EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction) {
++            // note that the {@code initEventTimeExtension} in EventTimeWrappedProcessFunction
++            // should be invoked before the {@code open}.
++            EventTimeManager eventTimeManager =
++                    new DefaultEventTimeManager(getTimerService(), getEventTimeSupplier());
++            ((EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction<IN1, IN2, OUT>)
++                            userFunction)
++                    .initEventTimeExtension(
++                            getTimerService(), getEventTimeSupplier(), eventTimeWatermarkHandler);
++        }
++
+         this.userFunction.open(this.nonPartitionedContext);
+     }
+ 
+@@ -129,7 +154,13 @@ public void processWatermark1Internal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 0);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -143,7 +174,13 @@ public void processWatermark2Internal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 1);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -207,4 +244,12 @@ public boolean isAsyncStateProcessingEnabled() {
+         // For non-keyed operators, we disable async state processing.
+         return false;
+     }
++
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return null;
++    }
++
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> eventTimeWatermarkHandler.getLastEmitWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperator.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperator.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperator.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/operators/TwoOutputProcessOperator.java
+@@ -31,19 +31,25 @@
+ import org.apache.flink.datastream.impl.context.DefaultTwoOutputNonPartitionedContext;
+ import org.apache.flink.datastream.impl.context.DefaultTwoOutputPartitionedContext;
+ import org.apache.flink.datastream.impl.context.UnsupportedProcessingTimeManager;
++import org.apache.flink.datastream.impl.extension.eventtime.EventTimeExtensionImpl;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoOutputStreamProcessFunction;
+ import org.apache.flink.runtime.asyncprocessing.operators.AbstractAsyncStateUdfStreamOperator;
+ import org.apache.flink.runtime.event.WatermarkEvent;
++import org.apache.flink.runtime.state.VoidNamespace;
+ import org.apache.flink.streaming.api.operators.BoundedOneInput;
++import org.apache.flink.streaming.api.operators.InternalTimerService;
+ import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
+ import org.apache.flink.streaming.api.operators.Output;
+ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkHandler;
+ import org.apache.flink.util.OutputTag;
+ 
+ import java.util.Map;
+ import java.util.function.BiConsumer;
+ import java.util.function.Function;
++import java.util.function.Supplier;
+ import java.util.stream.Collectors;
+ 
+ /**
+@@ -70,6 +76,9 @@ public class TwoOutputProcessOperator<IN, OUT_MAIN, OUT_SIDE>
+     protected transient Map<String, AbstractInternalWatermarkDeclaration<?>>
+             watermarkDeclarationMap;
+ 
++    // {@link EventTimeWatermarkHandler} will be used to process event time related watermarks
++    protected transient EventTimeWatermarkHandler eventTimeWatermarkHandler;
++
+     public TwoOutputProcessOperator(
+             TwoOutputStreamProcessFunction<IN, OUT_MAIN, OUT_SIDE> userFunction,
+             OutputTag<OUT_SIDE> outputTag) {
+@@ -112,6 +121,16 @@ public void open() throws Exception {
+                         operatorStateStore);
+         this.nonPartitionedContext = getNonPartitionedContext();
+         this.partitionedContext.setNonPartitionedContext(nonPartitionedContext);
++        this.eventTimeWatermarkHandler =
++                new EventTimeWatermarkHandler(1, output, timeServiceManager);
++        if (userFunction instanceof EventTimeWrappedTwoOutputStreamProcessFunction) {
++            // note that the {@code initEventTimeExtension} in EventTimeWrappedProcessFunction
++            // should be invoked before the {@code open}.
++            ((EventTimeWrappedTwoOutputStreamProcessFunction<IN, OUT_MAIN, OUT_SIDE>) userFunction)
++                    .initEventTimeExtension(
++                            getTimerService(), getEventTimeSupplier(), eventTimeWatermarkHandler);
++        }
++
+         this.userFunction.open(this.nonPartitionedContext);
+     }
+ 
+@@ -136,7 +155,13 @@ public void processWatermarkInternal(WatermarkEvent watermark) throws Exception
+                                 .get(watermark.getWatermark().getIdentifier())
+                                 .getDefaultHandlingStrategy()
+                         == WatermarkHandlingStrategy.FORWARD) {
+-            output.emitWatermark(watermark);
++            if (EventTimeExtensionImpl.isEventTimeExtensionWatermark(watermark.getWatermark())) {
++                // if the watermark is event time related watermark, process them to advance event
++                // time
++                eventTimeWatermarkHandler.processWatermark(watermark.getWatermark(), 0);
++            } else {
++                output.emitWatermark(watermark);
++            }
+         }
+     }
+ 
+@@ -222,4 +247,12 @@ public boolean isAsyncStateProcessingEnabled() {
+         // For non-keyed operators, we disable async state processing.
+         return false;
+     }
++
++    protected InternalTimerService<VoidNamespace> getTimerService() {
++        return null;
++    }
++
++    protected Supplier<Long> getEventTimeSupplier() {
++        return () -> eventTimeWatermarkHandler.getLastEmitWatermark();
++    }
+ }
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/stream/BroadcastStreamImpl.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/stream/BroadcastStreamImpl.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/stream/BroadcastStreamImpl.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/stream/BroadcastStreamImpl.java
+@@ -63,6 +63,11 @@ public <K, T_OTHER, OUT> ProcessConfigurableAndNonKeyedPartitionStream<OUT> conn
+         // no state redistribution mode check is required here, since all redistribution modes are
+         // acceptable
+ 
++        other =
++                other instanceof ProcessConfigurableAndKeyedPartitionStreamImpl
++                        ? ((ProcessConfigurableAndKeyedPartitionStreamImpl) other)
++                                .getKeyedPartitionStream()
++                        : other;
+         TypeInformation<OUT> outTypeInfo =
+                 StreamUtils.getOutputTypeForTwoInputBroadcastProcessFunction(
+                         processFunction,
+@@ -92,6 +97,11 @@ public <T_OTHER, OUT> ProcessConfigurableAndNonKeyedPartitionStream<OUT> connect
+                 processFunction.usesStates(),
+                 new HashSet<>(Collections.singletonList(StateDeclaration.RedistributionMode.NONE)));
+ 
++        other =
++                other instanceof ProcessConfigurableAndNonKeyedPartitionStreamImpl
++                        ? ((ProcessConfigurableAndNonKeyedPartitionStreamImpl) other)
++                                .getNonKeyedPartitionStream()
++                        : other;
+         TypeInformation<OUT> outTypeInfo =
+                 StreamUtils.getOutputTypeForTwoInputBroadcastProcessFunction(
+                         processFunction,
+@@ -118,6 +128,11 @@ public <K, T_OTHER, OUT> ProcessConfigurableAndKeyedPartitionStream<K, OUT> conn
+             KeyedPartitionStream<K, T_OTHER> other,
+             TwoInputBroadcastStreamProcessFunction<T_OTHER, T, OUT> processFunction,
+             KeySelector<OUT, K> newKeySelector) {
++        other =
++                other instanceof ProcessConfigurableAndKeyedPartitionStreamImpl
++                        ? ((ProcessConfigurableAndKeyedPartitionStreamImpl) other)
++                                .getKeyedPartitionStream()
++                        : other;
+         TypeInformation<OUT> outTypeInfo =
+                 StreamUtils.getOutputTypeForTwoInputBroadcastProcessFunction(
+                         processFunction,
+diff --git a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/utils/StreamUtils.java b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/utils/StreamUtils.java
+--- a/flink-datastream/src/main/java/org/apache/flink/datastream/impl/utils/StreamUtils.java
++++ b/flink-datastream/src/main/java/org/apache/flink/datastream/impl/utils/StreamUtils.java
+@@ -34,6 +34,10 @@
+ import org.apache.flink.datastream.api.stream.GlobalStream.ProcessConfigurableAndGlobalStream;
+ import org.apache.flink.datastream.api.stream.KeyedPartitionStream.ProcessConfigurableAndKeyedPartitionStream;
+ import org.apache.flink.datastream.api.stream.NonKeyedPartitionStream.ProcessConfigurableAndNonKeyedPartitionStream;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedOneInputStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction;
++import org.apache.flink.datastream.impl.extension.eventtime.functions.EventTimeWrappedTwoOutputStreamProcessFunction;
+ import org.apache.flink.datastream.impl.extension.join.operators.TwoInputNonBroadcastJoinProcessFunction;
+ import org.apache.flink.datastream.impl.stream.AbstractDataStream;
+ import org.apache.flink.datastream.impl.stream.GlobalStreamImpl;
+@@ -66,6 +70,12 @@ public final class StreamUtils {
+     public static <IN, OUT> TypeInformation<OUT> getOutputTypeForOneInputProcessFunction(
+             OneInputStreamProcessFunction<IN, OUT> processFunction,
+             TypeInformation<IN> inTypeInformation) {
++        if (processFunction instanceof EventTimeWrappedOneInputStreamProcessFunction) {
++            processFunction =
++                    ((EventTimeWrappedOneInputStreamProcessFunction) processFunction)
++                            .getWrappedUserFunction();
++        }
++
+         return TypeExtractor.getUnaryOperatorReturnType(
+                 processFunction,
+                 OneInputStreamProcessFunction.class,
+@@ -101,6 +111,12 @@ TypeInformation<OUT> getOutputTypeForTwoInputNonBroadcastProcessFunction(
+                     true);
+         }
+ 
++        if (processFunction instanceof EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction) {
++            processFunction =
++                    ((EventTimeWrappedTwoInputNonBroadcastStreamProcessFunction) processFunction)
++                            .getWrappedUserFunction();
++        }
++
+         return TypeExtractor.getBinaryOperatorReturnType(
+                 processFunction,
+                 TwoInputNonBroadcastStreamProcessFunction.class,
+@@ -123,6 +139,12 @@ TypeInformation<OUT> getOutputTypeForTwoInputBroadcastProcessFunction(
+                     TwoInputBroadcastStreamProcessFunction<IN1, IN2, OUT> processFunction,
+                     TypeInformation<IN1> in1TypeInformation,
+                     TypeInformation<IN2> in2TypeInformation) {
++        if (processFunction instanceof EventTimeWrappedTwoInputBroadcastStreamProcessFunction) {
++            processFunction =
++                    ((EventTimeWrappedTwoInputBroadcastStreamProcessFunction) processFunction)
++                            .getWrappedUserFunction();
++        }
++
+         return TypeExtractor.getBinaryOperatorReturnType(
+                 processFunction,
+                 TwoInputBroadcastStreamProcessFunction.class,
+@@ -146,6 +168,15 @@ TypeInformation<OUT> getOutputTypeForTwoInputBroadcastProcessFunction(
+                             TwoOutputStreamProcessFunction<IN, OUT1, OUT2>
+                                     twoOutputStreamProcessFunction,
+                             TypeInformation<IN> inTypeInformation) {
++
++        if (twoOutputStreamProcessFunction
++                instanceof EventTimeWrappedTwoOutputStreamProcessFunction) {
++            twoOutputStreamProcessFunction =
++                    ((EventTimeWrappedTwoOutputStreamProcessFunction)
++                                    twoOutputStreamProcessFunction)
++                            .getWrappedUserFunction();
++        }
++
+         TypeInformation<OUT1> firstOutputType =
+                 TypeExtractor.getUnaryOperatorReturnType(
+                         twoOutputStreamProcessFunction,
+diff --git a/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/io/AbstractStreamTaskNetworkInput.java b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/io/AbstractStreamTaskNetworkInput.java
+--- a/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/io/AbstractStreamTaskNetworkInput.java
++++ b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/io/AbstractStreamTaskNetworkInput.java
+@@ -36,6 +36,7 @@
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
+ import org.apache.flink.streaming.runtime.watermark.WatermarkCombiner;
+ import org.apache.flink.streaming.runtime.watermarkstatus.StatusWatermarkValve;
++import org.apache.flink.streaming.util.watermark.WatermarkUtils;
+ import org.apache.flink.util.ExceptionUtils;
+ 
+ import java.io.IOException;
+@@ -118,8 +119,14 @@ public AbstractStreamTaskNetworkInput(
+         this.recordAttributesCombiner =
+                 new RecordAttributesCombiner(checkpointedInputGate.getNumberOfInputChannels());
+ 
++        WatermarkUtils.addEventTimeWatermarkCombinerIfNeeded(
++                watermarkDeclarationSet, watermarkCombiners, flattenedChannelIndices.size());
+         for (AbstractInternalWatermarkDeclaration<?> watermarkDeclaration :
+                 watermarkDeclarationSet) {
++            if (watermarkCombiners.containsKey(watermarkDeclaration.getIdentifier())) {
++                continue;
++            }
++
+             watermarkCombiners.put(
+                     watermarkDeclaration.getIdentifier(),
+                     watermarkDeclaration.createWatermarkCombiner(
+diff --git a/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkCombiner.java b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkCombiner.java
+new file mode 100644
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkCombiner.java
+@@ -0,0 +1,117 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.streaming.runtime.watermark.extension.eventtime;
++
++import org.apache.flink.api.common.watermark.BoolWatermark;
++import org.apache.flink.api.common.watermark.LongWatermark;
++import org.apache.flink.api.common.watermark.Watermark;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
++import org.apache.flink.runtime.event.WatermarkEvent;
++import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput.DataOutput;
++import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
++import org.apache.flink.streaming.runtime.streamrecord.RecordAttributes;
++import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
++import org.apache.flink.streaming.runtime.watermark.WatermarkCombiner;
++import org.apache.flink.streaming.runtime.watermarkstatus.StatusWatermarkValve;
++import org.apache.flink.streaming.runtime.watermarkstatus.WatermarkStatus;
++
++import java.util.function.Consumer;
++
++/**
++ * A {@link WatermarkCombiner} used to combine {@link EventTimeExtension} related watermarks in
++ * input channels.
++ */
++public class EventTimeWatermarkCombiner extends StatusWatermarkValve implements WatermarkCombiner {
++
++    private WrappedDataOutput<?> output;
++
++    public EventTimeWatermarkCombiner(int numInputChannels) {
++        super(numInputChannels);
++        this.output = new WrappedDataOutput<>();
++    }
++
++    @Override
++    public void combineWatermark(
++            Watermark watermark, int channelIndex, Consumer<Watermark> watermarkEmitter)
++            throws Exception {
++        output.setWatermarkEmitter(watermarkEmitter);
++
++        if (EventTimeExtension.isEventTimeWatermark(watermark)) {
++            inputWatermark(
++                    new org.apache.flink.streaming.api.watermark.Watermark(
++                            ((LongWatermark) watermark).getValue()),
++                    channelIndex,
++                    output);
++        } else if (EventTimeExtension.isIdleStatusWatermark(watermark.getIdentifier())) {
++            inputWatermarkStatus(
++                    new WatermarkStatus(
++                            ((BoolWatermark) watermark).getValue()
++                                    ? WatermarkStatus.IDLE_STATUS
++                                    : WatermarkStatus.ACTIVE_STATUS),
++                    channelIndex,
++                    output);
++        }
++    }
++
++    /** Wrap {@link DataOutput} to emit watermarks using {@code watermarkEmitter}. */
++    static class WrappedDataOutput<T> implements DataOutput<T> {
++
++        private Consumer<Watermark> watermarkEmitter;
++
++        public WrappedDataOutput() {}
++
++        public void setWatermarkEmitter(Consumer<Watermark> watermarkEmitter) {
++            this.watermarkEmitter = watermarkEmitter;
++        }
++
++        @Override
++        public void emitRecord(StreamRecord<T> streamRecord) throws Exception {
++            throw new RuntimeException("Should not emit records with this output.");
++        }
++
++        @Override
++        public void emitWatermark(org.apache.flink.streaming.api.watermark.Watermark watermark)
++                throws Exception {
++            watermarkEmitter.accept(
++                    EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION.newWatermark(
++                            watermark.getTimestamp()));
++        }
++
++        @Override
++        public void emitWatermarkStatus(WatermarkStatus watermarkStatus) throws Exception {
++            watermarkEmitter.accept(
++                    EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.newWatermark(
++                            watermarkStatus.isIdle()));
++        }
++
++        @Override
++        public void emitLatencyMarker(LatencyMarker latencyMarker) throws Exception {
++            throw new RuntimeException("Should not emit LatencyMarker with this output.");
++        }
++
++        @Override
++        public void emitRecordAttributes(RecordAttributes recordAttributes) throws Exception {
++            throw new RuntimeException("Should not emit RecordAttributes with this output.");
++        }
++
++        @Override
++        public void emitWatermark(WatermarkEvent watermark) throws Exception {
++            throw new RuntimeException("Should not emit WatermarkEvent with this output.");
++        }
++    }
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkHandler.java b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkHandler.java
+new file mode 100644
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/streaming/runtime/watermark/extension/eventtime/EventTimeWatermarkHandler.java
+@@ -0,0 +1,220 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.streaming.runtime.watermark.extension.eventtime;
++
++import org.apache.flink.api.common.watermark.BoolWatermark;
++import org.apache.flink.api.common.watermark.LongWatermark;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
++import org.apache.flink.runtime.event.WatermarkEvent;
++import org.apache.flink.streaming.api.operators.InternalTimeServiceManager;
++import org.apache.flink.streaming.api.operators.Output;
++import org.apache.flink.streaming.api.watermark.Watermark;
++
++import javax.annotation.Nullable;
++
++import java.util.ArrayList;
++import java.util.BitSet;
++import java.util.List;
++
++import static org.apache.flink.util.Preconditions.checkArgument;
++import static org.apache.flink.util.Preconditions.checkState;
++
++/**
++ * This class is used to handle {@link EventTimeExtension} related watermarks in operator, such as
++ * {@link EventTimeExtension#EVENT_TIME_WATERMARK_DECLARATION} and {@link
++ * EventTimeExtension#IDLE_STATUS_WATERMARK_DECLARATION}. It will emit event time watermark and idle
++ * status to downstream operators according to received watermarks.
++ */
++public class EventTimeWatermarkHandler {
++
++    /** number of input of operator, it should between 1 and 2 in current design. */
++    private final int numOfInput;
++
++    private final Output<?> output;
++
++    private final List<EventTimeWithIdleStatus> eventTimePerInput;
++
++    /**
++     * time service manager is used to advance event time in operator, and it may be null if the
++     * operator is not keyed.
++     */
++    @Nullable private final InternalTimeServiceManager<?> timeServiceManager;
++
++    private long lastEmitWatermark = Long.MIN_VALUE;
++
++    private boolean lastEmitIdleStatus = false;
++
++    /** A bitset to record whether the watermark has been received from each input. */
++    private final BitSet hasReceiveWatermarks;
++
++    public EventTimeWatermarkHandler(
++            int numOfInput,
++            Output<?> output,
++            @Nullable InternalTimeServiceManager<?> timeServiceManager) {
++        checkArgument(numOfInput >= 1 && numOfInput <= 2, "numOfInput should between 1 and 2");
++        this.numOfInput = numOfInput;
++        this.output = output;
++        this.eventTimePerInput = new ArrayList<>(numOfInput);
++        for (int i = 0; i < numOfInput; i++) {
++            eventTimePerInput.add(new EventTimeWithIdleStatus());
++        }
++        this.timeServiceManager = timeServiceManager;
++        this.hasReceiveWatermarks = new BitSet(numOfInput);
++    }
++
++    private EventTimeUpdateStatus processEventTime(long timestamp, int inputIndex)
++            throws Exception {
++        checkState(inputIndex < numOfInput);
++        hasReceiveWatermarks.set(inputIndex);
++        eventTimePerInput.get(inputIndex).setEventTime(timestamp);
++        eventTimePerInput.get(inputIndex).setIdleStatus(false);
++
++        return tryAdvanceEventTimeAndEmitWatermark();
++    }
++
++    private EventTimeUpdateStatus tryAdvanceEventTimeAndEmitWatermark() throws Exception {
++        // if current event time is larger than last emit watermark, emit it
++        long currentEventTime = getCurrentEventTime();
++        if (currentEventTime > lastEmitWatermark
++                && hasReceiveWatermarks.cardinality() == numOfInput) {
++            output.emitWatermark(
++                    new WatermarkEvent(
++                            EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION.newWatermark(
++                                    currentEventTime),
++                            false));
++            lastEmitWatermark = currentEventTime;
++            if (timeServiceManager != null) {
++                timeServiceManager.advanceWatermark(new Watermark(currentEventTime));
++            }
++            return EventTimeUpdateStatus.ofUpdatedWatermark(lastEmitWatermark);
++        }
++        return EventTimeUpdateStatus.NO_UPDATE;
++    }
++
++    private void processEventTimeIdleStatus(boolean isIdle, int inputIndex) {
++        checkState(inputIndex < numOfInput);
++        hasReceiveWatermarks.set(inputIndex);
++        eventTimePerInput.get(inputIndex).setIdleStatus(isIdle);
++        tryEmitEventTimeIdleStatus();
++    }
++
++    private void tryEmitEventTimeIdleStatus() {
++        // emit idle status if current idle status is different from last emit
++        boolean inputIdle = isAllInputIdle();
++        if (inputIdle != lastEmitIdleStatus) {
++            output.emitWatermark(
++                    new WatermarkEvent(
++                            EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.newWatermark(
++                                    inputIdle),
++                            false));
++            lastEmitIdleStatus = inputIdle;
++        }
++    }
++
++    private long getCurrentEventTime() {
++        long currentEventTime = Long.MAX_VALUE;
++        for (EventTimeWithIdleStatus eventTimeWithIdleStatus : eventTimePerInput) {
++            if (!eventTimeWithIdleStatus.isIdle()) {
++                currentEventTime =
++                        Math.min(currentEventTime, eventTimeWithIdleStatus.getEventTime());
++            }
++        }
++        return currentEventTime;
++    }
++
++    private boolean isAllInputIdle() {
++        boolean allInputIsIdle = true;
++        for (EventTimeWithIdleStatus eventTimeWithIdleStatus : eventTimePerInput) {
++            allInputIsIdle &= eventTimeWithIdleStatus.isIdle();
++        }
++        return allInputIsIdle;
++    }
++
++    public long getLastEmitWatermark() {
++        return lastEmitWatermark;
++    }
++
++    /**
++     * Process EventTimeWatermark/IdleStatusWatermark.
++     *
++     * <p>It's caller's responsibility to check whether the watermark is
++     * EventTimeWatermark/IdleStatusWatermark.
++     *
++     * @return the status of event time watermark update.
++     */
++    public EventTimeUpdateStatus processWatermark(
++            org.apache.flink.api.common.watermark.Watermark watermark, int inputIndex)
++            throws Exception {
++        if (EventTimeExtension.isEventTimeWatermark(watermark.getIdentifier())) {
++            long timestamp = ((LongWatermark) watermark).getValue();
++            return this.processEventTime(timestamp, inputIndex);
++        } else if (EventTimeExtension.isIdleStatusWatermark(watermark.getIdentifier())) {
++            boolean isIdle = ((BoolWatermark) watermark).getValue();
++            this.processEventTimeIdleStatus(isIdle, inputIndex);
++        }
++        return EventTimeUpdateStatus.NO_UPDATE;
++    }
++
++    /** This class represents event-time updated status. */
++    public static class EventTimeUpdateStatus {
++
++        public static final EventTimeUpdateStatus NO_UPDATE = new EventTimeUpdateStatus(false, -1L);
++
++        private final boolean isEventTimeUpdated;
++
++        private final long newEventTime;
++
++        private EventTimeUpdateStatus(boolean isEventTimeUpdated, long newEventTime) {
++            this.isEventTimeUpdated = isEventTimeUpdated;
++            this.newEventTime = newEventTime;
++        }
++
++        public boolean isEventTimeUpdated() {
++            return isEventTimeUpdated;
++        }
++
++        public long getNewEventTime() {
++            return newEventTime;
++        }
++
++        public static EventTimeUpdateStatus ofUpdatedWatermark(long newEventTime) {
++            return new EventTimeUpdateStatus(true, newEventTime);
++        }
++    }
++
++    static class EventTimeWithIdleStatus {
++        private long eventTime = Long.MIN_VALUE;
++        private boolean isIdle = false;
++
++        public long getEventTime() {
++            return eventTime;
++        }
++
++        public void setEventTime(long eventTime) {
++            this.eventTime = Math.max(this.eventTime, eventTime);
++        }
++
++        public boolean isIdle() {
++            return isIdle;
++        }
++
++        public void setIdleStatus(boolean idle) {
++            isIdle = idle;
++        }
++    }
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/streaming/util/watermark/WatermarkUtils.java b/flink-runtime/src/main/java/org/apache/flink/streaming/util/watermark/WatermarkUtils.java
+--- a/flink-runtime/src/main/java/org/apache/flink/streaming/util/watermark/WatermarkUtils.java
++++ b/flink-runtime/src/main/java/org/apache/flink/streaming/util/watermark/WatermarkUtils.java
+@@ -21,6 +21,7 @@
+ import org.apache.flink.api.common.functions.Function;
+ import org.apache.flink.api.common.watermark.Watermark;
+ import org.apache.flink.api.common.watermark.WatermarkDeclaration;
++import org.apache.flink.datastream.api.extension.eventtime.EventTimeExtension;
+ import org.apache.flink.datastream.api.function.ProcessFunction;
+ import org.apache.flink.runtime.asyncprocessing.operators.AbstractAsyncStateUdfStreamOperator;
+ import org.apache.flink.streaming.api.graph.StreamGraph;
+@@ -29,9 +30,12 @@
+ import org.apache.flink.streaming.api.operators.SourceOperatorFactory;
+ import org.apache.flink.streaming.api.operators.StreamOperator;
+ import org.apache.flink.streaming.runtime.watermark.AbstractInternalWatermarkDeclaration;
++import org.apache.flink.streaming.runtime.watermark.WatermarkCombiner;
++import org.apache.flink.streaming.runtime.watermark.extension.eventtime.EventTimeWatermarkCombiner;
+ 
+ import java.util.Collection;
+ import java.util.Collections;
++import java.util.Map;
+ import java.util.Set;
+ import java.util.stream.Collectors;
+ 
+@@ -95,4 +99,26 @@ private static Collection<? extends WatermarkDeclaration> getWatermarkDeclaratio
+                 .map(AbstractInternalWatermarkDeclaration::from)
+                 .collect(Collectors.toSet());
+     }
++
++    /** Create watermark combiners if there are event time watermark declarations. */
++    public static void addEventTimeWatermarkCombinerIfNeeded(
++            Set<AbstractInternalWatermarkDeclaration<?>> watermarkDeclarationSet,
++            Map<String, WatermarkCombiner> watermarkCombiners,
++            int numberOfInputChannels) {
++        if (watermarkDeclarationSet.stream()
++                .anyMatch(
++                        declaration ->
++                                EventTimeExtension.isEventTimeWatermark(
++                                        declaration.getIdentifier()))) {
++            // create event time watermark combiner
++            EventTimeWatermarkCombiner eventTimeWatermarkCombiner =
++                    new EventTimeWatermarkCombiner(numberOfInputChannels);
++            watermarkCombiners.put(
++                    EventTimeExtension.EVENT_TIME_WATERMARK_DECLARATION.getIdentifier(),
++                    eventTimeWatermarkCombiner);
++            watermarkCombiners.put(
++                    EventTimeExtension.IDLE_STATUS_WATERMARK_DECLARATION.getIdentifier(),
++                    eventTimeWatermarkCombiner);
++        }
++    }
+ }

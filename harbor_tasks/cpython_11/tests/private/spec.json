@@ -1,0 +1,1316 @@
+{
+  "instance_id": "CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129",
+  "project": "cpython",
+  "language": "python",
+  "requirement_doc": "https://peps.python.org/pep-0696/",
+  "requirement_doc_title": "PEP 696 \u2014 Type Defaults for Type Parameters",
+  "pr_link": "https://github.com/python/cpython/pull/116129",
+  "pr_number": 116129,
+  "merge_commit": "ca269e58c290be8ca11bb728004ea842d9f85e3a",
+  "base_commit": "852263e1086748492602a90347ecc0a3925e1dda",
+  "base_commit_note": "PR-116129 was squash-merged on 2024-05-03; the merge commit ca269e58c290be8ca11bb728004ea842d9f85e3a has a single parent 852263e1086748492602a90347ecc0a3925e1dda, and diffing against that parent isolates the PR contribution. Same merge-parent override pattern as prior CPython instances (PEP-617 / PEP-634 / PEP-654 / PEP-669 / PEP-680 / PEP-615 / PEP-709).",
+  "test_level": "public-api",
+  "fail_to_pass": [
+    "test.test_type_params.DefaultsTest.test_defaults_on_func",
+    "test.test_type_params.DefaultsTest.test_defaults_on_class",
+    "test.test_type_params.DefaultsTest.test_defaults_on_type_alias",
+    "test.test_type_params.DefaultsTest.test_lazy_evaluation",
+    "test.test_type_params.DefaultsTest.test_nondefault_after_default",
+    "test.test_type_params.DefaultsTest.test_starred_invalid",
+    "test.test_type_params.DefaultsTest.test_starred_typevartuple",
+    "test.test_type_params.DefaultsTest.test_symtable_key_regression_default",
+    "test.test_type_params.DefaultsTest.test_symtable_key_regression_name",
+    "test.test_typing.NoDefaultTests.test_constructor",
+    "test.test_typing.NoDefaultTests.test_no_call",
+    "test.test_typing.NoDefaultTests.test_repr",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevar",
+    "test.test_typing.TypeParameterDefaultsTests.test_paramspec",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevartuple",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevar_none",
+    "test.test_typing.TypeParameterDefaultsTests.test_paramspec_none",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevartuple_none",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevar_and_paramspec_specialization",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevar_and_typevartuple_specialization",
+    "test.test_typing.TypeParameterDefaultsTests.test_paramspec_specialization",
+    "test.test_typing.TypeParameterDefaultsTests.test_typevartuple_specialization",
+    "test.test_typing.TypeParameterDefaultsTests.test_need_more_params",
+    "test.test_typing.TypeParameterDefaultsTests.test_no_default_after_non_default",
+    "test.test_typing.TypeParameterDefaultsTests.test_pickle",
+    "test.test_ast.AST_Tests.test_type_params_default_feature_version",
+    "test.test_unparse.CosmeticTestCase.test_type_params",
+    "test.test_unparse.ManualASTCreationTestCase.test_function_with_type_params_and_default",
+    "test.test_unparse.ManualASTCreationTestCase.test_async_function_with_type_params_and_default"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_underscore_literals",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+    "test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+    "test.test_int.IntTestCases.test_basic",
+    "test.test_int.IntTestCases.test_invalid_signs",
+    "test.test_int.IntTestCases.test_unicode",
+    "test.test_int.IntTestCases.test_underscores",
+    "test.test_int.IntTestCases.test_small_ints",
+    "test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+    "test.test_int.IntStrDigitLimitsTests.test_max_str_digits_edge_cases",
+    "test.test_int.IntStrDigitLimitsTests.test_max_str_digits",
+    "test.test_float.GeneralFloatCases.test_float",
+    "test.test_float.GeneralFloatCases.test_noargs",
+    "test.test_float.GeneralFloatCases.test_underscores",
+    "test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+    "test.test_float.GeneralFloatCases.test_float_memoryview",
+    "test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+    "test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+    "test.test_float.FormatFunctionsTestCase.test_getformat",
+    "test.test_string.ModuleTest.test_attrs",
+    "test.test_string.ModuleTest.test_capwords",
+    "test.test_string.ModuleTest.test_basic_formatter",
+    "test.test_string.ModuleTest.test_format_keyword_arguments",
+    "test.test_string.ModuleTest.test_auto_numbering",
+    "test.test_string.TestTemplate.test_regular_templates",
+    "test.test_string.TestTemplate.test_regular_templates_with_braces",
+    "test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+    "test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+    "test.test_string.TestTemplate.test_escapes",
+    "test.test_sys.SysModuleTest.test_sys_flags",
+    "test.test_sys.SysModuleTest.test_getframe",
+    "test.test_sys.SysModuleTest.test_module_names",
+    "test.test_sys.SysModuleTest.test_getframemodulename"
+  ],
+  "solution_patch_sha256": "366a5f357d352fdb30c06c7230a393a0a11b876789786eef1231626d1390c73f",
+  "eval_tests_patch_sha256": "64d218a66290f3af94a06168b295b670aed9b335f3713a2cbeeba8e175c0517e",
+  "omitted_patch_sha256": "94fbf143e6a4ab0110790064a7720b921dc4f4df2d2761ed1f9943d4699658a7",
+  "eval_tests_patch_notes": "eval_tests.patch modifies 4 test files: Lib/test/test_type_params.py (adds DefaultsTest class with 9 methods + 1 method to TypeParamsAccessTest), Lib/test/test_typing.py (adds NoDefaultTests with 4 methods + TypeParameterDefaultsTests with 15), Lib/test/test_ast.py (+1 method test_type_params_default_feature_version), Lib/test/test_unparse.py (+3 methods). All new test bodies exec() or ast.parse() Python source containing the new `T = default` syntax or call `typing.TypeVar(default=...)` etc. \u2014 the new-syntax literals live inside string arguments, so the test FILES parse fine at pre-state and the SyntaxError fires at test-time.",
+  "omitted_patch_notes": "omitted.patch holds: Doc/library/{ast,typing}.rst, Doc/reference/{compound_stmts,executionmodel}.rst, Doc/whatsnew/3.13.rst (documentation), Misc/NEWS.d/next/Core and Builtins/.../116129.rst (NEWS), Tools/c-analyzer/cpython/globals-to-fix.tsv (static-analyzer config). None affect runtime test execution.",
+  "fixture_taint_summary": "29 F2P selectors from 4 modified test files. All exercise PEP-696's new observable behavior:\n  - 9 test_type_params.DefaultsTest: exec() `class C[T=int]:` etc.; the new parser/compile/symtable paths must wire __default__ onto TypeVar / ParamSpec / TypeVarTuple correctly.\n  - 3 test_typing.NoDefaultTests: typing.NoDefault sentinel (constructor + repr + no_call). test_pickling was dropped from F2P at validation: it ERRORs at post-state with `_pickle.PicklingError: can't pickle 'NoDefaultType' object` \u2014 likely a C-side pickle-registration gap that doesn't manifest in CPython's own CI but does in our docker environment. Recorded in out_of_scope_surfaces.\n  - 13 test_typing.TypeParameterDefaultsTests: `default=` kwarg on typing.TypeVar/ParamSpec/TypeVarTuple constructors.\n  - 1 test_ast.test_type_params_default_feature_version: ast.parse feature_version gating of the new syntax.\n  - 3 test_unparse: ast.unparse must emit `T = default` for nodes.\nPre-state: parser rejects `T=default` syntax \u2192 SyntaxError at exec(); typing module lacks NoDefault and default= kwarg \u2192 AttributeError / TypeError; ast.TypeVar lacks default field \u2192 AttributeError. All F2P FAIL/ERROR.\n61 P2P spread across 5 untouched files: 30 test_grammar.py + 8 test_int.py + 9 test_float.py + 10 test_string.py + 4 test_sys.py. None modified by this PR. Ratio P2P/F2P = 2.03\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "DefaultsTest.test_defaults_on_func": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_defaults_on_func",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_defaults_on_class": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_defaults_on_class",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_defaults_on_type_alias": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_defaults_on_type_alias",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_lazy_evaluation": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_lazy_evaluation",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_nondefault_after_default": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_nondefault_after_default",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_starred_invalid": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_starred_invalid",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_starred_typevartuple": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_starred_typevartuple",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_symtable_key_regression_default": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_symtable_key_regression_default",
+        "fixture_taint_checked": true
+      },
+      "DefaultsTest.test_symtable_key_regression_name": {
+        "system_reason": "DefaultsTest method: exec()s PEP-696 syntax `class C[T=default]:` / `def f[T=default]():` / `type Alias[T=default] = ...` and asserts the resulting __default__ attribute. Pre-state: parser rejects `T=default` clause \u2192 SyntaxError at exec() time \u2192 FAIL/ERROR.",
+        "public_surface": "exec() on Python source + ast.parse + class/def [T=default] PEP-695-style headers",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_type_params.DefaultsTest.test_symtable_key_regression_name",
+        "fixture_taint_checked": true
+      },
+      "NoDefaultTests.test_constructor": {
+        "system_reason": "typing.NoDefault sentinel \u2014 new in PEP 696. At pre-state, typing module has no NoDefault attribute \u2192 AttributeError on import \u2192 ERROR.",
+        "public_surface": "typing.NoDefault sentinel object",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NoDefaultTests.test_constructor",
+        "fixture_taint_checked": true
+      },
+      "NoDefaultTests.test_no_call": {
+        "system_reason": "typing.NoDefault sentinel \u2014 new in PEP 696. At pre-state, typing module has no NoDefault attribute \u2192 AttributeError on import \u2192 ERROR.",
+        "public_surface": "typing.NoDefault sentinel object",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NoDefaultTests.test_no_call",
+        "fixture_taint_checked": true
+      },
+      "NoDefaultTests.test_repr": {
+        "system_reason": "typing.NoDefault sentinel \u2014 new in PEP 696. At pre-state, typing module has no NoDefault attribute \u2192 AttributeError on import \u2192 ERROR.",
+        "public_surface": "typing.NoDefault sentinel object",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.NoDefaultTests.test_repr",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevar": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevar",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_paramspec": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_paramspec",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevartuple": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevartuple",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevar_none": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevar_none",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_paramspec_none": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_paramspec_none",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevartuple_none": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevartuple_none",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevar_and_paramspec_specialization": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevar_and_paramspec_specialization",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevar_and_typevartuple_specialization": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevar_and_typevartuple_specialization",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_paramspec_specialization": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_paramspec_specialization",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_typevartuple_specialization": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_typevartuple_specialization",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_need_more_params": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_need_more_params",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_no_default_after_non_default": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_no_default_after_non_default",
+        "fixture_taint_checked": true
+      },
+      "TypeParameterDefaultsTests.test_pickle": {
+        "system_reason": "typing.TypeVar/ParamSpec/TypeVarTuple constructor with `default=` kwarg. At pre-state, the constructors don't accept default= \u2192 TypeError \u2192 FAIL/ERROR.",
+        "public_surface": "typing.TypeVar(default=...) / typing.ParamSpec(default=...) / typing.TypeVarTuple(default=...)",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_typing.TypeParameterDefaultsTests.test_pickle",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_type_params_default_feature_version": {
+        "system_reason": "Asserts ast.parse(`class X[T=int]: pass`) accepts at current feature_version but raises SyntaxError at feature_version=(3,12). At pre-state, ast.parse always raises (no PEP-696 support).",
+        "public_surface": "ast.parse(source, feature_version=...) + the new ast.TypeVar.default field",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_type_params_default_feature_version",
+        "fixture_taint_checked": true
+      },
+      "CosmeticTestCase.test_type_params": {
+        "system_reason": "ast.unparse must emit `T = default` for ast.TypeVar nodes carrying a default. Pre-state: ast.TypeVar lacks the `default` field \u2192 AttributeError or empty output \u2192 FAIL.",
+        "public_surface": "ast.unparse on type-parameter nodes",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_unparse.CosmeticTestCase.test_type_params",
+        "fixture_taint_checked": true
+      },
+      "ManualASTCreationTestCase.test_function_with_type_params_and_default": {
+        "system_reason": "ast.unparse must emit `T = default` for ast.TypeVar nodes carrying a default. Pre-state: ast.TypeVar lacks the `default` field \u2192 AttributeError or empty output \u2192 FAIL.",
+        "public_surface": "ast.unparse on type-parameter nodes",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_unparse.ManualASTCreationTestCase.test_function_with_type_params_and_default",
+        "fixture_taint_checked": true
+      },
+      "ManualASTCreationTestCase.test_async_function_with_type_params_and_default": {
+        "system_reason": "ast.unparse must emit `T = default` for ast.TypeVar nodes carrying a default. Pre-state: ast.TypeVar lacks the `default` field \u2192 AttributeError or empty output \u2192 FAIL.",
+        "public_surface": "ast.unparse on type-parameter nodes",
+        "internal_symbol_check": [
+          "_PyTypeAlias_*",
+          "_PyTypeVar_*",
+          "INTRINSIC_SET_TYPEPARAM_DEFAULT"
+        ],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_unparse.ManualASTCreationTestCase.test_async_function_with_type_params_and_default",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_underscore_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_underscore_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_syntax_errors": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_syntax_errors",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_simple_exec": {
+        "system_reason": "Pre-existing grammar-rule test. test_grammar.py is NOT modified by this PR.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_simple_exec",
+        "fixture_taint_checked": true
+      },
+      "IntTestCases.test_basic": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_basic",
+        "fixture_taint_checked": true
+      },
+      "IntTestCases.test_invalid_signs": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_invalid_signs",
+        "fixture_taint_checked": true
+      },
+      "IntTestCases.test_unicode": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_unicode",
+        "fixture_taint_checked": true
+      },
+      "IntTestCases.test_underscores": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "IntTestCases.test_small_ints": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntTestCases.test_small_ints",
+        "fixture_taint_checked": true
+      },
+      "IntStrDigitLimitsTests.test_disabled_limit": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_disabled_limit",
+        "fixture_taint_checked": true
+      },
+      "IntStrDigitLimitsTests.test_max_str_digits_edge_cases": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_max_str_digits_edge_cases",
+        "fixture_taint_checked": true
+      },
+      "IntStrDigitLimitsTests.test_max_str_digits": {
+        "system_reason": "Pre-existing int-parsing test. test_int.py is NOT modified by this PR.",
+        "public_surface": "int() public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_int.IntStrDigitLimitsTests.test_max_str_digits",
+        "fixture_taint_checked": true
+      },
+      "GeneralFloatCases.test_float": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float",
+        "fixture_taint_checked": true
+      },
+      "GeneralFloatCases.test_noargs": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_noargs",
+        "fixture_taint_checked": true
+      },
+      "GeneralFloatCases.test_underscores": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_underscores",
+        "fixture_taint_checked": true
+      },
+      "GeneralFloatCases.test_non_numeric_input_types": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_non_numeric_input_types",
+        "fixture_taint_checked": true
+      },
+      "GeneralFloatCases.test_float_memoryview": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.GeneralFloatCases.test_float_memoryview",
+        "fixture_taint_checked": true
+      },
+      "IEEEFormatTestCase.test_double_specials_do_unpack": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_double_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "IEEEFormatTestCase.test_float_specials_do_unpack": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_float_specials_do_unpack",
+        "fixture_taint_checked": true
+      },
+      "IEEEFormatTestCase.test_serialized_float_rounding": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.IEEEFormatTestCase.test_serialized_float_rounding",
+        "fixture_taint_checked": true
+      },
+      "FormatFunctionsTestCase.test_getformat": {
+        "system_reason": "Pre-existing float-parsing test. test_float.py is NOT modified by this PR.",
+        "public_surface": "float() + struct float formatting",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_float.FormatFunctionsTestCase.test_getformat",
+        "fixture_taint_checked": true
+      },
+      "ModuleTest.test_attrs": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_attrs",
+        "fixture_taint_checked": true
+      },
+      "ModuleTest.test_capwords": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_capwords",
+        "fixture_taint_checked": true
+      },
+      "ModuleTest.test_basic_formatter": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_basic_formatter",
+        "fixture_taint_checked": true
+      },
+      "ModuleTest.test_format_keyword_arguments": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_format_keyword_arguments",
+        "fixture_taint_checked": true
+      },
+      "ModuleTest.test_auto_numbering": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.ModuleTest.test_auto_numbering",
+        "fixture_taint_checked": true
+      },
+      "TestTemplate.test_regular_templates": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates",
+        "fixture_taint_checked": true
+      },
+      "TestTemplate.test_regular_templates_with_braces": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_braces",
+        "fixture_taint_checked": true
+      },
+      "TestTemplate.test_regular_templates_with_upper_case": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_upper_case",
+        "fixture_taint_checked": true
+      },
+      "TestTemplate.test_regular_templates_with_non_letters": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_regular_templates_with_non_letters",
+        "fixture_taint_checked": true
+      },
+      "TestTemplate.test_escapes": {
+        "system_reason": "Pre-existing string.Template / string.Formatter test. test_string.py is NOT modified by this PR.",
+        "public_surface": "string module public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_string.TestTemplate.test_escapes",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_sys_flags": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.* public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_sys_flags",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_getframe": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR. Uses sys._getframe (allowlisted).",
+        "public_surface": "sys.* public API + sys._getframe (allowlisted)",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [
+          "sys._getframe"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_getframe",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_module_names": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.* public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_module_names",
+        "fixture_taint_checked": true
+      },
+      "SysModuleTest.test_getframemodulename": {
+        "system_reason": "Pre-existing sys-module test. test_sys.py is NOT modified by this PR.",
+        "public_surface": "sys.* public API",
+        "internal_symbol_check": [],
+        "uses_allowlisted_private": [],
+        "runner_surface": "./python -m unittest -v test.test_sys.SysModuleTest.test_getframemodulename",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "out_of_scope_surfaces": [
+    {
+      "surface": "Internal helpers added by the PR: _PyTypeVar_*, INTRINSIC_SET_TYPEPARAM_DEFAULT, etc.",
+      "reason": "Internal-implementation symbols introduced by the PR. F2P checks observable behavior through public typing / ast / syntax surface only."
+    },
+    {
+      "surface": "test_typing.NoDefaultTests.test_pickling",
+      "reason": "Dropped from F2P at validation: passes at pre-state (no NoDefault \u2192 AttributeError counted as ERROR, as expected) but ERRORs at post-state too with `_pickle.PicklingError: can't pickle 'NoDefaultType' object: typing.NoDefault`. The pickle protocol can't find a way to serialize the C-impl NoDefault singleton in our docker environment. This may be a setup-detail mismatch with CPython's own CI (where the test passes), e.g. how the typing module is imported or how the NoDefault class is wired into copyreg. The other 3 NoDefaultTests methods (test_constructor, test_repr, test_no_call) are kept as F2P."
+    }
+  ],
+  "public_surface_allowlist": [
+    {
+      "symbol": "sys._getframe",
+      "rationale": "Documented CPython implementation detail. Used by one P2P selector: test_sys.SysModuleTest.test_getframe (unmodified by this PR). The agent does not need to re-implement sys._getframe.",
+      "tests": [
+        "test.test_sys.SysModuleTest.test_getframe"
+      ]
+    }
+  ],
+  "build_environment": {
+    "base_image": "lolbench/cpython-base:1",
+    "configure_flags": "--prefix=/usr/local --enable-optimizations=no",
+    "make_target": "(default; the build regenerates parser.c / Python-ast.c from python.gram + Python.asdl)",
+    "runtime_caps": "--network=none, default seccomp"
+  },
+  "validated_at": "2026-05-21T09:35:12Z",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "5a7e595135b5be58fbd97c675ca3f427eea083c4d537b68b3bf1beeb61f57c17",
+    "f2p_aug_sha256": "b25e1e0b5dde85ea82cc8955bb38d8f2192b8e04a9cba2bc2625490aa81563da",
+    "p2p_aug_sha256": "2e72667a4435d90895a6bf1ea070cb96d86fcb751bb92a6836c9dcef4045deda",
+    "fail_to_pass": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_ast_nodes_preserve_all_type_parameter_defaults",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_feature_version_and_unparse_keep_typevar_default_visible",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_runtime_defaults_are_lazily_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_starred_typevartuple_default_from_pep695_syntax_is_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_type_parameter_defaults",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_missing_default_attributes",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_defaults_on_functions_and_type_aliases",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords"
+    ],
+    "pass_to_pass": [
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_string_template_substitution_and_formatter_are_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_regular_function_and_class_execution_are_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable"
+    ],
+    "targets_mutants": [
+      "mutant_001_typevar_syntax_drops_default_ast",
+      "mutant_002_paramspec_syntax_drops_default_ast",
+      "mutant_003_typevartuple_syntax_drops_default_ast",
+      "mutant_004_feature_version_allows_defaults_too_early",
+      "mutant_005_ast_unparse_omits_typevar_default",
+      "mutant_006_nodefault_reduce_uses_missing_name",
+      "mutant_007_nodefault_repr_is_unqualified",
+      "mutant_008_nodefault_type_is_constructible",
+      "mutant_009_typevar_has_default_always_false",
+      "mutant_010_paramspec_has_default_always_false",
+      "mutant_011_typevartuple_has_default_always_false",
+      "mutant_012_typevar_default_getter_ignores_direct_value",
+      "mutant_013_paramspec_default_getter_ignores_direct_value",
+      "mutant_014_typevartuple_default_getter_ignores_direct_value",
+      "mutant_015_typevar_substitution_does_not_use_default",
+      "mutant_016_paramspec_substitution_does_not_use_default",
+      "mutant_017_typevartuple_substitution_does_not_use_default",
+      "mutant_018_check_generic_rejects_omitted_defaults",
+      "mutant_019_collect_parameters_allows_nondefault_after_default",
+      "mutant_020_collect_parameters_allows_default_after_typevartuple",
+      "mutant_021_compiler_does_not_attach_typevar_default",
+      "mutant_022_set_typeparam_default_ignores_typevartuple"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "baseline_union_line_coverage_percent": 72.7,
+      "augmented_line_coverage_percent": 82.1,
+      "union_line_coverage_percent": 85.3,
+      "executable_lines_in_patch": 436,
+      "union_covered_lines": 372,
+      "coverage_complete": true,
+      "measurement_note": "Coverage computed by coverage/run_coverage.sh after excluding gcovr noncode records from executable-line accounting."
+    },
+    "synthetic_tests": [
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_ast_nodes_preserve_all_type_parameter_defaults",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_feature_version_and_unparse_keep_typevar_default_visible",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_runtime_defaults_are_lazily_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_starred_typevartuple_default_from_pep695_syntax_is_attached",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_type_parameter_defaults",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_missing_default_attributes",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_defaults_on_functions_and_type_aliases",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised",
+      "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_string_template_substitution_and_formatter_are_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_regular_function_and_class_execution_are_stable",
+      "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors exercise PEP 696 behavior through public ast, typing, pickle, exec(), class metadata, and Generic subscription surfaces; no project-defined internal symbols are referenced. Augmented P2P selectors exercise unrelated public stdlib/interpreter behavior that should pass at base, golden, and mutant states. Requirement section names exactly match the Section Classification Summary in requirement_pr_pairs/CPython_PEP-696_Type-Defaults-for-Type-Parameters_PR-116129.md.",
+      "fail_to_pass": {
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_grammar_source_routes_defaults_into_ast_constructors": {
+          "requirement_sections": [
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "The CPython source distribution shipped in the benchmark image, specifically Grammar/python.gram type_param productions.",
+          "mutants_targeted": [
+            "mutant_001_typevar_syntax_drops_default_ast",
+            "mutant_002_paramspec_syntax_drops_default_ast",
+            "mutant_003_typevartuple_syntax_drops_default_ast",
+            "mutant_004_feature_version_allows_defaults_too_early"
+          ],
+          "rationale": "The grammar-change section requires every type-parameter default production to pass its parsed default expression into the corresponding AST constructor and to retain the Python 3.13 feature-version guard. These source-level mutants leave generated parser tables intact, so the public source-distribution grammar is the observable benchmark surface that distinguishes them."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_ast_nodes_preserve_all_type_parameter_defaults": {
+          "requirement_sections": [
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "ast.parse() over PEP 695 class syntax and public ast.TypeVar/ParamSpec/TypeVarTuple default_value fields.",
+          "mutants_targeted": [],
+          "rationale": "The grammar-change section requires defaults to be represented in the AST for all three type parameter node kinds. The test parses public Python source and asserts each default expression is present on the public AST nodes, improving runtime AST coverage even when generated parser artifacts mask source-only grammar mutants."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_feature_version_and_unparse_keep_typevar_default_visible": {
+          "requirement_sections": [
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "ast.parse(feature_version=...), ast.parse(), and ast.unparse() on class type-parameter syntax.",
+          "mutants_targeted": [
+            "mutant_005_ast_unparse_omits_typevar_default"
+          ],
+          "rationale": "PEP 696 defaults are a Python 3.13 grammar feature and must remain visible when AST nodes are unparsed. The runtime assertion pins current parsing/unparsing behavior; the source grammar selector separately pins the feature-version guard against generated-artifact masking."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_nodefault_reduce_repr_and_constructor_contract": {
+          "requirement_sections": [
+            "Implementation"
+          ],
+          "public_surface": "typing.NoDefault repr, __reduce__ name, constructor behavior, and call behavior through the public typing module.",
+          "mutants_targeted": [
+            "mutant_006_nodefault_reduce_uses_missing_name",
+            "mutant_007_nodefault_repr_is_unqualified",
+            "mutant_008_nodefault_type_is_constructible"
+          ],
+          "rationale": "The implementation section requires the public NoDefault sentinel. The test pins the reducer name used by the sentinel, the documented repr, and constructor/input validation behavior without relying on the environment-specific pickle round trip that the original instance marks out of scope."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_default_accessors_report_direct_values_for_all_type_parameters": {
+          "requirement_sections": [
+            "Implementation",
+            "Specification > ``ParamSpec`` Defaults",
+            "Specification > ``TypeVarTuple`` Defaults"
+          ],
+          "public_surface": "typing.TypeVar, typing.ParamSpec, typing.TypeVarTuple constructors, __default__ attributes, and has_default() methods.",
+          "mutants_targeted": [
+            "mutant_009_typevar_has_default_always_false",
+            "mutant_010_paramspec_has_default_always_false",
+            "mutant_011_typevartuple_has_default_always_false",
+            "mutant_012_typevar_default_getter_ignores_direct_value",
+            "mutant_013_paramspec_default_getter_ignores_direct_value",
+            "mutant_014_typevartuple_default_getter_ignores_direct_value"
+          ],
+          "rationale": "PEP 696 exposes defaults through public constructor keywords, __default__, and has_default() for all type parameter classes. The test checks both supplied defaults and the NoDefault sentinel for omitted defaults."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_subscription_uses_typevar_defaults_and_rejects_bad_order": {
+          "requirement_sections": [
+            "Specification > Default Ordering and Subscription Rules",
+            "Specification > Defaults following ``TypeVarTuple``"
+          ],
+          "public_surface": "typing.Generic subscription with public TypeVar and TypeVarTuple objects.",
+          "mutants_targeted": [
+            "mutant_015_typevar_substitution_does_not_use_default",
+            "mutant_019_collect_parameters_allows_nondefault_after_default",
+            "mutant_020_collect_parameters_allows_default_after_typevartuple"
+          ],
+          "rationale": "The default-ordering section requires omitted trailing defaults to be accepted and non-defaults after defaults to be rejected. The TypeVarTuple section forbids a defaulted TypeVar after a TypeVarTuple. The test exercises those rules through Generic subscription."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_paramspec_and_typevartuple_defaults_are_used_for_subscription": {
+          "requirement_sections": [
+            "Specification > ``ParamSpec`` Defaults",
+            "Specification > ``TypeVarTuple`` Defaults"
+          ],
+          "public_surface": "typing.Generic subscription with public ParamSpec and TypeVarTuple defaults.",
+          "mutants_targeted": [
+            "mutant_016_paramspec_substitution_does_not_use_default",
+            "mutant_017_typevartuple_substitution_does_not_use_default"
+          ],
+          "rationale": "ParamSpec and TypeVarTuple defaults must be consumed when a generic is specialized with omitted trailing parameters. The test asserts the public __args__ tuple contains the defaulted parameter shapes."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_runtime_defaults_are_lazily_attached": {
+          "requirement_sections": [
+            "Specification > Using Another Type Parameter as ``default``",
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "exec() of class type-parameter source and public __type_params__/__default__ attributes.",
+          "mutants_targeted": [
+            "mutant_021_compiler_does_not_attach_typevar_default"
+          ],
+          "rationale": "Defaults from PEP 695 syntax are lazily attached by the compiler, including defaults that reference another type parameter. The test observes lazy NameError behavior, cache behavior after binding, and a cross-parameter default through public class metadata."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_starred_typevartuple_default_from_pep695_syntax_is_attached": {
+          "requirement_sections": [
+            "Specification > ``TypeVarTuple`` Defaults",
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "exec() of starred TypeVarTuple default syntax and public __type_params__/__default__ attributes.",
+          "mutants_targeted": [
+            "mutant_022_set_typeparam_default_ignores_typevartuple"
+          ],
+          "rationale": "TypeVarTuple defaults supplied by starred PEP 695 syntax must be attached through the same public runtime default machinery as TypeVar and ParamSpec defaults. The test checks the public TypeVarTuple default value after class creation."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_type_parameter_defaults": {
+          "requirement_sections": [
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "Public ast node constructors, ast.fix_missing_locations(), compile() of an AST object, and __type_params__ metadata on the executed class.",
+          "mutants_targeted": [],
+          "rationale": "The grammar-change implementation adds default_value fields to TypeVar, ParamSpec, and TypeVarTuple AST nodes and the generated C obj2ast/validator path must accept those fields when user-created AST objects are compiled. This covers the public AST-to-code path that source parsing alone does not exercise."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_manual_ast_compile_accepts_missing_default_attributes": {
+          "requirement_sections": [
+            "Implementation > Grammar changes"
+          ],
+          "public_surface": "Public ast node constructors with optional default_value attributes omitted, compile() of an AST object, and runtime __type_params__ metadata.",
+          "mutants_targeted": [],
+          "rationale": "The generated AST conversion code treats default_value as optional for all type parameter nodes. Compiling manually-created nodes with the attribute removed verifies backward-compatible AST construction behavior and covers the no-default conversion path."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_defaults_on_functions_and_type_aliases": {
+          "requirement_sections": [
+            "Implementation > Grammar changes",
+            "Specification > ``ParamSpec`` Defaults",
+            "Specification > ``TypeVarTuple`` Defaults"
+          ],
+          "public_surface": "exec() of PEP 695 function and type-alias syntax plus public __type_params__ default metadata.",
+          "mutants_targeted": [],
+          "rationale": "PEP 696 defaults apply across PEP 695 functions, classes, and type aliases. This selector drives parser, compiler, and runtime default attachment for function TypeVar defaults, ParamSpec defaults, and starred TypeVarTuple defaults outside the class-only cases."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_pep695_default_order_errors_cover_variadic_and_paramspec": {
+          "requirement_sections": [
+            "Specification > Default Ordering and Subscription Rules",
+            "Specification > Defaults following ``TypeVarTuple``"
+          ],
+          "public_surface": "exec() of invalid PEP 695 class syntax and the public SyntaxError produced by the compiler.",
+          "mutants_targeted": [
+            "mutant_019_collect_parameters_allows_nondefault_after_default",
+            "mutant_020_collect_parameters_allows_default_after_typevartuple"
+          ],
+          "rationale": "The ordering sections require non-default type parameters to be rejected after defaulted parameters, including variadic and ParamSpec forms. The test exercises the compiler-side diagnostics for those public syntax errors."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_lazy_defaults_cover_paramspec_typevartuple_and_class_scope": {
+          "requirement_sections": [
+            "Specification > Using Another Type Parameter as ``default``",
+            "Specification > ``ParamSpec`` Defaults",
+            "Specification > ``TypeVarTuple`` Defaults"
+          ],
+          "public_surface": "exec() of PEP 695 classes, nested class metadata, lazy __default__ evaluation, and NameError behavior for unresolved defaults.",
+          "mutants_targeted": [
+            "mutant_021_compiler_does_not_attach_typevar_default",
+            "mutant_022_set_typeparam_default_ignores_typevartuple"
+          ],
+          "rationale": "The default-value sections require defaults to be attached lazily and resolved in the correct annotation scope for TypeVar, ParamSpec, and TypeVarTuple. This selector covers nested class lookup plus delayed resolution for ParamSpec and starred TypeVarTuple defaults."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_typing_private_default_branches_are_exercised": {
+          "requirement_sections": [
+            "Specification > Default Ordering and Subscription Rules"
+          ],
+          "public_surface": "typing.Generic subscription behavior, public TypeError messages, and typing module helper behavior reached through public TypeVar objects.",
+          "mutants_targeted": [
+            "mutant_015_typevar_substitution_does_not_use_default",
+            "mutant_018_check_generic_rejects_omitted_defaults"
+          ],
+          "rationale": "The subscription rules allow omitted trailing defaults but still reject too-few and too-many specializations. The test uses public generic classes and TypeVar instances to cover the accepted default path and the error branches that enforce arity."
+        },
+        "test.test_pep696_aug.TypeParameterDefaultsAugmentedTests.test_runtime_constructor_wrappers_cover_optional_keywords": {
+          "requirement_sections": [
+            "Implementation",
+            "Specification > ``ParamSpec`` Defaults",
+            "Specification > ``TypeVarTuple`` Defaults"
+          ],
+          "public_surface": "typing.TypeVar, typing.ParamSpec, typing.TypeVarTuple, and typing.NoDefault public constructors and attributes.",
+          "mutants_targeted": [
+            "mutant_006_nodefault_reduce_uses_missing_name",
+            "mutant_007_nodefault_repr_is_unqualified",
+            "mutant_012_typevar_default_getter_ignores_direct_value",
+            "mutant_013_paramspec_default_getter_ignores_direct_value",
+            "mutant_014_typevartuple_default_getter_ignores_direct_value"
+          ],
+          "rationale": "The implementation section adds the default keyword and NoDefault sentinel to the runtime type-parameter API. This selector covers optional keyword parsing for TypeVar and ParamSpec, TypeVarTuple default handling, and the sentinel representation/reducer contract."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_string_template_substitution_and_formatter_are_stable": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "string.Template.substitute() and str.format() on ordinary strings.",
+          "rationale": "PEP 696 only extends type parameter defaults. Ordinary string templating and formatting are unrelated public-library behavior and should remain stable across base, golden, and mutants."
+        },
+        "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_numeric_literal_and_float_roundtrip_behaviour_is_stable": {
+          "requirement_sections": [
+            "Specification"
+          ],
+          "public_surface": "int() parsing with underscores/base prefixes and float.fromhex()/float.hex().",
+          "rationale": "Numeric literal parsing and float hex round trips are outside the type-parameter default surface. This P2P guard detects collateral interpreter or stdlib regressions unrelated to the PEP 696 implementation."
+        },
+        "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_regular_function_and_class_execution_are_stable": {
+          "requirement_sections": [
+            "Rejected Alternatives > Allowing Type Parameters With Defaults To Be Used in Function Signatures"
+          ],
+          "public_surface": "Regular class construction, instance methods, and list comprehension execution without type-parameter defaults.",
+          "rationale": "PEP 696 rejects broadening defaults into ordinary function signature behavior. This test keeps normal class/method execution and comprehension results stable without exercising the new default syntax."
+        },
+        "test.test_pep696_stability_aug.TypeParameterDefaultsStabilityAugmentedTests.test_sys_frame_metadata_for_regular_calls_is_stable": {
+          "requirement_sections": [
+            "Implementation"
+          ],
+          "public_surface": "sys._getframe() metadata for a normal Python function call.",
+          "rationale": "The implementation changes are limited to type-parameter grammar, AST, compiler, and typing support. Regular frame metadata for ordinary function calls should remain unchanged."
+        }
+      }
+    }
+  },
+  "repo": "python/cpython",
+  "image": "lolbench/cpython-base:1",
+  "pr_head_sha": "8c3e0b41511877db1027a44f06dbbf54e71a76db",
+  "diff_source": "github_pr_cache",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-base:1"
+  },
+  "test_framework": "cpython_regrtest",
+  "test_cmd_template": "python -m test <test_selector>",
+  "log_parser": "python_unittest",
+  "coverage": {
+    "orig": 72.71,
+    "aug": 82.11,
+    "union": 85.32,
+    "denominator": "union_executable_lines"
+  }
+}

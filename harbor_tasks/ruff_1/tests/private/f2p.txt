@@ -1,0 +1,17 @@
+format::config_override_via_cli
+format::config_doubly_overridden_via_cli
+format::nonexistent_config_file
+format::config_override_rejected_if_invalid_toml
+format::too_many_config_files
+format::config_file_and_isolated
+lint::config_override_via_cli
+lint::config_doubly_overridden_via_cli
+lint::nonexistent_config_file
+lint::config_override_rejected_if_invalid_toml
+lint::too_many_config_files
+lint::config_file_and_isolated
+lint::valid_toml_but_nonexistent_option_provided_via_config_argument
+lint::each_toml_option_requires_a_new_flag_1
+lint::each_toml_option_requires_a_new_flag_2
+lint::complex_config_setting_overridden_via_cli
+lint::deprecated_config_option_overridden_via_cli

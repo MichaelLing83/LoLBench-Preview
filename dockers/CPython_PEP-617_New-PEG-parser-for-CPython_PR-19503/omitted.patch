@@ -1,0 +1,149 @@
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -13,6 +13,7 @@ on:
+     - '**/*.rst'
+   pull_request:
+     branches:
++    - pegen
+     - master
+     - 3.8
+     - 3.7
+@@ -50,6 +51,22 @@ jobs:
+   build_macos:
+     name: 'macOS'
+     runs-on: macos-latest
++    env:
++      PYTHONOLDPARSER: old
++    steps:
++    - uses: actions/checkout@v1
++    - name: Configure CPython
++      run: ./configure --with-pydebug --with-openssl=/usr/local/opt/openssl --prefix=/opt/python-dev
++    - name: Build CPython
++      run: make -j4
++    - name: Display build info
++      run: make pythoninfo
++    - name: Tests
++      run: make buildbottest TESTOPTS="-j4 -uall,-cpu"
++
++  build_macos_pegen:
++    name: 'macOS - Pegen'
++    runs-on: macos-latest
+     steps:
+     - uses: actions/checkout@v1
+     - name: Configure CPython
+@@ -64,6 +81,34 @@ jobs:
+   build_ubuntu:
+     name: 'Ubuntu'
+     runs-on: ubuntu-latest
++    env:
++      OPENSSL_VER: 1.1.1f
++      PYTHONOLDPARSER: old
++    steps:
++    - uses: actions/checkout@v1
++    - name: Install Dependencies
++      run: sudo ./.github/workflows/posix-deps-apt.sh
++    - name: 'Restore OpenSSL build'
++      id: cache-openssl
++      uses: actions/cache@v1
++      with:
++        path: ./multissl/openssl/${{ env.OPENSSL_VER }}
++        key: ${{ runner.os }}-multissl-openssl-${{ env.OPENSSL_VER }}
++    - name: Install OpenSSL
++      if: steps.cache-openssl.outputs.cache-hit != 'true'
++      run: python3 Tools/ssl/multissltests.py --steps=library --base-directory $PWD/multissl --openssl $OPENSSL_VER --system Linux
++    - name: Configure CPython
++      run: ./configure --with-pydebug --with-openssl=$PWD/multissl/openssl/$OPENSSL_VER
++    - name: Build CPython
++      run: make -j4
++    - name: Display build info
++      run: make pythoninfo
++    - name: Tests
++      run: xvfb-run make buildbottest TESTOPTS="-j4 -uall,-cpu"
++
++  build_ubuntu_pegen:
++    name: 'Ubuntu - Pegen'
++    runs-on: ubuntu-latest
+     env:
+       OPENSSL_VER: 1.1.1f
+     steps:
+diff --git a/.travis.yml b/.travis.yml
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,5 +1,5 @@
+ language: c
+-dist: xenial
++dist: bionic
+ 
+ # To cache doc-building dependencies and C compiler output.
+ cache:
+@@ -22,6 +22,7 @@ env:
+ branches:
+   only:
+     - master
++    - pegen
+     - /^\d\.\d+$/
+     - buildbot-custom
+ 
+@@ -157,7 +158,9 @@ install:
+ before_script:
+   # -Og is much faster than -O0
+   - CFLAGS="${CFLAGS} -Og" ./configure --with-pydebug
+-  - make -j4 regen-all
++  - eval "$(pyenv init -)"
++  - pyenv global 3.8
++  - PYTHON_FOR_REGEN=python3.8 make -j4 regen-all
+   - changes=`git status --porcelain`
+   - |
+       # Check for changes in regenerated files
+diff --git a/Doc/using/cmdline.rst b/Doc/using/cmdline.rst
+--- a/Doc/using/cmdline.rst
++++ b/Doc/using/cmdline.rst
+@@ -426,6 +426,8 @@ Miscellaneous options
+    defines the following possible values:
+ 
+    * ``-X faulthandler`` to enable :mod:`faulthandler`;
++   * ``-X oldparser``: enable the traditional LL(1) parser.  See also
++     :envvar:`PYTHONOLDPARSER`.
+    * ``-X showrefcount`` to output the total reference count and number of used
+      memory blocks when the program finishes or after each statement in the
+      interactive interpreter. This only works on debug builds.
+@@ -574,6 +576,12 @@ conflict.
+    :option:`-d` multiple times.
+ 
+ 
++.. envvar:: PYTHONOLDPARSER
++
++   If this is set it is equivalent to specifying the :option:`-X`
++   ``oldparser`` option.
++
++
+ .. envvar:: PYTHONINSPECT
+ 
+    If this is set to a non-empty string it is equivalent to specifying the
+diff --git a/"Misc/NEWS.d/next/Core and Builtins/2020-04-20-14-06-19.bpo-40334.CTLGEp.rst" b/"Misc/NEWS.d/next/Core and Builtins/2020-04-20-14-06-19.bpo-40334.CTLGEp.rst"
+new file mode 100644
+--- /dev/null
++++ b/"Misc/NEWS.d/next/Core and Builtins/2020-04-20-14-06-19.bpo-40334.CTLGEp.rst"
+@@ -0,0 +1,5 @@
++Switch to a new parser, based on PEG.  For more details see PEP 617. To
++temporarily switch back to the old parser, use ``-X oldparser`` or
++``PYTHONOLDPARSER=1``.  In Python 3.10 we will remove the old parser
++completely, including the ``parser`` module (already deprecated) and
++anything that depends on it.
+diff --git a/Tools/README b/Tools/README
+--- a/Tools/README
++++ b/Tools/README
+@@ -23,6 +23,8 @@ msi             Support for packaging Python as an MSI package on Windows.
+ 
+ parser          Un-parsing tool to generate code from an AST.
+ 
++peg_generator   PEG-based parser generator (pegen) used for new parser.
++
+ pynche          A Tkinter-based color editor.
+ 
+ scripts         A number of useful single-file programs, e.g. tabnanny.py
+diff --git a/Tools/peg_generator/data/xxl.zip b/Tools/peg_generator/data/xxl.zip
+new file mode 100644
+--- /dev/null
++++ b/Tools/peg_generator/data/xxl.zip

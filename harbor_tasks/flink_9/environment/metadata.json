@@ -1,0 +1,23 @@
+{
+  "instance_id": "flink_9",
+  "source_instance_id": "Apache-Flink_FLIP-499-Support-Event-Time-by-Generalized-Watermark-in-Data_PR-25978",
+  "source_slug": "Apache-Flink_FLIP-499-Support-Event-Time-by-Generalized-Watermark-in-Data_PR-25978",
+  "docker_slug": "Apache-Flink_FLIP-499-Support-Event-Time-by-Generalized-Watermark-in-Data_PR-25978",
+  "dockerhub_image": "smartdub26/lolbench:flink_9-1.0.0",
+  "dockerhub_digest": "sha256:213a5e9caf4afbeef8e023ca6c8d163f0bad905853ae0d86796c8f8447783721",
+  "project": "flink",
+  "repo": "apache/flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-499",
+  "pr_link": "https://github.com/apache/flink/pull/25978",
+  "base_commit": "c4bea91284bf1871e23a4c93fbf9f3b65b1a89d4",
+  "merge_commit": "9855bdafb6a338d78ae56013a9f5d27b73c33945",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

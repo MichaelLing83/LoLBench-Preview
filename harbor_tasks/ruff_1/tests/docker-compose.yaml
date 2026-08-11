@@ -1,0 +1,16 @@
+services:
+  main:
+    pull_policy: missing
+    volumes:
+      - type: bind
+        source: .
+        target: /tests
+        read_only: true
+      - type: bind
+        source: ./private
+        target: /opt/lolbench/private
+        read_only: true
+      - type: bind
+        source: ../solution
+        target: /solution
+        read_only: true

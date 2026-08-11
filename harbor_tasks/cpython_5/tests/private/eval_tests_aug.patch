@@ -1,0 +1,138 @@
+diff --git a/Lib/test/test_tomllib_aug.py b/Lib/test/test_tomllib_aug.py
+new file mode 100644
+index 0000000000..91d42b4c08
+--- /dev/null
++++ b/Lib/test/test_tomllib_aug.py
+@@ -0,0 +1,79 @@
++import datetime
++import decimal
++import io
++import unittest
++
++import tomllib
++
++
++class TomllibPublicApiAugTest(unittest.TestCase):
++    def test_load_accepts_binary_file_objects_only(self):
++        self.assertEqual(tomllib.load(io.BytesIO(b"answer = 42\n")), {"answer": 42})
++
++        with self.assertRaises(TypeError):
++            tomllib.load(io.StringIO("answer = 42\n"))
++
++    def test_loads_accepts_str_and_rejects_bytes(self):
++        self.assertEqual(tomllib.loads('name = "Ada"\n'), {"name": "Ada"})
++
++        with self.assertRaises(TypeError):
++            tomllib.loads(b'name = "Ada"\n')
++
++    def test_parse_float_callback_is_observed_and_kept_scalar(self):
++        seen = []
++
++        def parse_float(text):
++            seen.append(text)
++            return decimal.Decimal(text)
++
++        parsed = tomllib.loads("low = 1.25\nhigh = 2e3\n", parse_float=parse_float)
++        self.assertEqual(parsed, {"low": decimal.Decimal("1.25"), "high": decimal.Decimal("2e3")})
++        self.assertEqual(seen, ["1.25", "2e3"])
++
++        for bad_value in ({}, []):
++            with self.subTest(bad_value=type(bad_value).__name__):
++                with self.assertRaises(ValueError):
++                    tomllib.loads("x = 1.0\n", parse_float=lambda _text, value=bad_value: value)
++
++    def test_duplicate_keys_and_frozen_namespaces_are_rejected(self):
++        invalid_documents = [
++            "a = 1\na = 2\n",
++            "tbl = { x = 1, x = 2 }\n",
++            "tbl = { x = 1 }\ntbl.y = 2\n",
++            "a.b = 1\n[a]\nc = 2\n",
++        ]
++        for document in invalid_documents:
++            with self.subTest(document=document):
++                with self.assertRaises(tomllib.TOMLDecodeError):
++                    tomllib.loads(document)
++
++    def test_strings_comments_and_booleans_follow_toml_rules(self):
++        invalid_documents = [
++            's = "first\nsecond"\n',
++            's = "\\uD800"\n',
++            "x = 1 # bad" + chr(8) + "comment\n",
++        ]
++        for document in invalid_documents:
++            with self.subTest(document=repr(document)):
++                with self.assertRaises(tomllib.TOMLDecodeError):
++                    tomllib.loads(document)
++
++        self.assertIs(tomllib.loads("enabled = false\n")["enabled"], False)
++
++    def test_arrays_datetimes_dates_and_non_decimal_integers(self):
++        parsed = tomllib.loads(
++            "values = [1, 2,]\n"
++            "ts = 2022-01-01T00:00:00+02:30\n"
++            "d = 2022-03-08\n"
++            "mask = 0xff\n"
++        )
++
++        self.assertEqual(parsed["values"], [1, 2])
++        self.assertEqual(parsed["ts"].utcoffset(), datetime.timedelta(hours=2, minutes=30))
++        self.assertIsInstance(parsed["d"], datetime.date)
++        self.assertNotIsInstance(parsed["d"], datetime.datetime)
++        self.assertEqual(parsed["mask"], 255)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/Lib/test/test_tomllib_stability_aug.py b/Lib/test/test_tomllib_stability_aug.py
+new file mode 100644
+index 0000000000..c2387d1499
+--- /dev/null
++++ b/Lib/test/test_tomllib_stability_aug.py
+@@ -0,0 +1,47 @@
++import configparser
++import datetime
++import decimal
++import io
++import json
++import unittest
++
++
++class StdlibStabilityAugTest(unittest.TestCase):
++    def test_json_parse_float_callback_is_unchanged(self):
++        seen = []
++
++        def parse_float(text):
++            seen.append(text)
++            return decimal.Decimal(text)
++
++        parsed = json.loads('{"low": 1.25, "items": [2.5]}', parse_float=parse_float)
++        self.assertEqual(parsed, {"low": decimal.Decimal("1.25"), "items": [decimal.Decimal("2.5")]})
++        self.assertEqual(seen, ["1.25", "2.5"])
++
++    def test_configparser_defaults_and_interpolation_are_unchanged(self):
++        parser = configparser.ConfigParser()
++        parser.read_file(
++            io.StringIO(
++                "[DEFAULT]\n"
++                "root = /srv/app\n"
++                "\n"
++                "[service]\n"
++                "path = %(root)s/bin\n"
++                "enabled = yes\n"
++            )
++        )
++
++        self.assertEqual(parser.get("service", "path"), "/srv/app/bin")
++        self.assertTrue(parser.getboolean("service", "enabled"))
++        self.assertEqual(parser.sections(), ["service"])
++
++    def test_datetime_fromisoformat_timezone_offsets_are_unchanged(self):
++        dt = datetime.datetime.fromisoformat("2022-01-01T00:00:00+02:30")
++        self.assertEqual(dt.utcoffset(), datetime.timedelta(hours=2, minutes=30))
++
++        negative = datetime.datetime.fromisoformat("2022-01-01T00:00:00-07:00")
++        self.assertEqual(negative.utcoffset(), -datetime.timedelta(hours=7))
++
++
++if __name__ == "__main__":
++    unittest.main()

@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_4",
+  "source_instance_id": "CPython_PEP-654_Exception-Groups-and-except_PR-29581",
+  "source_slug": "CPython_PEP-654_Exception-Groups-and-except_PR-29581",
+  "docker_slug": "CPython_PEP-654_Exception-Groups-and-except_PR-29581",
+  "dockerhub_image": "smartdub26/lolbench:cpython_4-1.0.0",
+  "dockerhub_digest": "sha256:eff28deadc622839c234095e9a53af30599e82622e8d7c9dcc695f6266f04663",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0654/",
+  "pr_link": "https://github.com/python/cpython/pull/29581",
+  "base_commit": "850aefc2c651110a784cd5478af9774b1f6287a3",
+  "merge_commit": "d60457a6673cf0263213c2f2be02c633ec2e2038",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

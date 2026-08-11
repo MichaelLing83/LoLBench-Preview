@@ -1,0 +1,988 @@
+{
+  "instance_id": "Ruff_Issue-8368_Allow-override-of-configuration-options-via-the-CLI_PR-9599",
+  "project": "Ruff",
+  "requirement_doc": "https://github.com/astral-sh/ruff/issues/8368",
+  "pr_link": "https://github.com/astral-sh/ruff/pull/9599",
+  "pr_merge_date": "2024-02-09",
+  "language": "Rust",
+  "build_system": "Cargo",
+  "scope": {
+    "touched_modules": [
+      "crates/ruff",
+      "crates/ruff_workspace",
+      "crates/ruff_linter (light)"
+    ],
+    "f2p_module": "crates/ruff",
+    "p2p_module": "crates/ruff",
+    "total_files_changed": 21
+  },
+  "base_commit": "b21ba71ef4b897cbb9e3c402f081887b650b6448",
+  "merge_commit_sha": "8ec56277e979b18b47d3115c8f345a6e18b2cbc0",
+  "diff_source": "pr_files_cache",
+  "solution_patch_sha256": "a3e8058cb2a5c858c138dc591b8615ce1ca23c642face051c724e8651c621d36",
+  "eval_tests_patch_sha256": "e2edc933e5568881be258ebb52daa8f399e78bb700addccfccc47802060b7247",
+  "omitted_patch_sha256": "be6cf7a171c8176507739a96936b7027022ee922982ffaa56fb4fad92019da9d",
+  "toolchain": {
+    "rust": "1.76",
+    "edition": "2021"
+  },
+  "build_modules": [
+    "ruff",
+    "ruff_workspace",
+    "ruff_linter"
+  ],
+  "test_framework": "cargo-libtest",
+  "test_level": "system",
+  "fail_to_pass": [
+    "format::config_override_via_cli",
+    "format::config_doubly_overridden_via_cli",
+    "format::nonexistent_config_file",
+    "format::config_override_rejected_if_invalid_toml",
+    "format::too_many_config_files",
+    "format::config_file_and_isolated",
+    "lint::config_override_via_cli",
+    "lint::config_doubly_overridden_via_cli",
+    "lint::nonexistent_config_file",
+    "lint::config_override_rejected_if_invalid_toml",
+    "lint::too_many_config_files",
+    "lint::config_file_and_isolated",
+    "lint::valid_toml_but_nonexistent_option_provided_via_config_argument",
+    "lint::each_toml_option_requires_a_new_flag_1",
+    "lint::each_toml_option_requires_a_new_flag_2",
+    "lint::complex_config_setting_overridden_via_cli",
+    "lint::deprecated_config_option_overridden_via_cli"
+  ],
+  "pass_to_pass": [
+    "integration_test::stdin_success",
+    "show_settings::display_default_settings",
+    "resolve_files::check_project_include_defaults",
+    "integration_test::check_default_files",
+    "integration_test::check_docstring_conventions_overrides",
+    "integration_test::check_extend_safe_fixes",
+    "integration_test::check_extend_unsafe_fixes",
+    "integration_test::check_extend_unsafe_fixes_conflict_with_extend_safe_fixes",
+    "integration_test::check_extend_unsafe_fixes_conflict_with_extend_safe_fixes_by_specificity",
+    "integration_test::check_hints_hidden_unsafe_fixes",
+    "integration_test::check_hints_hidden_unsafe_fixes_with_no_safe_fixes",
+    "integration_test::check_input_from_argfile",
+    "integration_test::check_no_hint_for_hidden_unsafe_fixes_when_disabled",
+    "integration_test::check_no_hint_for_hidden_unsafe_fixes_with_no_safe_fixes_when_disabled",
+    "integration_test::check_shows_unsafe_fixes_with_opt_in",
+    "integration_test::check_warn_stdin_filename_with_files",
+    "integration_test::deprecated_direct",
+    "integration_test::deprecated_direct_preview_enabled",
+    "integration_test::deprecated_indirect",
+    "integration_test::deprecated_indirect_preview_enabled",
+    "integration_test::deprecated_multiple_direct",
+    "integration_test::deprecated_multiple_direct_preview_enabled",
+    "integration_test::diff_does_not_show_display_only_fixes_with_unsafe_fixes_enabled",
+    "integration_test::diff_only_unsafe_fixes_available",
+    "integration_test::diff_shows_safe_fixes_by_default",
+    "integration_test::diff_shows_unsafe_fixes_with_opt_in",
+    "integration_test::explain_status_codes_f401",
+    "integration_test::explain_status_codes_ruf404",
+    "integration_test::fix_applies_safe_fixes_by_default",
+    "integration_test::fix_applies_unsafe_fixes_with_opt_in",
+    "integration_test::fix_does_not_apply_display_only_fixes",
+    "integration_test::fix_does_not_apply_display_only_fixes_with_unsafe_fixes_enabled",
+    "integration_test::fix_only_flag_applies_safe_fixes_by_default",
+    "integration_test::fix_only_flag_applies_unsafe_fixes_with_opt_in",
+    "integration_test::fix_only_unsafe_fixes_available",
+    "integration_test::fix_preview",
+    "integration_test::full_output_format",
+    "integration_test::full_output_preview",
+    "integration_test::full_output_preview_config",
+    "integration_test::nursery_all",
+    "integration_test::nursery_direct",
+    "integration_test::nursery_group_selector",
+    "integration_test::nursery_group_selector_preview_enabled",
+    "integration_test::nursery_prefix",
+    "integration_test::preview_disabled_direct",
+    "integration_test::preview_disabled_does_not_warn_for_empty_fixable_selections",
+    "integration_test::preview_disabled_does_not_warn_for_empty_ignore_selections",
+    "integration_test::preview_disabled_prefix_empty",
+    "integration_test::preview_enabled_all",
+    "integration_test::preview_enabled_direct"
+  ],
+  "synthetic_tests": [],
+  "triage": {
+    "fail_to_pass": {
+      "_summary": "17 integration tests in crates/ruff/tests/{format,lint}.rs covering the new CLI configuration-override surface (--config 'key=value', --config <file>, --extend-select, --isolated handling, conflict detection, deprecated-option handling). Each invokes the `ruff` binary via TestContext and asserts CLI output via insta snapshots \u2014 system-level by definition (CLI is the public surface)."
+    },
+    "pass_to_pass": {
+      "_summary": "3 selectors from test binaries untouched by eval_tests.patch (integration_test.rs, show_settings.rs, resolve_files.rs). cargo test --test compiles only the named binary's deps, so F2P compile failure in pre-state doesn't poison P2P binaries \u2014 strict \u00a77 P2P preservation.",
+      "integration_test::stdin_success": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact stdin_success",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "show_settings::display_default_settings": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` show-settings CLI output for default settings.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test show_settings -- --exact display_default_settings",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "resolve_files::check_project_include_defaults": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` file discovery and include/exclude resolution behavior.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test resolve_files -- --exact check_project_include_defaults",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_default_files": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_default_files",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_docstring_conventions_overrides": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_docstring_conventions_overrides",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_extend_safe_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_extend_safe_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_extend_unsafe_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_extend_unsafe_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_extend_unsafe_fixes_conflict_with_extend_safe_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_extend_unsafe_fixes_conflict_with_extend_safe_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_extend_unsafe_fixes_conflict_with_extend_safe_fixes_by_specificity": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_extend_unsafe_fixes_conflict_with_extend_safe_fixes_by_specificity",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_hints_hidden_unsafe_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_hints_hidden_unsafe_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_hints_hidden_unsafe_fixes_with_no_safe_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_hints_hidden_unsafe_fixes_with_no_safe_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_input_from_argfile": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_input_from_argfile",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_no_hint_for_hidden_unsafe_fixes_when_disabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_no_hint_for_hidden_unsafe_fixes_when_disabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_no_hint_for_hidden_unsafe_fixes_with_no_safe_fixes_when_disabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_no_hint_for_hidden_unsafe_fixes_with_no_safe_fixes_when_disabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_shows_unsafe_fixes_with_opt_in": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_shows_unsafe_fixes_with_opt_in",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::check_warn_stdin_filename_with_files": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact check_warn_stdin_filename_with_files",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_direct": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_direct",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_direct_preview_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_direct_preview_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_indirect": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_indirect",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_indirect_preview_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_indirect_preview_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_multiple_direct": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_multiple_direct",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::deprecated_multiple_direct_preview_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact deprecated_multiple_direct_preview_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::diff_does_not_show_display_only_fixes_with_unsafe_fixes_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact diff_does_not_show_display_only_fixes_with_unsafe_fixes_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::diff_only_unsafe_fixes_available": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact diff_only_unsafe_fixes_available",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::diff_shows_safe_fixes_by_default": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact diff_shows_safe_fixes_by_default",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::diff_shows_unsafe_fixes_with_opt_in": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact diff_shows_unsafe_fixes_with_opt_in",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::explain_status_codes_f401": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact explain_status_codes_f401",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::explain_status_codes_ruf404": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact explain_status_codes_ruf404",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_applies_safe_fixes_by_default": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_applies_safe_fixes_by_default",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_applies_unsafe_fixes_with_opt_in": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_applies_unsafe_fixes_with_opt_in",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_does_not_apply_display_only_fixes": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_does_not_apply_display_only_fixes",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_does_not_apply_display_only_fixes_with_unsafe_fixes_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_does_not_apply_display_only_fixes_with_unsafe_fixes_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_only_flag_applies_safe_fixes_by_default": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_only_flag_applies_safe_fixes_by_default",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_only_flag_applies_unsafe_fixes_with_opt_in": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_only_flag_applies_unsafe_fixes_with_opt_in",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_only_unsafe_fixes_available": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_only_unsafe_fixes_available",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::fix_preview": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact fix_preview",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::full_output_format": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact full_output_format",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::full_output_preview": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact full_output_preview",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::full_output_preview_config": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact full_output_preview_config",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::nursery_all": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact nursery_all",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::nursery_direct": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact nursery_direct",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::nursery_group_selector": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact nursery_group_selector",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::nursery_group_selector_preview_enabled": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact nursery_group_selector_preview_enabled",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::nursery_prefix": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact nursery_prefix",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_disabled_direct": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_disabled_direct",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_disabled_does_not_warn_for_empty_fixable_selections": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_disabled_does_not_warn_for_empty_fixable_selections",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_disabled_does_not_warn_for_empty_ignore_selections": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_disabled_does_not_warn_for_empty_ignore_selections",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_disabled_prefix_empty": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_disabled_prefix_empty",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_enabled_all": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_enabled_all",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      },
+      "integration_test::preview_enabled_direct": {
+        "system_reason": "Pre-existing Ruff cargo integration-test selector from the base checkout; validated to pass before and after PR-9599 and selected as a regression canary for public CLI behavior adjacent to configuration resolution without asserting the new inline --config override requirement.",
+        "public_surface": "public `ruff` CLI lint/fix/stdin/rule-selection behavior exercised by the integration test binary.",
+        "internal_symbol_check": [
+          "ConfigurationTransformer (not asserted by selector)",
+          "ConfigurationArguments (not asserted by selector)",
+          "config_arguments (not asserted by selector)",
+          "config_override (not asserted by selector)"
+        ],
+        "runner_surface": "cargo test -p ruff --test integration_test -- --exact preview_enabled_direct",
+        "test_framework_subtype": "cargo-libtest integration test",
+        "fixture_taint_checked": true
+      }
+    },
+    "module_scope_rationale": "crates/ruff hosts the CLI binary that this KIP modifies.",
+    "pass_to_pass_expansion_summary": {
+      "updated_at": "2026-06-15",
+      "policy": "All added P2P selectors are pre-existing Ruff integration tests added to p2p.txt; p2p_aug.txt remains reserved for synthesized augmented P2P tests.",
+      "count_before": 3,
+      "count_after": 50,
+      "selectors_added": 47,
+      "validation": "Expanded original suite validated pre-state and post-state with 50/50 P2P passing; union coverage executed 51/51 P2P selectors including the unchanged synthesized augmented P2P selector.",
+      "candidate_source": "Pre-existing crates/ruff/tests/integration_test.rs selectors plus the original show_settings and resolve_files P2P selectors.",
+      "rejected_candidates": []
+    }
+  },
+  "f2p_entry_count": 17,
+  "p2p_entry_count": 50,
+  "timeout_s": 3600,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 8
+  },
+  "validated_at": "2026-06-15",
+  "augmented": {
+    "suite_support": {
+      "env": "LOLBENCH_SUITE",
+      "modes": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "default": "orig"
+    },
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "bfade42de0c01d1655e6212b7506589a8a16e9a0adc7f06fdab4252182cc5b13",
+    "f2p_aug_sha256": "b3652e9d05e0af5066701ae032f4edfc9f7da1a4718e24fa9843c4560472f294",
+    "p2p_aug_sha256": "5b619f71749f454cf53ec03d2687b2d57ea07735759ca1ece0b47ddcc2681ad2",
+    "fail_to_pass": [
+      "config_aug::isolated_inline_overrides_still_apply",
+      "config_aug::nested_pyproject_add_noqa_uses_cli_excludes"
+    ],
+    "pass_to_pass": [
+      "config_aug::default_check_still_reports_unused_import"
+    ],
+    "targets_mutants": [
+      "mutant_013_isolated_mode_ignores_inline_overrides",
+      "mutant_016_show_settings_ignores_config_arguments"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "augmented_coverage_report": "coverage_out/coverage_report_aug.json",
+      "baseline_union_line_coverage_percent": 86.9,
+      "augmented_only_union_line_coverage_percent": 39.8,
+      "union_line_coverage_percent": 88.1,
+      "executable_lines_in_patch": 329,
+      "union_covered_lines": 290,
+      "coverage_complete": true,
+      "measurement_note": "Coverage measured with cargo-llvm-cov over solution.patch Rust lines; union mode runs original plus augmented F2P/P2P selectors. Original P2P was expanded to 50 pre-existing selectors on 2026-06-15."
+    },
+    "synthetic_tests": [
+      "config_aug::isolated_inline_overrides_still_apply",
+      "config_aug::nested_pyproject_add_noqa_uses_cli_excludes",
+      "config_aug::default_check_still_reports_unused_import"
+    ],
+    "triage": {
+      "test_level_policy": "All augmented selectors exercise Ruff through the public `ruff` CLI binary using cargo integration tests. The F2P selectors use user-visible command-line behavior for repeatable inline `--config` overrides and add-noqa file discovery; the P2P selector uses default lint behavior with no configuration overrides.",
+      "fail_to_pass": {
+        "config_aug::isolated_inline_overrides_still_apply": {
+          "requirement_sections": [
+            "Allow override of configuration options via the CLI > Proposals"
+          ],
+          "public_surface": "ruff check --isolated with repeatable inline --config TOML options.",
+          "mutants_targeted": [
+            "mutant_013_isolated_mode_ignores_inline_overrides"
+          ],
+          "rationale": "The requirement permits inline CLI configuration overrides. `--isolated` ignores configuration files, but inline CLI overrides remain command-line input; this test selects E501 and lowers line-length through inline `--config`, distinguishing the mutant that drops ConfigArguments in isolated mode."
+        },
+        "config_aug::nested_pyproject_add_noqa_uses_cli_excludes": {
+          "requirement_sections": [
+            "Allow override of configuration options via the CLI > Proposals"
+          ],
+          "public_surface": "ruff check --add-noqa over a directory with a nested pyproject.toml and an inline --config exclude override.",
+          "mutants_targeted": [
+            "mutant_016_show_settings_ignores_config_arguments"
+          ],
+          "rationale": "CLI overrides must transform every resolved configuration, including nested pyproject.toml files discovered while collecting files for add-noqa. The mutant substitutes default ConfigArguments during file discovery, so the nested generated.py file is not excluded and gets modified."
+        }
+      },
+      "pass_to_pass": {
+        "config_aug::default_check_still_reports_unused_import": {
+          "requirement_sections": [
+            "Allow override of configuration options via the CLI > Proposals"
+          ],
+          "public_surface": "ruff check default CLI behavior without --config overrides.",
+          "rationale": "Pins unrelated default lint behavior for unused imports so the configuration-override patch does not regress ordinary no-config CLI checks."
+        }
+      }
+    }
+  },
+  "repo": "astral-sh/ruff",
+  "image": "lolbench/ruff-pr-9599:1",
+  "pr_head_sha": "0f8a5831469ed7d066cb0849d574551f0b4e33f8",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --memory 8g --cpus 4 -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/ruff-pr-9599:1"
+  },
+  "test_cmd_template": "./run_tests.sh <test_selector>",
+  "log_parser": "generic_log",
+  "coverage": {
+    "orig": 86.9,
+    "aug": 39.8,
+    "union": 88.1,
+    "denominator": "union_executable_lines"
+  },
+  "validation_summary": {
+    "orig": {
+      "pre": {
+        "f2p": {
+          "passed": 0,
+          "failed": 17,
+          "total": 17
+        },
+        "p2p": {
+          "passed": 50,
+          "total": 50
+        },
+        "resolved": false
+      },
+      "post": {
+        "f2p": {
+          "passed": 17,
+          "total": 17
+        },
+        "p2p": {
+          "passed": 50,
+          "total": 50
+        },
+        "resolved": true
+      }
+    },
+    "aug": {
+      "pre": {
+        "f2p": {
+          "passed": 0,
+          "failed": 2,
+          "total": 2
+        },
+        "p2p": {
+          "passed": 1,
+          "total": 1
+        },
+        "resolved": false
+      },
+      "post": {
+        "f2p": {
+          "passed": 2,
+          "total": 2
+        },
+        "p2p": {
+          "passed": 1,
+          "total": 1
+        },
+        "resolved": true
+      }
+    },
+    "union": {
+      "pre": {
+        "f2p": {
+          "passed": 0,
+          "failed": 19,
+          "total": 19
+        },
+        "p2p": {
+          "passed": 51,
+          "total": 51
+        },
+        "resolved": false,
+        "note": "P2P result combines the 2026-06-15 expanded original P2P validation with the unchanged augmented P2P selector from prior validation."
+      },
+      "post": {
+        "f2p": {
+          "passed": 19,
+          "total": 19
+        },
+        "p2p": {
+          "passed": 51,
+          "total": 51
+        },
+        "resolved": true,
+        "note": "The 2026-06-15 union coverage run executed the full post-state union selector set under coverage."
+      }
+    },
+    "coverage": {
+      "orig": {
+        "covered": 286,
+        "total": 329,
+        "pct": 86.9,
+        "f2p_covered": 265,
+        "p2p_covered": 145,
+        "coverage_complete": true,
+        "report": "coverage_out/coverage_report_orig.json"
+      },
+      "aug": {
+        "covered": 131,
+        "total": 329,
+        "pct": 39.8,
+        "f2p_covered": 131,
+        "p2p_covered": 99,
+        "coverage_complete": true,
+        "report": "coverage_out/coverage_report_aug.json"
+      },
+      "union": {
+        "covered": 290,
+        "total": 329,
+        "pct": 88.1,
+        "f2p_covered": 273,
+        "p2p_covered": 145,
+        "coverage_complete": true,
+        "report": "coverage_out/coverage_report_union.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "instance_id": "flink_11",
+  "source_instance_id": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "source_slug": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "docker_slug": "Apache-Flink_FLIP-498_AsyncTableFunction-for-async-table-function-support_PR-26567",
+  "dockerhub_image": "smartdub26/lolbench:flink_11-1.0.0",
+  "dockerhub_digest": "sha256:059d8f0d8a94d573671531d0c189ae35c6b826a5278f907ca48659706db70e0c",
+  "project": "flink",
+  "repo": "apache/flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-498:+AsyncTableFunction+for+async+table+function+support",
+  "pr_link": "https://github.com/apache/flink/pull/26567",
+  "base_commit": "7309fe832cb303c9adf6bfb441790e3d293908fe",
+  "merge_commit": "86761e1e9bf7207b43275b66e8ca6dff1e573509",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

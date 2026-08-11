@@ -1,0 +1,23 @@
+{
+  "instance_id": "flink_1",
+  "source_instance_id": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "source_slug": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "docker_slug": "Apache-Flink_FLIP-77-Introduce-ConfigOptions-with-Data-Types_PR-9976",
+  "dockerhub_image": "smartdub26/lolbench:flink_1-1.0.0",
+  "dockerhub_digest": "sha256:74d54be14889a973d6ad90a47aa664312bb8fcf8dbe2d384d0918ec34b3651c2",
+  "project": "flink",
+  "repo": "apache/flink",
+  "requirement_doc": "https://cwiki.apache.org/confluence/display/FLINK/FLIP-77",
+  "pr_link": "https://github.com/apache/flink/pull/9976",
+  "base_commit": "005bda9be361ffe6c371ebefed32e614cbacd876",
+  "merge_commit": "32146ce462de7b5cb9bbb4a95833a518e6d71af7",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

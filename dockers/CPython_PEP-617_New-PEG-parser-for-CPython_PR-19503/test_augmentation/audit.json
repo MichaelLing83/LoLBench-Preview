@@ -1,0 +1,362 @@
+{
+  "instance_id": "CPython_PEP-617_New-PEG-parser-for-CPython_PR-19503",
+  "augmentation_pass": "lolbench-aug-2026-05-21",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "eval_tests_aug_patch_sha256": "6025d51d486c16444295f55525d5d2c5f86b51677dba62e46536ef6e1f95480f",
+  "summary": {
+    "new_f2p_count": 13,
+    "new_f2p_count_note": "2 authored sidecar aug F2P (test_peg_aug.py) + 11 selection-expansion F2P selecting pre-existing committed TestCParser/TestPegen methods already shipped in eval_tests.patch (no authoring, no eval_tests_aug.patch change). Union F2P = 12 orig + 13 aug = 25.",
+    "new_p2p_count": 3,
+    "mutants_targeted": 31,
+    "mutant_set_revision_note": "7 parse-mode mutants (001,006,007,008,010,038,039) removed as \u00a76-unreachable (observable only via the test-facing _peg_parser module excluded by bundle triage); 31 mutants remain. The 12 selection-expansion selectors kill the generator/metagrammar/parser_generator/python_parser survivors via committed-suite precedent.",
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "union_line_coverage_percent": 82.1,
+      "executable_lines_in_patch": 9989,
+      "union_covered_lines": 8201,
+      "coverage_complete": true,
+      "measurement_note": "source-bearing gcov C lines; blank, comment, label, and brace-only gcov entries are excluded from the denominator"
+    },
+    "no_modification_clauses_pinned": [
+      "Migration plan: existing Python syntax and public compile/eval behavior remain valid while the parser implementation changes",
+      "Performance and validation > Validation: AST-equivalence and parser-validation behavior remain stable for public source inputs"
+    ]
+  },
+  "tests": [
+    {
+      "test_id": "test.test_peg_aug.PegParserGrammarCoverageAugTest.test_cpython_syntax_regression_modules_under_peg_parser",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions",
+        "Performance and validation > Validation"
+      ],
+      "kills_mutants": [],
+      "public_surface": "CPython public unittest syntax/compile/AST regression modules after sys.flags.use_peg confirms the PEG parser is active",
+      "internal_symbol_check": [
+        "_PyPegen_*",
+        "PyPegen_*",
+        "RAISE_SYNTAX_ERROR",
+        "ast_for_*"
+      ],
+      "rationale": "Broad parser regression coverage using CPython public test modules after gating on the documented PEG-parser-active interpreter flag."
+    },
+    {
+      "test_id": "test.test_peg_aug.PythonGeneratorSemanticsAugTest.test_first_sets_for_predicates_and_repeat_one",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "The new proposed PEG parser > Grammar actions"
+      ],
+      "kills_mutants": [
+        "mutant_031_first_sets_negative_lookahead_has_no_terminals",
+        "mutant_032_first_sets_repeat1_nullable"
+      ],
+      "public_surface": "pegen FirstSetCalculator over parsed grammar rules",
+      "internal_symbol_check": [
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Pins first-set exclusions for negative lookahead and non-nullability of one-or-more repetitions."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_c_parser.TestCParser.test_gather",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_014_c_generator_gather_ignores_separators",
+        "mutant_016_c_generator_gather_swaps_element_and_sequence"
+      ],
+      "public_surface": "pegen.build C-extension parser generated from a gather (sep.elem+) grammar; selected body calls only the local check_input_strings_for_grammar helper",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestCParser method shipped verbatim in eval_tests.patch at base_commit; selected body invokes only self.check_input_strings_for_grammar, the same surface as the six original TestCParser F2P selectors; no newly added _PyPegen_*/PyPegen_* source symbol is named in the selected body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion (no authoring). The \u00a75.5 authored-opacity gate targets newly authored aug tests; this is a committed-original test selected by precedent. Gather requires a separator between every pair and at least one element, killing the C-generator gather and repeat1 mutants."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_c_parser.TestCParser.test_gather_action_ast",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions",
+        "The new proposed PEG parser > Grammar actions"
+      ],
+      "kills_mutants": [
+        "mutant_014_c_generator_gather_ignores_separators",
+        "mutant_016_c_generator_gather_swaps_element_and_sequence"
+      ],
+      "public_surface": "pegen.build C-extension parser generated from a gather grammar with an AST-producing action; selected body calls only the local verify_ast_generation helper",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestCParser method in eval_tests.patch; selected body invokes only self.verify_ast_generation; no newly added source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The expected AST for a gathered sequence pins element/separator ordering and the action result, killing C-generator gather mutants that swap element and sequence or drop separators."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_c_parser.TestCParser.test_mutually_left_recursive",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Grammar actions"
+      ],
+      "kills_mutants": [
+        "mutant_025_c_generator_left_recursion_stops_before_growth",
+        "mutant_026_c_generator_left_recursion_discards_raw_result"
+      ],
+      "public_surface": "pegen.build C-extension parser generated from a mutually left-recursive grammar; selected body calls only the local check_input_strings_for_grammar helper",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestCParser method in eval_tests.patch; selected body invokes only self.check_input_strings_for_grammar; no newly added source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. Indirect (mutual) left recursion only parses when the C generator memoizes left-recursive rules and grows the seed, distinguishing golden from the left-recursion mutants."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_c_parser.TestCParser.test_nasty_mutually_left_recursive",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Grammar actions"
+      ],
+      "kills_mutants": [
+        "mutant_025_c_generator_left_recursion_stops_before_growth",
+        "mutant_026_c_generator_left_recursion_discards_raw_result"
+      ],
+      "public_surface": "pegen.build C-extension parser generated from a hidden/indirect left-recursive grammar; selected body calls only the local check_input_strings_for_grammar helper",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestCParser method in eval_tests.patch; selected body invokes only self.check_input_strings_for_grammar; no newly added source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. Hidden left recursion with valid and invalid cases stresses the C-generator left-recursion memoization."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_optional_operator",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_019_metagrammar_question_becomes_repeat1",
+        "mutant_033_python_generator_optional_is_mandatory"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using the optional operator (...)?",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes pegen.testutil make_parser/parse_string (the same pegen module surface the committed first-sets aug test uses); no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. Asserting the tree with the optional group present and absent (None) kills the optional-is-mandatory mutant; parsing the '?' grammar exercises the metagrammar the question-becomes-repeat1 mutant alters."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_alt_optional_operator",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_033_python_generator_optional_is_mandatory"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using the bracketed optional form [ ... ]",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes make_parser/parse_string; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The bracketed optional must accept input with and without the optional group, pinning golden against the optional-is-mandatory mutant."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_repeat_0_simple",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_020_metagrammar_star_becomes_repeat1"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using the zero-or-more operator thing*",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes make_parser/parse_string; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. Parsing a single element (empty repetition yields []) requires zero-or-more to accept zero matches, killing the repeat0-requires-one and loop0-named-loop1 mutants; parsing the '*' grammar exercises the metagrammar the star-becomes-repeat1 mutant alters."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_repeat_1_simple",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_035_python_generator_repeat1_allows_empty"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using the one-or-more operator thing+",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes make_parser/parse_string; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The body asserts a multi-element parse and a SyntaxError on single-element input, killing the repeat1-allows-empty mutant."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_repeat_with_sep_simple",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_022_metagrammar_gather_drops_separator",
+        "mutant_030_parser_generator_gather_repeats_separator",
+        "mutant_036_python_generator_gather_ignores_separators",
+        "mutant_037_python_generator_gather_reverses_sequence"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using the gather operator sep.elem+",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes make_parser/parse_string; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The exact tree for a comma-separated list pins element/separator structure and ordering, killing gather mutants that ignore/repeat the separator or reverse the sequence."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_lookahead",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Syntax > Grammar Expressions"
+      ],
+      "kills_mutants": [
+        "mutant_004_python_parser_negative_lookahead_not_inverted",
+        "mutant_017_python_generator_positive_lookahead_is_negative",
+        "mutant_023_python_parser_positive_lookahead_inverted"
+      ],
+      "public_surface": "pegen make_parser + parse_string over a grammar using positive (&) and negative (!) lookahead",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes make_parser/parse_string; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The grammar uses both positive (&'.') and negative (!(target '=')) lookahead; the asserted tree only holds when both predicates are correct, killing the lookahead-inversion mutants."
+    },
+    {
+      "test_id": "test.test_peg_generator.test_pegen.TestPegen.test_left_recursive",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "selection_expansion": true,
+      "requirement_sections": [
+        "The new proposed PEG parser > Grammar actions"
+      ],
+      "kills_mutants": [
+        "mutant_024_python_parser_memoized_hit_does_not_advance"
+      ],
+      "public_surface": "pegen parse_string + generate_parser over a left-recursive grammar; asserts left_recursive flags and the parse tree",
+      "internal_symbol_check": [
+        "committed-suite precedent: pre-existing TestPegen method in eval_tests.patch; selected body invokes parse_string/generate_parser; no newly added C source symbol named in the body",
+        "_PyPegen_*",
+        "PyPegen_*"
+      ],
+      "rationale": "Selection expansion. The asserted left-recursive tree for '1 + 2 + 3' only forms when memoized results advance the input position, killing the memoized-hit-does-not-advance mutant."
+    },
+    {
+      "test_id": "test.test_peg_stability_aug.ParserStabilityAugTest.test_compile_exec_eval_and_single_modes_still_work",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Migration plan",
+        "Performance and validation > Validation"
+      ],
+      "public_surface": "compile(), eval(), exec(), and codeop.compile_command",
+      "internal_symbol_check": [
+        "No PEG parser implementation module is imported; the test uses public compile(), ast.parse, and execution semantics."
+      ],
+      "no_modification_clause": "Existing public compilation modes remain usable while the parser implementation changes.",
+      "f2p_surface_collision": false
+    },
+    {
+      "test_id": "test.test_peg_stability_aug.ParserStabilityAugTest.test_ast_parse_preserves_comprehension_shape",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Performance and validation > Validation"
+      ],
+      "public_surface": "ast.parse and ast node classes",
+      "internal_symbol_check": [
+        "No PEG parser implementation module is imported; the test uses public compile(), ast.parse, and execution semantics."
+      ],
+      "no_modification_clause": "Public AST shapes for existing Python syntax remain equivalent.",
+      "f2p_surface_collision": false
+    },
+    {
+      "test_id": "test.test_peg_stability_aug.ParserStabilityAugTest.test_function_annotations_and_positional_only_args_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Migration plan",
+        "Performance and validation > Validation"
+      ],
+      "public_surface": "compile(), exec(), ast.parse, and function-call semantics",
+      "internal_symbol_check": [
+        "No PEG parser implementation module is imported; the test uses public compile(), ast.parse, and execution semantics."
+      ],
+      "no_modification_clause": "Existing function definition syntax and call semantics are preserved.",
+      "f2p_surface_collision": false
+    }
+  ]
+}

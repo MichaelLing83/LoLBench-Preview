@@ -1,0 +1,1688 @@
+{
+  "instance_id": "CPython_PEP-654_Exception-Groups-and-except_PR-29581",
+  "repo": "python/cpython",
+  "language": "C, Python",
+  "image": "lolbench/cpython-pr-29581:1",
+  "base_commit": "850aefc2c651110a784cd5478af9774b1f6287a3",
+  "base_commit_note": "The PR was rebased before merge \u2014 the parent of merge commit d60457a6673cf0263213c2f2be02c633ec2e2038 is 850aefc2c651110a784cd5478af9774b1f6287a3 (2021-12-09, 'bpo-46063: Add delay=True to file handler initialization (GH-30103)'); solution.patch / eval_tests.patch apply cleanly there but not at the PR-creation-time tip. Same pattern as PEP-617 / PEP-634.",
+  "pr_head_sha": "d60457a6673cf0263213c2f2be02c633ec2e2038",
+  "merge_commit_sha": "d60457a6673cf0263213c2f2be02c633ec2e2038",
+  "diff_source": "github_pr_recomputed_against_merge_parent",
+  "env": {
+    "PYTHON_BUILD_DIR": "/workspace/cpython",
+    "LANG": "C.UTF-8"
+  },
+  "timeout_s": 5400,
+  "resource_caps": {
+    "cpu": 4,
+    "mem_gb": 7
+  },
+  "solution_patch_sha256": "880b3fae134ea27081c6cde9fde978b06414cb3241b2e3e09e9a5e274262552b",
+  "eval_tests_patch_sha256": "0dd4adc3077c47424f7a7811b0e7e41d076ec51dfe4f1e8044fad240f1ec1dc6",
+  "omitted_patch_sha256": "8752623ba169f424177c6aa82e6028530ae18b3e325fddfd0d88a889bdfec8d2",
+  "omitted_patch_note": "INFORMATIONAL ARTIFACT ONLY \u2014 not byte-identical to the upstream PR's raw diff and not fully applyable. Two reasons: (a) the NEWS-file path contains a literal space ('Core and Builtins'); the split script renders it with git's standard quoting (`diff --git \"a/Misc/.../...rst\" \"b/Misc/.../...rst\"`), whereas pr_files_cache's `patch` field has the unquoted body. The content is preserved; only the header quoting differs. (b) Two roles in omitted.patch: (i) the 4 doc/NEWS files (Doc/library/ast.rst, Doc/library/dis.rst, Doc/whatsnew/3.11.rst, the NEWS rst); (ii) 3 test files (test_grammar.py, test_exception_variations.py, test_sys_settrace.py) whose PR modifications add literal except* syntax in test method bodies. Applying those via eval_tests.patch would cause the Python parser at pre-state to SyntaxError on module-load, ERROR-ing out every test in those files including the P2P candidates we draw from test_grammar.py. Moving them to omitted.patch keeps the files unmodified at both states. PEP 654's except* surface is amply covered by Lib/test/test_except_star.py (49 F2P methods).",
+  "solution_patch_note": "Parser/parser.c (+2770/-1826 lines, the regenerated PEG parser table) has an empty patch field in pr_files_cache because the GitHub API truncates very large diffs; the canonical content was reconstructed via `git diff 850aefc2..d60457a6 -- Parser/parser.c` on the local clone. Same fix as PEP-617's parse.c and PEP-634's parser.c.",
+  "agent_contract": {
+    "input": "/in/solution.patch",
+    "output": "/out/agent_report.json",
+    "invocation": "docker run --rm --network=none -v $(pwd)/solution.patch:/in/solution.patch:ro -v $(pwd)/out:/out lolbench/cpython-pr-29581:1"
+  },
+  "test_framework": "cpython_unittest",
+  "test_level": "system",
+  "test_cmd": "./python -m unittest -v $TESTS",
+  "log_parser": "programmatic_testresult",
+  "log_parser_config": {
+    "runner": "unittest.TestLoader.loadTestsFromName + TextTestRunner.run, JSON-serialized verdicts"
+  },
+  "ptrace_required": false,
+  "docker_run_extra_args": [],
+  "fail_to_pass": [
+    "test.test_except_star.TestInvalidExceptStar.test_mixed_except_and_except_star_is_syntax_error",
+    "test.test_except_star.TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_single",
+    "test.test_except_star.TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_tuple",
+    "test.test_except_star.TestInvalidExceptStar.test_except_star_invalid_exception_type",
+    "test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_break_in_except_star",
+    "test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_continue_in_except_star_block_invalid",
+    "test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_invalid",
+    "test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_break_continue_in_except_star_block_valid",
+    "test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_valid",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_no_match_single_type",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type_partial_match",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type_nested",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_match_type_tuple_nested",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_empty_groups_removed",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_singleton_groups_are_kept",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped1",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped2",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_exception_group_except_star_Exception_not_wrapped",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_plain_exception_not_matched",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_match__supertype",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_multiple_matches_named",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_multiple_matches_unnamed",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_first_match_wins_named",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_first_match_wins_unnamed",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_nested_except_stars",
+    "test.test_except_star.TestExceptStarSplitSemantics.test_nested_in_loop",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_all_named",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_all_unnamed",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_some_handle_all_named",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_all_unnamed",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_some_named",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_some_unnamed",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_plain_exception_named",
+    "test.test_except_star.TestExceptStarReraise.test_reraise_plain_exception_unnamed",
+    "test.test_except_star.TestExceptStarRaise.test_raise_named",
+    "test.test_except_star.TestExceptStarRaise.test_raise_unnamed",
+    "test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_one_named",
+    "test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_one_unnamed",
+    "test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_two_named",
+    "test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_two_unnamed",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_named",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_unnamed",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_named",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_unnamed",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_named",
+    "test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_unnamed",
+    "test.test_except_star.TestExceptStarExceptionGroupSubclass.test_except_star_EG_subclass",
+    "test.test_except_star.TestExceptStarCleanup.test_exc_info_restored",
+    "test.test_unparse.UnparseTestCase.test_try_except_star_finally"
+  ],
+  "pass_to_pass": [
+    "test.test_grammar.TokenTests.test_backslash",
+    "test.test_grammar.TokenTests.test_ellipsis",
+    "test.test_grammar.TokenTests.test_floats",
+    "test.test_grammar.TokenTests.test_plain_integers",
+    "test.test_grammar.TokenTests.test_long_integers",
+    "test.test_grammar.TokenTests.test_string_literals",
+    "test.test_grammar.GrammarTests.test_eval_input",
+    "test.test_grammar.GrammarTests.test_funcdef",
+    "test.test_grammar.GrammarTests.test_lambdef",
+    "test.test_grammar.GrammarTests.test_simple_stmt",
+    "test.test_grammar.GrammarTests.test_expr_stmt",
+    "test.test_grammar.GrammarTests.test_assert",
+    "test.test_grammar.GrammarTests.test_if",
+    "test.test_grammar.GrammarTests.test_while",
+    "test.test_grammar.GrammarTests.test_for",
+    "test.test_grammar.GrammarTests.test_try",
+    "test.test_grammar.GrammarTests.test_classdef",
+    "test.test_grammar.GrammarTests.test_atoms",
+    "test.test_grammar.GrammarTests.test_del_stmt",
+    "test.test_grammar.GrammarTests.test_pass_stmt",
+    "test.test_grammar.GrammarTests.test_break_stmt",
+    "test.test_grammar.GrammarTests.test_continue_stmt",
+    "test.test_grammar.GrammarTests.test_return",
+    "test.test_grammar.GrammarTests.test_yield",
+    "test.test_grammar.GrammarTests.test_raise",
+    "test.test_grammar.GrammarTests.test_import",
+    "test.test_grammar.GrammarTests.test_global",
+    "test.test_grammar.GrammarTests.test_nonlocal",
+    "test.test_grammar.GrammarTests.test_with_statement",
+    "test.test_grammar.GrammarTests.test_async_await",
+    "test.test_grammar.GrammarTests.test_dictcomps",
+    "test.test_grammar.GrammarTests.test_listcomps",
+    "test.test_grammar.GrammarTests.test_genexps",
+    "test.test_grammar.GrammarTests.test_comparison",
+    "test.test_grammar.GrammarTests.test_shift_ops",
+    "test.test_grammar.GrammarTests.test_multiplicative_ops",
+    "test.test_grammar.GrammarTests.test_var_annot_basics",
+    "test.test_ast.AST_Tests.test_AST_objects",
+    "test.test_ast.AST_Tests.test_AST_garbage_collection",
+    "test.test_ast.AST_Tests.test_slice",
+    "test.test_ast.AST_Tests.test_from_import",
+    "test.test_ast.ASTHelpers_Test.test_parse",
+    "test.test_ast.ASTHelpers_Test.test_parse_in_error",
+    "test.test_ast.ASTHelpers_Test.test_dump",
+    "test.test_ast.ASTHelpers_Test.test_dump_indent",
+    "test.test_ast.ASTHelpers_Test.test_dump_incomplete",
+    "test.test_ast.ASTHelpers_Test.test_copy_location",
+    "test.test_ast.ASTHelpers_Test.test_increment_lineno",
+    "test.test_ast.ConstantTests.test_validation",
+    "test.test_ast.ConstantTests.test_singletons",
+    "test.test_ast.ConstantTests.test_values",
+    "test.test_ast.ConstantTests.test_assign_to_constant",
+    "test.test_ast.ConstantTests.test_get_docstring",
+    "test.test_ast.ConstantTests.test_load_const",
+    "test.test_ast.ConstantTests.test_literal_eval",
+    "test.test_ast.EndPositionTests.test_lambda",
+    "test.test_ast.EndPositionTests.test_func_def",
+    "test.test_ast.EndPositionTests.test_call",
+    "test.test_ast.EndPositionTests.test_class_def"
+  ],
+  "synthetic_tests": [],
+  "out_of_scope_surfaces": [
+    {
+      "surface": "test.test_ast.ASTValidatorTests.test_try_star (1 method added by the PR)",
+      "reason": "Directly constructs ast.TryStar([...], [...], [...], [...]) nodes and feeds them to the internal AST validator (self.stmt(t, '...')). The validator is a private CPython facility not normally invoked by user code \u2014 the user would call `ast.parse('try: pass\\nexcept* E: pass')` instead. This is a UNIT test of the AST validator's accept/reject logic, not a system test of except*. Excluded per the 'unit test cases are not accepted' rule."
+    },
+    {
+      "surface": "test.test_compile.TestStackSizeStability.test_try_except_star_{qualified,as,finally} (3 methods)",
+      "reason": "The test class is explicitly about *stack-size stability* \u2014 an internal compiler invariant (code.co_stacksize must not depend on how many times a snippet is concatenated). Although the test goes through compile() (public), the assertion target is a CPython-specific implementation detail unrelated to the user-visible except* semantics. The 49 test_except_star.py methods are the canonical system-level coverage; these 3 would only add unit-flavored bookkeeping."
+    },
+    {
+      "surface": "test.test_exception_group.TestSubgroup.test_basics_subgroup_split__bad_arg_type (modified +2/-1)",
+      "reason": "The PR's modification swaps which inputs the test considers 'bad' for ExceptionGroup.subgroup()/split() argument validation. The test does NOT exercise except* \u2014 it tests the pre-existing BaseExceptionGroup API (which was added earlier, not by this PR). Out of scope for THIS PR's F2P."
+    },
+    {
+      "surface": "test.test_dis modifications (no new test methods, +22/-30 lines reorganising existing dis tests)",
+      "reason": "Adjusts existing disassembly tests for new opcode numbering. No new methods to score."
+    },
+    {
+      "surface": "test.test_exceptions.testSyntaxErrorOffset modification (+2 lines)",
+      "reason": "Adds two new check('try:...\\nexcept*:...', line, col) assertions to a pre-existing test that asserts SyntaxError offset coordinates. At pre-state, except* parses as a SyntaxError too \u2014 but at a different column. Whether the existing method transitions from FAIL \u2192 PASS depends on exact pre-state error coordinates that are not stable across CPython versions. Risk of flaky F2P; excluded for safety."
+    },
+    {
+      "surface": "test.test_syntax modification (+100 lines of doctest-style except* error cases)",
+      "reason": "test_syntax.py uses doctest format to assert specific SyntaxError messages. doctest-driven F2P is tricky to reliably evaluate via unittest.TestLoader; the 49 test_except_star methods + test_unparse roundtrip provide stronger and more directly addressable F2P coverage."
+    },
+    {
+      "surface": "test.test_ast.AST_Tests.test_ast_validation (P2P candidate that turned out to be PR-affected)",
+      "reason": "Initially considered as P2P because it doesn't explicitly reference ast.TryStar. End-to-end pre-state validation surfaced that test_ast_validation iterates the module-level exec_tests/single_tests list \u2014 the SAME list that test_snippets uses \u2014 and the PR added a new entry to that list: `try:\\n  pass\\nexcept* Exception:\\n  pass`. At pre-state, ast.parse on that snippet raises SyntaxError, ERROR-ing out the whole test_ast_validation method. The method is therefore PR-affected and not a valid P2P. Removed after the first validation run. Could be added to F2P, but the 49 test_except_star methods already provide canonical coverage of except* parser semantics."
+    }
+  ],
+  "eval_tests_patch_notes": "eval_tests.patch contains 8 test-file hunks: NEW Lib/test/test_except_star.py (976 lines, the canonical PEP 654 system-test suite), plus modifications to Lib/test/test_ast.py, test_compile.py, test_dis.py, test_exception_group.py, test_exceptions.py, test_syntax.py, and test_unparse.py. Three additional modified test files (test_grammar.py, test_exception_variations.py, test_sys_settrace.py) are deliberately moved to omitted.patch because their modifications add LITERAL except* syntax to method bodies \u2014 applying them via eval_tests.patch would prevent the Python interpreter from parsing those modules at pre-state, breaking the P2P candidates we draw from them.",
+  "fixture_taint_summary": "50 F2P: 49 from the new Lib/test/test_except_star.py (canonical PEP 654 suite, all SyntaxError-at-import at pre-state because the file uses except* syntax literally) + 1 from test_unparse (ast.parse + ast.unparse round-trip on except* source; AttributeError on ast.TryStar at pre-state). All 50 exercise public language / ast.* surface, no internal symbol leakage. 59 P2P: 37 from Lib/test/test_grammar.py (untouched \u2014 file is in omitted.patch) + 22 from Lib/test/test_ast.py (modified by the PR but the chosen methods don't reference ast.TryStar or test_snippets's modified TEST_CASES iteration). Ratio P2P/F2P = 1.18\u00d7.",
+  "triage": {
+    "fail_to_pass": {
+      "TestInvalidExceptStar.test_mixed_except_and_except_star_is_syntax_error": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestInvalidExceptStar.test_mixed_except_and_except_star_is_syntax_error",
+        "fixture_taint_checked": true
+      },
+      "TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_single": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_single",
+        "fixture_taint_checked": true
+      },
+      "TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_tuple": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestInvalidExceptStar.test_except_star_ExceptionGroup_is_runtime_error_tuple",
+        "fixture_taint_checked": true
+      },
+      "TestInvalidExceptStar.test_except_star_invalid_exception_type": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestInvalidExceptStar.test_except_star_invalid_exception_type",
+        "fixture_taint_checked": true
+      },
+      "TestBreakContinueReturnInExceptStarBlock.test_break_in_except_star": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_break_in_except_star",
+        "fixture_taint_checked": true
+      },
+      "TestBreakContinueReturnInExceptStarBlock.test_continue_in_except_star_block_invalid": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_continue_in_except_star_block_invalid",
+        "fixture_taint_checked": true
+      },
+      "TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_invalid": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_invalid",
+        "fixture_taint_checked": true
+      },
+      "TestBreakContinueReturnInExceptStarBlock.test_break_continue_in_except_star_block_valid": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_break_continue_in_except_star_block_valid",
+        "fixture_taint_checked": true
+      },
+      "TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_valid": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestBreakContinueReturnInExceptStarBlock.test_return_in_except_star_block_valid",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_no_match_single_type": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_no_match_single_type",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_match_single_type": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_match_single_type_partial_match": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type_partial_match",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_match_single_type_nested": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_match_single_type_nested",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_match_type_tuple_nested": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_match_type_tuple_nested",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_empty_groups_removed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_empty_groups_removed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_singleton_groups_are_kept": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_singleton_groups_are_kept",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped1": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped1",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped2": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_naked_exception_matched_wrapped2",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_exception_group_except_star_Exception_not_wrapped": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_exception_group_except_star_Exception_not_wrapped",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_plain_exception_not_matched": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_plain_exception_not_matched",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_match__supertype": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_match__supertype",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_multiple_matches_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_multiple_matches_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_multiple_matches_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_multiple_matches_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_first_match_wins_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_first_match_wins_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_first_match_wins_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_first_match_wins_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_nested_except_stars": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_nested_except_stars",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarSplitSemantics.test_nested_in_loop": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarSplitSemantics.test_nested_in_loop",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_all_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_all_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_all_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_all_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_some_handle_all_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_some_handle_all_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_partial_handle_all_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_all_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_partial_handle_some_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_some_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_partial_handle_some_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_partial_handle_some_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_plain_exception_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_plain_exception_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarReraise.test_reraise_plain_exception_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarReraise.test_reraise_plain_exception_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_handle_all_raise_one_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_one_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_handle_all_raise_one_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_one_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_handle_all_raise_two_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_two_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaise.test_raise_handle_all_raise_two_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaise.test_raise_handle_all_raise_two_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_one_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_named": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_named",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_unnamed": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarRaiseFrom.test_raise_handle_all_raise_two_unnamed",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarExceptionGroupSubclass.test_except_star_EG_subclass": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarExceptionGroupSubclass.test_except_star_EG_subclass",
+        "fixture_taint_checked": true
+      },
+      "TestExceptStarCleanup.test_exc_info_restored": {
+        "system_reason": "Exercises PEP 654's except* statement and BaseExceptionGroup/ExceptionGroup machinery through the user-facing Python syntax. Raises real exceptions, catches them with `except* X`, and asserts on result structure and reraise semantics. No internal C symbols referenced.",
+        "public_surface": "try / except* / BaseExceptionGroup / ExceptionGroup language constructs",
+        "internal_symbol_check": [
+          "_PyErr_*",
+          "CHECK_EG_MATCH",
+          "exception_group_split",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_except_star.TestExceptStarCleanup.test_exc_info_restored",
+        "fixture_taint_checked": true
+      },
+      "UnparseTestCase.test_try_except_star_finally": {
+        "system_reason": "Calls self.check_ast_roundtrip(SRC) where SRC is a Python string with try/except*/finally. check_ast_roundtrip does ast.parse(SRC) \u2192 ast.unparse(tree) \u2192 ast.parse(roundtrip) and asserts the trees match. Goes through public ast.parse + ast.unparse. Pre-state: ast.parse on except* \u2192 SyntaxError \u2192 check_ast_roundtrip propagates \u2192 test ERRORs.",
+        "public_surface": "ast.parse + ast.unparse round-trip on except* source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_unparse.UnparseTestCase.test_try_except_star_finally",
+        "fixture_taint_checked": true
+      }
+    },
+    "pass_to_pass": {
+      "TokenTests.test_backslash": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_backslash",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_ellipsis": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_ellipsis",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_floats": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_floats",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_plain_integers": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_plain_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_long_integers": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_long_integers",
+        "fixture_taint_checked": true
+      },
+      "TokenTests.test_string_literals": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.TokenTests.test_string_literals",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_eval_input": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_eval_input",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_funcdef": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_funcdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_lambdef": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_lambdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_simple_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_simple_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_expr_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_expr_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_assert": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_assert",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_if": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_if",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_while": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_while",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_for": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_for",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_try": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_try",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_classdef": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_classdef",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_atoms": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_atoms",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_del_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_del_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_pass_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_pass_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_break_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_break_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_continue_stmt": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_continue_stmt",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_return": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_return",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_yield": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_yield",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_raise": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_raise",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_import": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_import",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_global": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_global",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_nonlocal": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_nonlocal",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_with_statement": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_with_statement",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_async_await": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_async_await",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_dictcomps": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_dictcomps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_listcomps": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_listcomps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_genexps": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_genexps",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_comparison": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_comparison",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_shift_ops": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_shift_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_multiplicative_ops": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_multiplicative_ops",
+        "fixture_taint_checked": true
+      },
+      "GrammarTests.test_var_annot_basics": {
+        "system_reason": "Pre-existing grammar-rule test through compile()/exec; orthogonal to PEP 654's except* additions. test_grammar.py is in omitted.patch (NOT applied) so the file stays unmodified at both states \u2014 no syntax-error contamination from the new test_try_star method that the PR added but uses literal except* syntax in its body.",
+        "public_surface": "compile() / exec() on Python source",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_grammar.GrammarTests.test_var_annot_basics",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_objects": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_objects",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_AST_garbage_collection": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_AST_garbage_collection",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_slice": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_slice",
+        "fixture_taint_checked": true
+      },
+      "AST_Tests.test_from_import": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.AST_Tests.test_from_import",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_parse_in_error": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_parse_in_error",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump_indent": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump_indent",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_dump_incomplete": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_dump_incomplete",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_copy_location": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_copy_location",
+        "fixture_taint_checked": true
+      },
+      "ASTHelpers_Test.test_increment_lineno": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ASTHelpers_Test.test_increment_lineno",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_validation": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_validation",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_singletons": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_singletons",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_values": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_values",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_assign_to_constant": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_assign_to_constant",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_get_docstring": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_get_docstring",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_load_const": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_load_const",
+        "fixture_taint_checked": true
+      },
+      "ConstantTests.test_literal_eval": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.ConstantTests.test_literal_eval",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_lambda": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_lambda",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_func_def": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_func_def",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_call": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_call",
+        "fixture_taint_checked": true
+      },
+      "EndPositionTests.test_class_def": {
+        "system_reason": "Pre-existing public-ast test exercising ast.parse / ast.dump / ast.Constant / ast.AST attributes / etc. The PR only touches one helper (_assertTrueorder gains __match_args__ check used by AST_Tests.test_snippets) \u2014 and test_snippets is excluded from this P2P set for that reason. Other test_ast methods are byte-identical at base_commit.",
+        "public_surface": "public ast module (ast.parse / ast.dump / ast.unparse / ast.literal_eval / ast.AST.*)",
+        "internal_symbol_check": [
+          "_PyAST_*",
+          "ast_for_*",
+          "_PyExc_*"
+        ],
+        "runner_surface": "./python -m unittest -v test.test_ast.EndPositionTests.test_class_def",
+        "fixture_taint_checked": true
+      }
+    }
+  },
+  "validated_at": "2026-05-20",
+  "validated_at_note": "\u00a77 invariant confirmed end-to-end on 2026-05-20. pre-state (base_commit + eval_tests.patch): F2P 0/50 (50 ERROR \u2014 test_except_star.py fails to parse on except* syntax \u2192 49 ImportErrors; test_unparse SyntaxError on ast.parse of except* source); P2P 59/59 PASSED. post-state (base_commit + solution.patch + eval_tests.patch): F2P 50/50 PASSED, P2P 59/59 PASSED, resolved=true. Initial validation run with P2P=60 surfaced one false-positive (test_ast.AST_Tests.test_ast_validation) that ERRORed at pre-state because it iterates the same module-level exec_tests list that test_snippets uses, and the PR added an except* snippet to it. Removed before the green run; documented in spec.json.out_of_scope_surfaces. Environment: docker engine 29.4.3 on darwin/arm64, image lolbench/cpython-pr-29581:1 (781 MB) on lolbench/cpython-base:1 (424 MB).",
+  "augmented": {
+    "suite_support": [
+      "orig",
+      "aug",
+      "union"
+    ],
+    "eval_tests_patch": "eval_tests_aug.patch",
+    "eval_tests_aug_patch_sha256": "fde83dd74a41e3dd3d841d7a1a1b3fc9cfdf1b328c69d87c271afbaa12b85bca",
+    "f2p_aug_sha256": "bbcd88d723811313aad242b448dc53c220bf90a2372a32f91d63aea6da783a03",
+    "p2p_aug_sha256": "e15b8d366f276b41933b057d9c864e09ac64b2feea539001b087cab06ed66bd5",
+    "fail_to_pass": [
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_forbidden_control_flow_in_except_star_blocks",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_exception_group_constructor_and_metadata_edges",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_runtime_and_compile_matrix",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_try_star_ast_manual_construction_roundtrip",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_error_cleanup_and_reraise_edges"
+    ],
+    "pass_to_pass": [
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_try_except_else_finally_order_is_unchanged",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_exception_chaining_and_context_are_unchanged",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_ast_unparse_regular_try_uses_except_keyword",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_sys_exc_info_restores_after_handled_exception"
+    ],
+    "targets_mutants": [
+      "mutant_001_unparse_trystar_as_try",
+      "mutant_002_unparse_handlers_always_except",
+      "mutant_003_subgroup_rejects_predicate_functions",
+      "mutant_004_split_tuple_allows_non_exception_entries",
+      "mutant_005_split_does_not_construct_rest",
+      "mutant_006_subgroup_constructs_rest_partition",
+      "mutant_007_reraise_projection_collects_groups_not_leaves",
+      "mutant_008_full_match_wraps_exception_groups",
+      "mutant_009_naked_exception_not_wrapped_for_except_star",
+      "mutant_010_exceptiongroup_allowed_in_except_star",
+      "mutant_011_reraise_metadata_always_treated_as_new_raise",
+      "mutant_012_naked_reraise_rewrapped_as_group",
+      "mutant_013_break_continue_return_allowed_in_except_star",
+      "mutant_014_trystar_finally_block_ignored",
+      "mutant_015_new_exception_in_except_star_block_dropped",
+      "mutant_016_unmatched_rest_not_reraised",
+      "mutant_017_try_star_else_body_omitted",
+      "mutant_018_trystar_compiled_as_regular_try",
+      "mutant_019_ast_validation_allows_empty_trystar",
+      "mutant_020_opcode_module_omits_prep_reraise_star"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 79.6,
+      "union_line_coverage_percent": 88.1,
+      "executable_lines_in_patch": 437,
+      "union_covered_lines": 385,
+      "coverage_complete": true,
+      "measurement_note": "gcov/gcovr line coverage over hand-authored C/H files touched by solution.patch; generated parser/asdl C sources (Parser/parser.c and Python/Python-ast.c), Python stdlib files, grammar/schema files, and build files are recorded separately and excluded from the measured denominator."
+    },
+    "synthetic_tests": [
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_forbidden_control_flow_in_except_star_blocks",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_exception_group_constructor_and_metadata_edges",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_runtime_and_compile_matrix",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_try_star_ast_manual_construction_roundtrip",
+      "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_error_cleanup_and_reraise_edges",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_try_except_else_finally_order_is_unchanged",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_exception_chaining_and_context_are_unchanged",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_ast_unparse_regular_try_uses_except_keyword",
+      "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_sys_exc_info_restores_after_handled_exception"
+    ],
+    "triage": {
+      "test_level_policy": "Augmented F2P selectors use public language, builtin ExceptionGroup, ast, dis, opcode, compile(), and unittest-visible exception behavior. Augmented P2P selectors avoid except* syntax and ExceptionGroup entirely, exercising only pre-existing try/except, exception chaining, ast.unparse regular Try, and sys.exc_info behavior so they pass in base, golden, and mutant states.",
+      "fail_to_pass": {
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface": {
+          "requirement_sections": [
+            "Specification > except*"
+          ],
+          "public_surface": "ast.parse, ast.unparse, compile, dis.get_instructions, and opcode.opmap for except* source.",
+          "mutants_targeted": [
+            "mutant_001_unparse_trystar_as_try",
+            "mutant_002_unparse_handlers_always_except",
+            "mutant_019_ast_validation_allows_empty_trystar",
+            "mutant_020_opcode_module_omits_prep_reraise_star"
+          ],
+          "rationale": "Checks the public AST/unparse/opcode surface for TryStar: unparse must emit except*, PREP_RERAISE_STAR must be public and used by compiled except* code, and invalid TryStar ASTs must be rejected."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts": {
+          "requirement_sections": [
+            "Specification > ExceptionGroup and BaseExceptionGroup"
+          ],
+          "public_surface": "ExceptionGroup.subgroup() and split() with type tuples, predicates, and subclass derive().",
+          "mutants_targeted": [
+            "mutant_003_subgroup_rejects_predicate_functions",
+            "mutant_004_split_tuple_allows_non_exception_entries",
+            "mutant_005_split_does_not_construct_rest",
+            "mutant_006_subgroup_constructs_rest_partition"
+          ],
+          "rationale": "Enforces the public partitioning contract: predicates are valid matchers, invalid tuple entries raise TypeError, split returns both match and rest, and subgroup does not derive the discarded complement."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers": {
+          "requirement_sections": [
+            "Specification > except* > Recursive Matching",
+            "Specification > except* > Naked Exceptions",
+            "Specification > except* > Forbidden Combinations"
+          ],
+          "public_surface": "raise/except* language semantics with ExceptionGroup, naked ValueError, and forbidden ExceptionGroup handlers.",
+          "mutants_targeted": [
+            "mutant_008_full_match_wraps_exception_groups",
+            "mutant_009_naked_exception_not_wrapped_for_except_star",
+            "mutant_010_exceptiongroup_allowed_in_except_star"
+          ],
+          "rationale": "Verifies full group matches are delivered as the original group, naked exceptions are wrapped for except* handlers, and except* refuses ExceptionGroup/BaseExceptionGroup handler types."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest": {
+          "requirement_sections": [
+            "Specification > except* > Recursive Matching",
+            "Specification > except* > Unmatched Exceptions",
+            "Specification > except* > Naked Exceptions",
+            "Specification > except* > Raising exceptions in an ``except*`` block",
+            "Specification > except* > Chaining"
+          ],
+          "public_surface": "nested raise/except* flows with bare reraise and unmatched rest propagation.",
+          "mutants_targeted": [
+            "mutant_007_reraise_projection_collects_groups_not_leaves",
+            "mutant_011_reraise_metadata_always_treated_as_new_raise",
+            "mutant_012_naked_reraise_rewrapped_as_group",
+            "mutant_016_unmatched_rest_not_reraised"
+          ],
+          "rationale": "Asserts recursive leaf routing, naked bare-reraise unwrapping, unmatched rest propagation, and recombination of reraised handled leaves with unmatched leaves."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing": {
+          "requirement_sections": [
+            "Specification > except*",
+            "Specification > except* > Raising New Exceptions"
+          ],
+          "public_surface": "try/except*/finally, try/except*/else, new exceptions raised inside except*, and multiple except* handler routing.",
+          "mutants_targeted": [
+            "mutant_014_trystar_finally_block_ignored",
+            "mutant_015_new_exception_in_except_star_block_dropped",
+            "mutant_017_try_star_else_body_omitted",
+            "mutant_018_trystar_compiled_as_regular_try"
+          ],
+          "rationale": "Pins standard try semantics around TryStar and verifies except* routes independent subgroups rather than compiling as ordinary try/except."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_forbidden_control_flow_in_except_star_blocks": {
+          "requirement_sections": [
+            "Specification > except* > Forbidden Combinations"
+          ],
+          "public_surface": "compile() on source containing break, continue, and return inside except* blocks.",
+          "mutants_targeted": [
+            "mutant_013_break_continue_return_allowed_in_except_star"
+          ],
+          "rationale": "PEP 654 forbids break, continue, and return from except* blocks. The test compiles representative public source snippets and requires SyntaxError."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_exception_group_constructor_and_metadata_edges": {
+          "requirement_sections": [
+            "Specification > ExceptionGroup and BaseExceptionGroup",
+            "Specification > ExceptionGroup and BaseExceptionGroup > Subclassing Exception Groups",
+            "Specification > except* > Chaining"
+          ],
+          "public_surface": "ExceptionGroup and BaseExceptionGroup constructors, subgroup(), split(), and exception chaining metadata.",
+          "mutants_targeted": [],
+          "rationale": "Broadens F2P coverage of the public ExceptionGroup object contract: constructor validation, BaseExceptionGroup auto-selection, split/subgroup none and full-match cases, predicate matching, and preserved cause/context metadata on derived subgroups."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_runtime_and_compile_matrix": {
+          "requirement_sections": [
+            "Specification > except*",
+            "Specification > except* > Recursive Matching",
+            "Specification > except* > Unmatched Exceptions",
+            "Specification > except* > Raising New Exceptions",
+            "Specification > except* > Forbidden Combinations"
+          ],
+          "public_surface": "compile() and exec() of valid and invalid Python source using except* handlers, else/finally, tuple matching, and nested control flow.",
+          "mutants_targeted": [],
+          "rationale": "Covers additional public compile-time and runtime except* shapes that share the modified parser, compiler, and interpreter paths while asserting only PEP 654 user-visible behavior."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_try_star_ast_manual_construction_roundtrip": {
+          "requirement_sections": [
+            "Specification > except*",
+            "Specification > except* > Caught Exception Objects"
+          ],
+          "public_surface": "ast.TryStar, ast.ExceptHandler, ast.fix_missing_locations, compile(), exec(), ast.unparse(), and ast.parse().",
+          "mutants_targeted": [],
+          "rationale": "Exercises the public AST construction, validation, unparse, and reparse path for TryStar without naming CPython internals, including rejection of malformed handlers."
+        },
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_error_cleanup_and_reraise_edges": {
+          "requirement_sections": [
+            "Specification > except*",
+            "Specification > except* > Unmatched Exceptions",
+            "Specification > except* > Raising exceptions in an ``except*`` block",
+            "Specification > except* > Chaining",
+            "Specification > except* > Caught Exception Objects",
+            "Specification > except* > Forbidden Combinations"
+          ],
+          "public_surface": "except* handler-name binding and cleanup, naked exception no-match propagation, mixed reraise/new-exception groups, runtime handler validation, and compile() of annotated TryStar blocks.",
+          "mutants_targeted": [],
+          "rationale": "Exercises additional public edge cases in the modified compiler and interpreter paths: handler variable cleanup, replacement exceptions combined with reraised subgroups, invalid runtime handler types, and annotated statements inside TryStar bodies/handlers/else/finally."
+        }
+      },
+      "pass_to_pass": {
+        "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_try_except_else_finally_order_is_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "ordinary try/except/else/finally statement execution.",
+          "rationale": "Guards existing try statement ordering without using except* or ExceptionGroup."
+        },
+        "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_exception_chaining_and_context_are_unchanged": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "ordinary exception chaining through raise ... from ... and public __cause__/__context__.",
+          "rationale": "Pins pre-existing exception chaining metadata outside exception-group handling."
+        },
+        "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_ast_unparse_regular_try_uses_except_keyword": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "ast.parse and ast.unparse for ordinary try/except source.",
+          "rationale": "Ensures the new TryStar unparse path does not alter ordinary Try unparse output."
+        },
+        "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_sys_exc_info_restores_after_handled_exception": {
+          "requirement_sections": [
+            "Backwards Compatibility"
+          ],
+          "public_surface": "sys.exc_info() around a handled ordinary exception.",
+          "rationale": "Guards pre-existing exception-state restoration behavior outside except*."
+        }
+      }
+    },
+    "validation_status": "validated",
+    "validated_at": "2026-05-21T18:14:04Z"
+  },
+  "pr_link": "https://github.com/python/cpython/pull/29581",
+  "coverage": {
+    "orig": 79.63,
+    "aug": 87.64,
+    "union": 88.1,
+    "denominator": "union_executable_lines"
+  }
+}

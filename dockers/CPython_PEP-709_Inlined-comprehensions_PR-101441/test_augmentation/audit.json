@@ -1,0 +1,458 @@
+{
+  "instance_id": "CPython_PEP-709_Inlined-comprehensions_PR-101441",
+  "augmentation_pass": "lolbench-aug-2026-05-22",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "b24893c8d6dec8095652415d5865f33cf76ac38166c58327a02bee5fe5b8f7a5",
+    "f2p_aug.txt": "2ab753f4bb603fd6d95dad19e0692c6af26d2ed3aaaf46d1c5014679cd08a585",
+    "p2p_aug.txt": "00af5da26f93f35fc702da3fdf78188ffbfb6f944eab6eb956ce34a812f3225b"
+  },
+  "summary": {
+    "new_f2p_count": 16,
+    "new_p2p_count": 4,
+    "mutants_targeted": 16,
+    "surviving_mutants_targeted": [
+      "mutant_001_localsplus_omits_fast_hidden_kind",
+      "mutant_002_frame_locals_exposes_hidden_fast_locals",
+      "mutant_005_async_comprehensions_not_inlined",
+      "mutant_006_load_fast_and_clear_does_not_clear_slot",
+      "mutant_007_opcode_module_does_not_mark_load_fast_and_clear_local",
+      "mutant_008_magic_number_not_bumped_for_new_bytecode",
+      "mutant_012_async_comprehension_uses_sync_iterator_opcode",
+      "mutant_014_fast_hidden_state_not_restored_after_comprehension",
+      "mutant_015_scope_override_not_applied_inside_comprehension",
+      "mutant_016_cell_target_not_recreated_for_comprehension_scope",
+      "mutant_017_inlined_comprehension_children_not_spliced_into_parent",
+      "mutant_018_new_comprehension_symbols_forced_global",
+      "mutant_019_free_vars_always_kept_in_comprehension_free_set",
+      "mutant_021_opcode_name_misregistered_for_load_fast_and_clear",
+      "mutant_022_store_fast_maybe_null_pseudo_op_misnamed",
+      "mutant_024_debug_opcode_name_hides_load_fast_and_clear"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 72.7,
+      "augmented_line_coverage_percent": 81.3,
+      "union_line_coverage_percent": 81.3,
+      "executable_lines_in_patch": 209,
+      "union_covered_lines": 170,
+      "coverage_complete": true,
+      "measurement_note": "Hybrid coverage.py for the two Python files and gcov/gcovr for hand-written C/H files. Generated opcode/bytecode artifacts are recorded as raw patch lines but excluded from the executable denominator."
+    },
+    "no_modification_clauses_pinned": [
+      "PEP 709 should preserve ordinary list/set/dict comprehension results, generator-expression laziness, exception propagation, and existing code that does not observe the removed comprehension frame."
+    ],
+    "validation_status": {
+      "status": "passed",
+      "validated_at": "2026-05-22T03:06:27+00:00",
+      "validate_sh": {
+        "status": "passed",
+        "suites": {
+          "orig": {
+            "pre": {
+              "f2p_failed": 7,
+              "f2p_total": 7,
+              "p2p_passed": 45,
+              "p2p_total": 45
+            },
+            "post": {
+              "f2p_passed": 7,
+              "f2p_total": 7,
+              "p2p_passed": 45,
+              "p2p_total": 45
+            }
+          },
+          "aug": {
+            "pre": {
+              "f2p_failed": 16,
+              "f2p_total": 16,
+              "p2p_passed": 4,
+              "p2p_total": 4
+            },
+            "post": {
+              "f2p_passed": 16,
+              "f2p_total": 16,
+              "p2p_passed": 4,
+              "p2p_total": 4
+            }
+          },
+          "union": {
+            "pre": {
+              "f2p_failed": 23,
+              "f2p_total": 23,
+              "p2p_passed": 49,
+              "p2p_total": 49
+            },
+            "post": {
+              "f2p_passed": 23,
+              "f2p_total": 23,
+              "p2p_passed": 49,
+              "p2p_total": 49
+            }
+          }
+        },
+        "mutants": {
+          "killed_by_f2p": 16,
+          "p2p_clean": 16,
+          "total": 16
+        }
+      },
+      "coverage": {
+        "status": "passed",
+        "baseline_union_line_coverage_percent": 72.7,
+        "augmented_line_coverage_percent": 81.3,
+        "union_line_coverage_percent": 81.3,
+        "executable_lines_in_patch": 209,
+        "union_covered_lines": 170,
+        "coverage_complete": true
+      }
+    }
+  },
+  "tests": [
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_opcode_tables_and_parent_bytecode_show_inlined_comprehensions",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_007_opcode_module_does_not_mark_load_fast_and_clear_local",
+        "mutant_021_opcode_name_misregistered_for_load_fast_and_clear",
+        "mutant_022_store_fast_maybe_null_pseudo_op_misnamed"
+      ],
+      "public_surface": "Function compilation, dis.get_instructions(), and the public opcode module tables for bytecode names, local-operand metadata, and pseudo-ops.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 introduces LOAD_FAST_AND_CLEAR and STORE_FAST_MAYBE_NULL as the observable bytecode machinery for inlining comprehensions. The test requires an inlined list comprehension to disassemble in the parent code object and verifies the public opcode metadata agrees with that emitted bytecode."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_inlined_comprehension_locals_are_restored_and_hidden",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification",
+        "Backwards Compatibility > locals() includes outer variables"
+      ],
+      "kills_mutants": [
+        "mutant_001_localsplus_omits_fast_hidden_kind",
+        "mutant_002_frame_locals_exposes_hidden_fast_locals",
+        "mutant_006_load_fast_and_clear_does_not_clear_slot",
+        "mutant_014_fast_hidden_state_not_restored_after_comprehension",
+        "mutant_018_new_comprehension_symbols_forced_global"
+      ],
+      "public_surface": "User functions, list comprehension execution, and locals() snapshots.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The PEP replaces the synthetic comprehension frame with an inlined sub-scope. The test verifies that shadowed iteration variables do not leak into the enclosing locals after the comprehension and that no new outer binding is left behind."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_traceback_and_profile_do_not_report_comprehension_frames",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility > No comprehension frame in tracebacks",
+        "Backwards Compatibility > Tracing/profiling will no longer show a call/return for the comprehension"
+      ],
+      "kills_mutants": [
+        "mutant_005_async_comprehensions_not_inlined",
+        "mutant_017_inlined_comprehension_children_not_spliced_into_parent"
+      ],
+      "public_surface": "Tracebacks raised by normal Python execution and sys.setprofile call/return events.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 explicitly changes tracebacks and profiling by removing the separate comprehension frame. The test asserts that failing list/set comprehensions no longer report synthetic <listcomp>/<setcomp> frames or calls."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_global_cell_and_freevar_targets_preserve_isolation",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_015_scope_override_not_applied_inside_comprehension",
+        "mutant_016_cell_target_not_recreated_for_comprehension_scope",
+        "mutant_018_new_comprehension_symbols_forced_global",
+        "mutant_019_free_vars_always_kept_in_comprehension_free_set"
+      ],
+      "public_surface": "Global declarations, closures, nested functions, and comprehension evaluation results.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The inlined sub-scope must preserve legacy isolation when a comprehension target shadows a global name or a cell variable. The test checks both cases through ordinary function results."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_async_comprehensions_are_inlined_and_use_async_iteration",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_005_async_comprehensions_not_inlined",
+        "mutant_012_async_comprehension_uses_sync_iterator_opcode"
+      ],
+      "public_surface": "async def functions, async generators, asyncio.run(), and dis.get_instructions().",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 applies to async list, set, and dict comprehensions while preserving async iteration semantics. The test verifies async comprehensions are inlined and still use GET_AITER over an async generator."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_list_and_tuple_subiterators_are_inlined",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [],
+      "public_surface": "User functions, nested list comprehensions over list and tuple sub-iterables, and dis.get_instructions().",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 compiles nested list-comprehension generators inside the enclosing code object. The test asserts that list and tuple sub-iterators, including singleton and multi-element literals, are inlined without a synthetic <listcomp> code object while preserving the observable nested-comprehension result."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_async_subiterator_is_inlined",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_005_async_comprehensions_not_inlined",
+        "mutant_012_async_comprehension_uses_sync_iterator_opcode"
+      ],
+      "public_surface": "async def functions, async generators, nested async list comprehensions, asyncio.run(), and dis.get_instructions().",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 applies to async comprehensions and must inline nested async generator clauses while preserving async iteration. The test verifies a nested async list comprehension has no synthetic <listcomp> code object and still produces the expected async-iteration result."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_magic_number_marks_new_inlined_comprehension_bytecode",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_008_magic_number_not_bumped_for_new_bytecode"
+      ],
+      "public_surface": "importlib.util.MAGIC_NUMBER.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The emitted bytecode format changes for PEP 709, so import metadata must report the bumped magic number. The test asserts the documented 3529 bytecode version exposed through importlib.util."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_locals_inside_comprehension_include_outer_values",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility > locals() includes outer variables"
+      ],
+      "kills_mutants": [
+        "mutant_001_localsplus_omits_fast_hidden_kind",
+        "mutant_002_frame_locals_exposes_hidden_fast_locals",
+        "mutant_006_load_fast_and_clear_does_not_clear_slot"
+      ],
+      "public_surface": "locals() inside a list comprehension evaluated from a normal user function.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 documents that locals() inside a comprehension now includes variables from the enclosing function. The test asserts that compatibility-visible locals() behavior directly."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_and_class_scope_locals_hide_temporary_fast_locals",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification",
+        "Backwards Compatibility > locals() includes outer variables"
+      ],
+      "kills_mutants": [
+        "mutant_001_localsplus_omits_fast_hidden_kind",
+        "mutant_002_frame_locals_exposes_hidden_fast_locals"
+      ],
+      "public_surface": "compile(), exec(), class creation, and locals() snapshots in module and class scopes.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 must hide temporary fast locals used for inlined comprehension iteration variables while preserving the enclosing module or class binding visible through locals()."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_shadowed_outer_object_is_restored_and_outer_reads_stay_fast",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_006_load_fast_and_clear_does_not_clear_slot",
+        "mutant_019_free_vars_always_kept_in_comprehension_free_set"
+      ],
+      "public_surface": "User functions, weakref.ref(), list comprehension execution, and function code object metadata.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "The inlined sub-scope moves an existing local value out of the fast-local slot and restores it after the comprehension, and outer names read only by the comprehension should remain ordinary fast locals rather than unnecessary cells."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_module_scope_name_is_restored_after_comprehension",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_014_fast_hidden_state_not_restored_after_comprehension"
+      ],
+      "public_surface": "compile(), exec(), module-scope list comprehension execution, and normal name lookup after the comprehension.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "A comprehension creates only a temporary inlined sub-scope; after the comprehension, a module-scope name shadowed by the comprehension target must again resolve to the original binding."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_assembler_fasthidden_metadata_hides_fast_local_from_locals",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification",
+        "Backwards Compatibility > locals() includes outer variables"
+      ],
+      "kills_mutants": [
+        "mutant_001_localsplus_omits_fast_hidden_kind",
+        "mutant_002_frame_locals_exposes_hidden_fast_locals"
+      ],
+      "public_surface": "The CPython _testinternalcapi assembler support exposed to the CPython test suite, code object construction, and locals() from an assembled function.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 adds fasthidden metadata so compiler-created temporary fast locals can be hidden from frame locals. The test assembles a code object with a fasthidden local and asserts locals() does not expose that temporary name; pre-patch the metadata is ignored and the name is visible."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_nested_comprehension_children_are_spliced_into_parent_symtable",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_017_inlined_comprehension_children_not_spliced_into_parent"
+      ],
+      "public_surface": "symtable.symtable() over ordinary Python source containing a lambda inside a list comprehension.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "Inlining removes the comprehension block as a runtime frame, so nested children such as lambdas are analyzed as children of the enclosing function rather than remaining under a synthetic listcomp symbol table."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_cellvar_targets_are_recreated_for_lambdas_inside_comprehensions",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_016_cell_target_not_recreated_for_comprehension_scope"
+      ],
+      "public_surface": "User functions, lambdas, closures, and list comprehension results.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "When an inlined comprehension target is captured by a nested lambda, the compiler must create a comprehension-local cell so lambdas capture the comprehension value without corrupting the outer cell."
+    },
+    {
+      "test_id": "test.test_pep709_aug.InlinedComprehensionAugmentedTests.test_debug_opcode_metadata_names_load_fast_and_clear",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification"
+      ],
+      "kills_mutants": [
+        "mutant_024_debug_opcode_name_hides_load_fast_and_clear"
+      ],
+      "public_surface": "The CPython source distribution shipped in the benchmark image, specifically the generated opcode metadata header used by debug builds.",
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 709 adds a named LOAD_FAST_AND_CLEAR bytecode. The generated opcode metadata shipped with the source tree must name that opcode consistently so debug builds report the emitted bytecode rather than a reserved slot."
+    },
+    {
+      "test_id": "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_comprehension_results_and_iteration_variable_isolation_are_stable",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "List, set, and dict comprehension values plus normal local variable lookup.",
+      "oracle_kind": "no-modification-clause",
+      "rationale": "PEP 709 changes implementation strategy but preserves ordinary comprehension results and does not leak iteration variables into the surrounding function for existing programs."
+    },
+    {
+      "test_id": "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_nested_comprehension_semantics_are_stable",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "Nested list comprehensions and tuple results.",
+      "oracle_kind": "no-modification-clause",
+      "rationale": "Nested comprehension ordering and filtering are unrelated behavior that should remain stable while the compiler changes the frame layout."
+    },
+    {
+      "test_id": "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_generator_expressions_keep_lazy_behavior",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Rejected Ideas > More efficient comprehension calling, without inlining"
+      ],
+      "public_surface": "Generator expression creation and next() iteration.",
+      "oracle_kind": "no-modification-clause",
+      "rationale": "PEP 709 intentionally targets list, set, and dict comprehensions rather than generator expressions. This P2P pins generator laziness so unrelated expression semantics are not pulled into the inlining change."
+    },
+    {
+      "test_id": "test.test_pep709_stability_aug.InlinedComprehensionStabilityAugmentedTests.test_exception_behavior_inside_comprehension_is_stable",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "Exception propagation from ordinary list comprehension evaluation.",
+      "oracle_kind": "no-modification-clause",
+      "rationale": "The implementation removes a frame but should not change whether exceptions raised inside a comprehension propagate to the caller."
+    }
+  ]
+}

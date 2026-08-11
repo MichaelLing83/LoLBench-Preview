@@ -1,0 +1,5 @@
+org.apache.flink.test.streaming.api.datastream.extension.window.WindowITCase#testOneInputWindowFunctionWithEventTimeGlobalWindow
+org.apache.flink.test.streaming.api.datastream.extension.window.WindowITCase#testOneInputWindowFunctionWithEventTimeTumblingWindow
+org.apache.flink.test.streaming.api.datastream.extension.window.WindowITCase#testOneInputWindowFunctionWithEventTimeSlidingWindow
+org.apache.flink.test.streaming.api.datastream.extension.window.WindowITCase#testOneInputWindowFunctionWithEventTimeSessionWindow
+org.apache.flink.test.streaming.api.datastream.extension.window.WindowITCase#testTwoOutputWindowFunctionWithEventTimeTumblingWindow

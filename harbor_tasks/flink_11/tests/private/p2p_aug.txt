@@ -1,0 +1,2 @@
+org.apache.flink.client.cli.ClientCliAugTest#testRunOptionsPreserveAttachedShutdownAndProgramArgs
+org.apache.flink.client.cli.ClientCliAugTest#testDetachedRunOptionKeepsShutdownFlagIndependent

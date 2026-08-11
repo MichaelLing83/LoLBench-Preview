@@ -1,0 +1,411 @@
+{
+  "instance_id": "CPython_PEP-695_Type-Parameter-Syntax_PR-103764",
+  "files_in_scope": [
+    "Include/cpython/funcobject.h",
+    "Include/internal/pycore_ast.h",
+    "Include/internal/pycore_ast_state.h",
+    "Include/internal/pycore_function.h",
+    "Include/internal/pycore_global_objects.h",
+    "Include/internal/pycore_global_objects_fini_generated.h",
+    "Include/internal/pycore_global_strings.h",
+    "Include/internal/pycore_intrinsics.h",
+    "Include/internal/pycore_opcode.h",
+    "Include/internal/pycore_runtime_init_generated.h",
+    "Include/internal/pycore_symtable.h",
+    "Include/internal/pycore_typevarobject.h",
+    "Include/internal/pycore_unicodeobject_generated.h",
+    "Include/opcode.h",
+    "Lib/ast.py",
+    "Lib/importlib/_bootstrap_external.py",
+    "Lib/keyword.py",
+    "Lib/opcode.py",
+    "Lib/typing.py",
+    "Modules/_typingmodule.c",
+    "Objects/funcobject.c",
+    "Objects/object.c",
+    "Objects/typeobject.c",
+    "Objects/typevarobject.c",
+    "Objects/unionobject.c",
+    "Parser/action_helpers.c",
+    "Python/ast.c",
+    "Python/ast_opt.c",
+    "Python/bytecodes.c",
+    "Python/compile.c",
+    "Python/generated_cases.c.h",
+    "Python/intrinsics.c",
+    "Python/opcode_metadata.h",
+    "Python/opcode_targets.h",
+    "Python/pylifecycle.c",
+    "Python/symtable.c"
+  ],
+  "per_file": [
+    {
+      "file": "Lib/ast.py",
+      "language": "python",
+      "lines_in_patch": 26,
+      "executable_lines_in_patch": 21,
+      "f2p_covered": 14,
+      "p2p_covered": 0,
+      "union_covered": 14
+    },
+    {
+      "file": "Lib/importlib/_bootstrap_external.py",
+      "language": "python",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Lib/keyword.py",
+      "language": "python",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Lib/opcode.py",
+      "language": "python",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Lib/typing.py",
+      "language": "python",
+      "lines_in_patch": 170,
+      "executable_lines_in_patch": 110,
+      "f2p_covered": 67,
+      "p2p_covered": 0,
+      "union_covered": 67
+    },
+    {
+      "file": "Include/cpython/funcobject.h",
+      "language": "c",
+      "lines_in_patch": 1,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_ast.h",
+      "language": "c",
+      "lines_in_patch": 76,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_ast_state.h",
+      "language": "c",
+      "lines_in_patch": 7,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_function.h",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_global_objects.h",
+      "language": "c",
+      "lines_in_patch": 8,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_global_objects_fini_generated.h",
+      "language": "c",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_global_strings.h",
+      "language": "c",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_intrinsics.h",
+      "language": "c",
+      "lines_in_patch": 10,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_opcode.h",
+      "language": "c",
+      "lines_in_patch": 8,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_runtime_init_generated.h",
+      "language": "c",
+      "lines_in_patch": 16,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_symtable.h",
+      "language": "c",
+      "lines_in_patch": 18,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_typevarobject.h",
+      "language": "c",
+      "lines_in_patch": 22,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Include/internal/pycore_unicodeobject_generated.h",
+      "language": "c",
+      "lines_in_patch": 36,
+      "executable_lines_in_patch": 24,
+      "f2p_covered": 24,
+      "p2p_covered": 24,
+      "union_covered": 24
+    },
+    {
+      "file": "Include/opcode.h",
+      "language": "c",
+      "lines_in_patch": 8,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Modules/_typingmodule.c",
+      "language": "c",
+      "lines_in_patch": 28,
+      "executable_lines_in_patch": 10,
+      "f2p_covered": 10,
+      "p2p_covered": 10,
+      "union_covered": 10
+    },
+    {
+      "file": "Objects/funcobject.c",
+      "language": "c",
+      "lines_in_patch": 27,
+      "executable_lines_in_patch": 12,
+      "f2p_covered": 12,
+      "p2p_covered": 4,
+      "union_covered": 12
+    },
+    {
+      "file": "Objects/object.c",
+      "language": "c",
+      "lines_in_patch": 6,
+      "executable_lines_in_patch": 2,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "Objects/typeobject.c",
+      "language": "c",
+      "lines_in_patch": 45,
+      "executable_lines_in_patch": 23,
+      "f2p_covered": 16,
+      "p2p_covered": 7,
+      "union_covered": 16
+    },
+    {
+      "file": "Objects/typevarobject.c",
+      "language": "c",
+      "lines_in_patch": 1620,
+      "executable_lines_in_patch": 503,
+      "f2p_covered": 421,
+      "p2p_covered": 130,
+      "union_covered": 421
+    },
+    {
+      "file": "Objects/unionobject.c",
+      "language": "c",
+      "lines_in_patch": 6,
+      "executable_lines_in_patch": 5,
+      "f2p_covered": 5,
+      "p2p_covered": 5,
+      "union_covered": 5
+    },
+    {
+      "file": "Parser/action_helpers.c",
+      "language": "c",
+      "lines_in_patch": 7,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/ast.c",
+      "language": "c",
+      "lines_in_patch": 45,
+      "executable_lines_in_patch": 31,
+      "f2p_covered": 30,
+      "p2p_covered": 0,
+      "union_covered": 30
+    },
+    {
+      "file": "Python/ast_opt.c",
+      "language": "c",
+      "lines_in_patch": 24,
+      "executable_lines_in_patch": 18,
+      "f2p_covered": 18,
+      "p2p_covered": 3,
+      "union_covered": 18
+    },
+    {
+      "file": "Python/bytecodes.c",
+      "language": "c",
+      "lines_in_patch": 36,
+      "executable_lines_in_patch": 17,
+      "f2p_covered": 10,
+      "p2p_covered": 10,
+      "union_covered": 10
+    },
+    {
+      "file": "Python/compile.c",
+      "language": "c",
+      "lines_in_patch": 520,
+      "executable_lines_in_patch": 293,
+      "f2p_covered": 240,
+      "p2p_covered": 93,
+      "union_covered": 247
+    },
+    {
+      "file": "Python/generated_cases.c.h",
+      "language": "c",
+      "lines_in_patch": 546,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/intrinsics.c",
+      "language": "c",
+      "lines_in_patch": 33,
+      "executable_lines_in_patch": 6,
+      "f2p_covered": 6,
+      "p2p_covered": 0,
+      "union_covered": 6
+    },
+    {
+      "file": "Python/opcode_metadata.h",
+      "language": "c",
+      "lines_in_patch": 15,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/opcode_targets.h",
+      "language": "c",
+      "lines_in_patch": 5,
+      "executable_lines_in_patch": 0,
+      "f2p_covered": 0,
+      "p2p_covered": 0,
+      "union_covered": 0
+    },
+    {
+      "file": "Python/pylifecycle.c",
+      "language": "c",
+      "lines_in_patch": 2,
+      "executable_lines_in_patch": 1,
+      "f2p_covered": 1,
+      "p2p_covered": 1,
+      "union_covered": 1
+    },
+    {
+      "file": "Python/symtable.c",
+      "language": "c",
+      "lines_in_patch": 329,
+      "executable_lines_in_patch": 187,
+      "f2p_covered": 152,
+      "p2p_covered": 49,
+      "union_covered": 152
+    }
+  ],
+  "summary": {
+    "scope": "coverage.py for the 5 PEP-695 Python files (Lib/typing.py, Lib/ast.py, Lib/keyword.py, Lib/opcode.py, Lib/importlib/_bootstrap_external.py) + gcov/gcovr for the authored/runtime PEP-695 C source/header files (Parser/action_helpers.c, Python/{compile,symtable,ast,ast_opt,bytecodes,intrinsics,pylifecycle}.c, Objects/{typevarobject,funcobject,typeobject,unionobject,object}.c, Modules/_typingmodule.c, plus all touched pycore_*.h / cpython/funcobject.h / opcode.h headers). Grammar/python.gram and Parser/Python.asdl are grammar / schema sources (non-executable), and Parser/parser.c, Python/Python-ast.c, and Objects/clinic/typevarobject.c.h are generated artifacts, so they are not part of the denominator; generated parser/AST behavior is covered indirectly through public compile()/ast tests.",
+    "lines_in_patch_total": 3754,
+    "lines_in_patch_total_all": 8018,
+    "lines_in_patch_python": 216,
+    "lines_in_patch_c": 3538,
+    "executable_lines_in_patch": 1263,
+    "f2p_covered": 1027,
+    "p2p_covered": 337,
+    "union_covered": 1034,
+    "f2p_pct": 81.3,
+    "p2p_pct": 26.7,
+    "union_pct": 81.9,
+    "coverage_complete": true
+  },
+  "tool_status": {
+    "f2p_run": {
+      "ok": true,
+      "summary": "100P/0F/0E/0S",
+      "error": null
+    },
+    "p2p_run": {
+      "ok": true,
+      "summary": "184P/0F/0E/0S",
+      "error": null
+    },
+    "f2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_py_json": {
+      "ok": true,
+      "error": null
+    },
+    "f2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    },
+    "p2p_c_gcovr": {
+      "ok": true,
+      "error": null
+    }
+  },
+  "coverage_complete": true
+}

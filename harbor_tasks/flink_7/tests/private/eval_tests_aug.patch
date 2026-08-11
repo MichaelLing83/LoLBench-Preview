@@ -1,0 +1,228 @@
+diff --git a/flink-tests/src/test/java/org/apache/flink/test/streaming/api/datastream/WatermarkCoreApiAugTest.java b/flink-tests/src/test/java/org/apache/flink/test/streaming/api/datastream/WatermarkCoreApiAugTest.java
+new file mode 100644
+index 000000000000..111111111111
+--- /dev/null
++++ b/flink-tests/src/test/java/org/apache/flink/test/streaming/api/datastream/WatermarkCoreApiAugTest.java
+@@ -0,0 +1,176 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.test.streaming.api.datastream;
++
++import org.apache.flink.api.common.watermark.BoolWatermark;
++import org.apache.flink.api.common.watermark.BoolWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.LongWatermark;
++import org.apache.flink.api.common.watermark.LongWatermarkDeclaration;
++import org.apache.flink.api.common.watermark.WatermarkCombinationFunction.BoolWatermarkCombinationFunction;
++import org.apache.flink.api.common.watermark.WatermarkCombinationFunction.NumericWatermarkCombinationFunction;
++import org.apache.flink.api.common.watermark.WatermarkCombinationPolicy;
++import org.apache.flink.api.common.watermark.WatermarkDeclarations;
++import org.apache.flink.api.common.watermark.WatermarkHandlingStrategy;
++
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/** Additional public API coverage for FLIP-467 generalized watermark declarations. */
++class WatermarkCoreApiAugTest {
++
++    @Test
++    void testDefaultDeclarationPoliciesAndWatermarks() {
++        LongWatermarkDeclaration longDeclaration =
++                WatermarkDeclarations.newBuilder("orders-progress").typeLong().build();
++
++        assertThat(longDeclaration.getIdentifier()).isEqualTo("orders-progress");
++        assertThat(longDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(NumericWatermarkCombinationFunction.MIN);
++        assertThat(longDeclaration.getCombinationPolicy().isCombineWaitForAllChannels()).isFalse();
++        assertThat(longDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++        LongWatermark longWatermark = longDeclaration.newWatermark(42L);
++        assertThat(longWatermark.getValue()).isEqualTo(42L);
++        assertThat(longWatermark.getIdentifier()).isEqualTo("orders-progress");
++
++        BoolWatermarkDeclaration boolDeclaration =
++                WatermarkDeclarations.newBuilder("has-backlog").typeBool().build();
++
++        assertThat(boolDeclaration.getIdentifier()).isEqualTo("has-backlog");
++        assertThat(boolDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(BoolWatermarkCombinationFunction.AND);
++        assertThat(boolDeclaration.getCombinationPolicy().isCombineWaitForAllChannels()).isFalse();
++        assertThat(boolDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++        BoolWatermark boolWatermark = boolDeclaration.newWatermark(true);
++        assertThat(boolWatermark.getValue()).isTrue();
++        assertThat(boolWatermark.getIdentifier()).isEqualTo("has-backlog");
++    }
++
++    @Test
++    void testExplicitDeclarationPoliciesAndHandlingStrategies() {
++        LongWatermarkDeclaration maxIgnoringDeclaration =
++                WatermarkDeclarations.newBuilder("latency")
++                        .typeLong()
++                        .combineFunctionMax()
++                        .combineWaitForAllChannels(true)
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++
++        assertThat(maxIgnoringDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(NumericWatermarkCombinationFunction.MAX);
++        assertThat(maxIgnoringDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isTrue();
++        assertThat(maxIgnoringDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++
++        LongWatermarkDeclaration minForwardingDeclaration =
++                WatermarkDeclarations.newBuilder("latency")
++                        .typeLong()
++                        .combineFunctionMax()
++                        .combineFunctionMin()
++                        .defaultHandlingStrategyIgnore()
++                        .defaultHandlingStrategyForward()
++                        .build();
++        assertThat(
++                        minForwardingDeclaration
++                                .getCombinationPolicy()
++                                .getWatermarkCombinationFunction())
++                .isEqualTo(NumericWatermarkCombinationFunction.MIN);
++        assertThat(minForwardingDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++
++        BoolWatermarkDeclaration orIgnoringDeclaration =
++                WatermarkDeclarations.newBuilder("availability")
++                        .typeBool()
++                        .combineFunctionOR()
++                        .combineWaitForAllChannels(true)
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++
++        assertThat(orIgnoringDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(BoolWatermarkCombinationFunction.OR);
++        assertThat(orIgnoringDeclaration.getCombinationPolicy().isCombineWaitForAllChannels())
++                .isTrue();
++        assertThat(orIgnoringDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++
++        BoolWatermarkDeclaration andForwardingDeclaration =
++                WatermarkDeclarations.newBuilder("availability")
++                        .typeBool()
++                        .combineFunctionOR()
++                        .combineFunctionAND()
++                        .defaultHandlingStrategyIgnore()
++                        .defaultHandlingStrategyForward()
++                        .build();
++        assertThat(andForwardingDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(BoolWatermarkCombinationFunction.AND);
++        assertThat(andForwardingDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.FORWARD);
++    }
++
++    @Test
++    void testPolicyGetterCarriesWaitForAllFlag() {
++        WatermarkCombinationPolicy waitForAll =
++                new WatermarkCombinationPolicy(NumericWatermarkCombinationFunction.MIN, true);
++        WatermarkCombinationPolicy doNotWait =
++                new WatermarkCombinationPolicy(NumericWatermarkCombinationFunction.MIN, false);
++
++        assertThat(waitForAll.getWatermarkCombinationFunction())
++                .isEqualTo(NumericWatermarkCombinationFunction.MIN);
++        assertThat(waitForAll.isCombineWaitForAllChannels()).isTrue();
++        assertThat(doNotWait.isCombineWaitForAllChannels()).isFalse();
++    }
++
++    @Test
++    void testWatermarkValueAndDeclarationAccessors() {
++        LongWatermark longWatermark = new LongWatermark(7L, "orders-progress");
++        assertThat(longWatermark.getValue()).isEqualTo(7L);
++        assertThat(longWatermark.getIdentifier()).isEqualTo("orders-progress");
++
++        BoolWatermark boolWatermark = new BoolWatermark(false, "has-backlog");
++        assertThat(boolWatermark.getValue()).isFalse();
++        assertThat(boolWatermark.getIdentifier()).isEqualTo("has-backlog");
++
++        LongWatermarkDeclaration longDeclaration =
++                WatermarkDeclarations.newBuilder("latency")
++                        .typeLong()
++                        .combineFunctionMax()
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++        assertThat(longDeclaration.getIdentifier()).isEqualTo("latency");
++        assertThat(longDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(NumericWatermarkCombinationFunction.MAX);
++        assertThat(longDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++
++        BoolWatermarkDeclaration boolDeclaration =
++                WatermarkDeclarations.newBuilder("availability")
++                        .typeBool()
++                        .combineFunctionOR()
++                        .defaultHandlingStrategyIgnore()
++                        .build();
++        assertThat(boolDeclaration.getIdentifier()).isEqualTo("availability");
++        assertThat(boolDeclaration.getCombinationPolicy().getWatermarkCombinationFunction())
++                .isEqualTo(BoolWatermarkCombinationFunction.OR);
++        assertThat(boolDeclaration.getDefaultHandlingStrategy())
++                .isEqualTo(WatermarkHandlingStrategy.IGNORE);
++    }
++}
+diff --git a/flink-clients/src/test/java/org/apache/flink/client/program/rest/retry/ExponentialWaitStrategyFlip467AugTest.java b/flink-clients/src/test/java/org/apache/flink/client/program/rest/retry/ExponentialWaitStrategyFlip467AugTest.java
+new file mode 100644
+index 000000000000..111111111111
+--- /dev/null
++++ b/flink-clients/src/test/java/org/apache/flink/client/program/rest/retry/ExponentialWaitStrategyFlip467AugTest.java
+@@ -0,0 +1,40 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.client.program.rest.retry;
++
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** P2P stability probes for client retry behavior unrelated to generalized watermarks. */
++class ExponentialWaitStrategyFlip467AugTest {
++
++    @Test
++    void testSleepTimeUsesConfiguredCapAfterOverflow() {
++        assertThat(new ExponentialWaitStrategy(10L, 100L).sleepTime(63L)).isEqualTo(100L);
++    }
++
++    @Test
++    void testNegativeAttemptIsRejected() {
++        assertThatThrownBy(() -> new ExponentialWaitStrategy(10L, 100L).sleepTime(-1L))
++                .isInstanceOf(IllegalArgumentException.class)
++                .hasMessageContaining("attempt must not be negative");
++    }
++}

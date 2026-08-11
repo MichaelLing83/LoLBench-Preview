@@ -1,0 +1,23 @@
+{
+  "instance_id": "cpython_3",
+  "source_instance_id": "CPython_PEP-634_Structural-Pattern-Matching_PR-22917",
+  "source_slug": "CPython_PEP-634_Structural-Pattern-Matching_PR-22917",
+  "docker_slug": "CPython_PEP-634_Structural-Pattern-Matching_PR-22917",
+  "dockerhub_image": "smartdub26/lolbench:cpython_3-1.0.0",
+  "dockerhub_digest": "sha256:63e2060720002cf844c6c8d0f5a78193295deb6c1dd8b636f4a26db9889ecea8",
+  "project": "cpython",
+  "repo": "python/cpython",
+  "requirement_doc": "https://peps.python.org/pep-0634/",
+  "pr_link": "https://github.com/python/cpython/pull/22917",
+  "base_commit": "cc02b4f2e810ab524d845daa18bc94df5b092dd8",
+  "merge_commit": "145bf269df3530176f6ebeab1324890ef7070bf8",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

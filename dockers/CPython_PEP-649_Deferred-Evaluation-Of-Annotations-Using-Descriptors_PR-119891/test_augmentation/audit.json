@@ -1,0 +1,377 @@
+{
+  "instance_id": "CPython_PEP-649_Deferred-Evaluation-Of-Annotations-Using-Descriptors_PR-119891",
+  "augmentation_pass": "lolbench-aug-2026-05-24",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "026e5dd674f36bf96ea3fd0d51aec18f4ff0d2aec58d159c8829c76078615aed",
+    "f2p_aug.txt": "b79504b359628b843cd8c9f1f5111e8c8b596d9907407d55eaae604fd6a7ab5e",
+    "p2p_aug.txt": "3944b30d3b185253cddedbaa61d1f15138c7058ae5b4e94afd95371f96a1ea7c"
+  },
+  "summary": {
+    "new_f2p_count": 18,
+    "new_p2p_count": 2,
+    "surviving_mutants_targeted": [
+      "mutant_003_forwardref_owner_requirement_disabled",
+      "mutant_004_forwardref_type_params_not_injected",
+      "mutant_005_forwardref_starred_compile_disabled",
+      "mutant_013_value_notimplemented_masked_empty",
+      "mutant_017_get_annotations_returns_cached_dict",
+      "mutant_023_typing_source_forwardref_evaluated",
+      "mutant_025_typing_class_hints_drop_format",
+      "mutant_026_typing_class_source_branch_disabled",
+      "mutant_027_typing_function_hints_drop_format",
+      "mutant_028_typing_function_source_branch_disabled",
+      "mutant_030_namedtuple_source_returns_checked_types"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "coverage_report_sha256": "43d1ddbceeca9317ba54b818e77e4e1e9e3a727b6c09dc7aa9f78f9f03fbf7d3",
+      "line_coverage_percent": 92.6,
+      "covered_lines": 424,
+      "executable_lines": 458
+    },
+    "no_modification_clauses_pinned": [
+      "Backwards Compatibility: PEP 649 changes annotation evaluation and helper APIs without changing unrelated math/statistics standard-library behavior."
+    ],
+    "validation_status": {
+      "status": "validated",
+      "validated_at": "2026-05-25T00:04:12Z",
+      "suites": [
+        "orig",
+        "aug",
+        "union"
+      ],
+      "mutants_total": 32,
+      "mutants_killed_by_f2p": 32,
+      "p2p_clean_on_mutants": true
+    }
+  },
+  "tests": [
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_forwardref_requires_owner_or_type_params",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__"
+      ],
+      "kills_mutants": [
+        "mutant_003_forwardref_owner_requirement_disabled"
+      ],
+      "public_surface": "annotationlib.ForwardRef.evaluate() through the public ForwardRef API.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 649 requires ForwardRef evaluation to have either owner context or explicit type parameters; evaluating with only globals and locals must raise TypeError rather than resolving a name without annotation-scope context."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_type_params_namespace",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__"
+      ],
+      "kills_mutants": [
+        "mutant_004_forwardref_type_params_not_injected"
+      ],
+      "public_surface": "annotationlib.ForwardRef.evaluate() with public typing.TypeVar objects passed as type_params.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Type parameters in annotation scope must be injected into the evaluation namespace so a ForwardRef can resolve a name that is present only as a type parameter."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_forwardref_evaluates_starred_typevartuple",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > The `stringizer` and the `fake globals` environment"
+      ],
+      "kills_mutants": [
+        "mutant_005_forwardref_starred_compile_disabled"
+      ],
+      "public_surface": "annotationlib.ForwardRef.evaluate() with a public typing.TypeVarTuple starred forward reference.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "The stringizer/ForwardRef machinery must compile starred TypeVarTuple references by wrapping the starred expression, allowing *Ts annotations to evaluate to typing.Unpack[Ts]."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_call_annotate_value_notimplemented_is_runtime_error",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__"
+      ],
+      "kills_mutants": [
+        "mutant_013_value_notimplemented_masked_empty"
+      ],
+      "public_surface": "annotationlib.call_annotate_function() and annotationlib.Format.VALUE.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 649 mandates that VALUE format is always supported; an __annotate__ function raising NotImplementedError for VALUE is a protocol error and must surface as RuntimeError, not as an empty annotations dict."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_annotations_returns_fresh_dict",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_017_get_annotations_returns_cached_dict"
+      ],
+      "public_surface": "annotationlib.get_annotations() on a public Python function object.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "The helper contract says get_annotations returns a fresh dict on every call; mutating the returned dict must not mutate the object cached __annotations__ dict."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_typing_evaluate_forward_ref_source_does_not_evaluate",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_023_typing_source_forwardref_evaluated"
+      ],
+      "public_surface": "typing.evaluate_forward_ref() with annotationlib.Format.SOURCE.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "SOURCE format returns the stored forward-reference source text and must not evaluate an undefined name into a runtime value or NameError."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_does_not_evaluate",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_025_typing_class_hints_drop_format"
+      ],
+      "public_surface": "typing.get_type_hints() on a public class object with format=annotationlib.Format.SOURCE.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Class get_type_hints must pass the requested SOURCE format into annotation retrieval and return source strings directly without evaluating undefined annotation names."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_class_source_preserves_forwardref_objects",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_026_typing_class_source_branch_disabled"
+      ],
+      "public_surface": "typing.get_type_hints() on a public class object whose __annotations__ contains a public annotationlib.ForwardRef.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "When SOURCE annotations come from an existing annotations dict rather than a generated __annotate__ function, class get_type_hints must return them directly; entering VALUE-style evaluation converts ForwardRef objects to source strings and changes the public result."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_does_not_evaluate",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_027_typing_function_hints_drop_format"
+      ],
+      "public_surface": "typing.get_type_hints() on a public function object with format=annotationlib.Format.SOURCE.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Function get_type_hints with SOURCE format must return the source text for parameter and return annotations without entering VALUE/FORWARDREF evaluation."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_type_hints_function_source_preserves_forwardref_objects",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [
+        "mutant_028_typing_function_source_branch_disabled"
+      ],
+      "public_surface": "typing.get_type_hints() on a public function object whose __annotations__ contains a public annotationlib.ForwardRef.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Function get_type_hints must return SOURCE-format annotations before VALUE-style processing; a legacy ForwardRef value in __annotations__ must be preserved rather than converted to its source string."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_namedtuple_source_format_returns_source_strings",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__"
+      ],
+      "kills_mutants": [
+        "mutant_030_namedtuple_source_returns_checked_types"
+      ],
+      "public_surface": "typing.NamedTuple public factory and the PEP 649 public __annotate__ descriptor.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "NamedTuple eager annotation functions must return checked runtime types for VALUE/FORWARDREF but source strings for SOURCE format, as required by the __annotate__ format contract."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_stringifier_source_covers_public_expression_forms",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > The `stringizer` and the `fake globals` environment"
+      ],
+      "kills_mutants": [],
+      "public_surface": "annotationlib.call_annotate_function() SOURCE fallback through compiler-style public __annotate__ callable semantics.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Exercises SOURCE stringizer behavior for subscription, attributes, calls, starred iteration, binary/reverse binary operators, comparisons, and unary operators using the public call_annotate_function API."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_stringifier_rejects_format_specifiers",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > The `stringizer` and the `fake globals` environment"
+      ],
+      "kills_mutants": [],
+      "public_surface": "annotationlib.call_annotate_function() SOURCE fallback with an f-string format specifier.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 649 SOURCE reconstruction cannot support string formatting inside annotations; the public fallback must reject that expression instead of returning misleading source text."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_forwardref_public_edge_behaviors",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__",
+        "Implementation > The `stringizer` and the `fake globals` environment"
+      ],
+      "kills_mutants": [],
+      "public_surface": "annotationlib.ForwardRef constructor, evaluate(), repr(), union operators, equality, and syntax validation through public APIs.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Covers documented ForwardRef validation, owner/module namespace inference, cached evaluation, union composition, representation, and expression syntax errors through externally reachable behavior."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_get_annotations_public_error_and_legacy_object_paths",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__",
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [],
+      "public_surface": "annotationlib.get_annotations() on public classes and objects with malformed or legacy annotations.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Covers public error handling for non-dict __annotate__ results, invalid __annotations__ values, and legacy object annotations that require eval_str processing."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_typing_value_paths_and_annotation_stripping",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [],
+      "public_surface": "typing.evaluate_forward_ref() and typing.get_type_hints() VALUE-format behavior on public classes/functions.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Covers VALUE evaluation, NameError preservation, and default Annotated metadata stripping in typing.get_type_hints while leaving SOURCE-specific tests focused on deferred behavior."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_import_reexports_annotation_helpers",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`"
+      ],
+      "kills_mutants": [],
+      "public_surface": "inspect.get_annotations re-export and dataclasses import path through public stdlib modules.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Pins the public inspect.get_annotations re-export from annotationlib and reloads dataclasses to exercise the annotationlib integration import path."
+    },
+    {
+      "test_id": "test.test_pep649_aug.PEP649AugTest.test_zz_module_reloads_and_public_fallback_paths",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Implementation > __annotate__ and __annotations__",
+        "Implementation > Changes to `inspect.get_annotations` and `typing.get_type_hints`",
+        "Implementation > The `stringizer` and the `fake globals` environment"
+      ],
+      "kills_mutants": [],
+      "public_surface": "annotationlib module reload, annotationlib.ForwardRef, annotationlib.get_annotations, typing.evaluate_forward_ref, typing.get_type_hints, typing.NamedTuple, and typing.TypedDict public APIs.",
+      "internal_symbol_check": [],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Reloads the public annotationlib module under coverage and exercises externally reachable fallback paths for ForwardRef construction/evaluation, module re-exports, eval_str annotation lookup, typing forward-reference evaluation, empty NamedTuple annotations, and TypedDict SOURCE/VALUE annotation descriptors."
+    },
+    {
+      "test_id": "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_math_fsum_preserves_small_residual",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "math.fsum public stdlib API.",
+      "internal_symbol_check": [],
+      "oracle_kind": "compatibility-regression",
+      "rationale": "PEP 649 changes annotation introspection semantics only; unrelated numeric precision behavior in math.fsum should remain unchanged across base, golden, and mutants."
+    },
+    {
+      "test_id": "test.test_pep649_p2p_aug.PEP649P2PAugTest.test_statistics_mean_preserves_fraction_type",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "statistics.mean public stdlib API with fractions.Fraction inputs.",
+      "internal_symbol_check": [],
+      "oracle_kind": "compatibility-regression",
+      "rationale": "PEP 649 should not affect unrelated statistics behavior; Fraction-preserving mean results pin an adjacent standard-library no-regression surface outside annotation machinery."
+    }
+  ]
+}

@@ -1,0 +1,3174 @@
+diff --git a/Grammar/python.gram b/Grammar/python.gram
+index 05d7837e3a..1c1c53c4b7 100644
+--- a/Grammar/python.gram
++++ b/Grammar/python.gram
+@@ -647,21 +647,25 @@ type_params[asdl_type_param_seq*]: '[' t=type_param_seq  ']' {
+ type_param_seq[asdl_type_param_seq*]: a[asdl_type_param_seq*]=','.type_param+ [','] { a }
+ 
+ type_param[type_param_ty] (memo):
+-    | a=NAME b=[type_param_bound] { _PyAST_TypeVar(a->v.Name.id, b, EXTRA) }
++    | a=NAME b=[type_param_bound] c=[type_param_default] { _PyAST_TypeVar(a->v.Name.id, b, c, EXTRA) }
+     | '*' a=NAME colon=':' e=expression {
+             RAISE_SYNTAX_ERROR_STARTING_FROM(colon, e->kind == Tuple_kind
+                 ? "cannot use constraints with TypeVarTuple"
+                 : "cannot use bound with TypeVarTuple")
+         }
+-    | '*' a=NAME { _PyAST_TypeVarTuple(a->v.Name.id, EXTRA) }
++    | '*' a=NAME b=[type_param_starred_default] { _PyAST_TypeVarTuple(a->v.Name.id, b, EXTRA) }
+     | '**' a=NAME colon=':' e=expression {
+             RAISE_SYNTAX_ERROR_STARTING_FROM(colon, e->kind == Tuple_kind
+                 ? "cannot use constraints with ParamSpec"
+                 : "cannot use bound with ParamSpec")
+         }
+-    | '**' a=NAME { _PyAST_ParamSpec(a->v.Name.id, EXTRA) }
++    | '**' a=NAME b=[type_param_default] { _PyAST_ParamSpec(a->v.Name.id, b, EXTRA) }
+ 
+ type_param_bound[expr_ty]: ':' e=expression { e }
++type_param_default[expr_ty]: '=' e=expression {
++    CHECK_VERSION(expr_ty, 13, "Type parameter defaults are", e) }
++type_param_starred_default[expr_ty]: '=' e=star_expression {
++    CHECK_VERSION(expr_ty, 13, "Type parameter defaults are", e) }
+ 
+ # EXPRESSIONS
+ # -----------
+diff --git a/Include/internal/pycore_ast.h b/Include/internal/pycore_ast.h
+index f222d485e0..f5bf1205a8 100644
+--- a/Include/internal/pycore_ast.h
++++ b/Include/internal/pycore_ast.h
+@@ -657,14 +657,17 @@ struct _type_param {
+         struct {
+             identifier name;
+             expr_ty bound;
++            expr_ty default_value;
+         } TypeVar;
+ 
+         struct {
+             identifier name;
++            expr_ty default_value;
+         } ParamSpec;
+ 
+         struct {
+             identifier name;
++            expr_ty default_value;
+         } TypeVarTuple;
+ 
+     } v;
+@@ -892,14 +895,15 @@ pattern_ty _PyAST_MatchOr(asdl_pattern_seq * patterns, int lineno, int
+                           col_offset, int end_lineno, int end_col_offset,
+                           PyArena *arena);
+ type_ignore_ty _PyAST_TypeIgnore(int lineno, string tag, PyArena *arena);
+-type_param_ty _PyAST_TypeVar(identifier name, expr_ty bound, int lineno, int
+-                             col_offset, int end_lineno, int end_col_offset,
+-                             PyArena *arena);
+-type_param_ty _PyAST_ParamSpec(identifier name, int lineno, int col_offset, int
+-                               end_lineno, int end_col_offset, PyArena *arena);
+-type_param_ty _PyAST_TypeVarTuple(identifier name, int lineno, int col_offset,
+-                                  int end_lineno, int end_col_offset, PyArena
+-                                  *arena);
++type_param_ty _PyAST_TypeVar(identifier name, expr_ty bound, expr_ty
++                             default_value, int lineno, int col_offset, int
++                             end_lineno, int end_col_offset, PyArena *arena);
++type_param_ty _PyAST_ParamSpec(identifier name, expr_ty default_value, int
++                               lineno, int col_offset, int end_lineno, int
++                               end_col_offset, PyArena *arena);
++type_param_ty _PyAST_TypeVarTuple(identifier name, expr_ty default_value, int
++                                  lineno, int col_offset, int end_lineno, int
++                                  end_col_offset, PyArena *arena);
+ 
+ 
+ PyObject* PyAST_mod2obj(mod_ty t);
+diff --git a/Include/internal/pycore_ast_state.h b/Include/internal/pycore_ast_state.h
+index f1b1786264..09ae954654 100644
+--- a/Include/internal/pycore_ast_state.h
++++ b/Include/internal/pycore_ast_state.h
+@@ -184,6 +184,7 @@ struct ast_state {
+     PyObject *conversion;
+     PyObject *ctx;
+     PyObject *decorator_list;
++    PyObject *default_value;
+     PyObject *defaults;
+     PyObject *elt;
+     PyObject *elts;
+diff --git a/Include/internal/pycore_intrinsics.h b/Include/internal/pycore_intrinsics.h
+index 8fa88ea3f7..39c2a30f6e 100644
+--- a/Include/internal/pycore_intrinsics.h
++++ b/Include/internal/pycore_intrinsics.h
+@@ -28,8 +28,9 @@
+ #define INTRINSIC_TYPEVAR_WITH_BOUND             2
+ #define INTRINSIC_TYPEVAR_WITH_CONSTRAINTS       3
+ #define INTRINSIC_SET_FUNCTION_TYPE_PARAMS       4
++#define INTRINSIC_SET_TYPEPARAM_DEFAULT          5
+ 
+-#define MAX_INTRINSIC_2                          4
++#define MAX_INTRINSIC_2                          5
+ 
+ typedef PyObject *(*intrinsic_func1)(PyThreadState* tstate, PyObject *value);
+ typedef PyObject *(*intrinsic_func2)(PyThreadState* tstate, PyObject *value1, PyObject *value2);
+diff --git a/Include/internal/pycore_typevarobject.h b/Include/internal/pycore_typevarobject.h
+index c9fa97d682..80a2daf4ef 100644
+--- a/Include/internal/pycore_typevarobject.h
++++ b/Include/internal/pycore_typevarobject.h
+@@ -13,10 +13,12 @@ extern PyObject *_Py_make_paramspec(PyThreadState *, PyObject *);
+ extern PyObject *_Py_make_typevartuple(PyThreadState *, PyObject *);
+ extern PyObject *_Py_make_typealias(PyThreadState *, PyObject *);
+ extern PyObject *_Py_subscript_generic(PyThreadState *, PyObject *);
++extern PyObject *_Py_set_typeparam_default(PyThreadState *, PyObject *, PyObject *);
+ extern int _Py_initialize_generic(PyInterpreterState *);
+ extern void _Py_clear_generic_types(PyInterpreterState *);
+ 
+ extern PyTypeObject _PyTypeAlias_Type;
++extern PyObject _Py_NoDefaultStruct;
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/Lib/ast.py b/Lib/ast.py
+index 9f38605165..d7e51aba59 100644
+--- a/Lib/ast.py
++++ b/Lib/ast.py
+@@ -1124,12 +1124,21 @@ def visit_TypeVar(self, node):
+         if node.bound:
+             self.write(": ")
+             self.traverse(node.bound)
++        if node.default_value:
++            self.write(" = ")
++            self.traverse(node.default_value)
+ 
+     def visit_TypeVarTuple(self, node):
+         self.write("*" + node.name)
++        if node.default_value:
++            self.write(" = ")
++            self.traverse(node.default_value)
+ 
+     def visit_ParamSpec(self, node):
+         self.write("**" + node.name)
++        if node.default_value:
++            self.write(" = ")
++            self.traverse(node.default_value)
+ 
+     def visit_TypeAlias(self, node):
+         self.fill("type ")
+diff --git a/Lib/typing.py b/Lib/typing.py
+index eff65cfb68..3f6ff491e7 100644
+--- a/Lib/typing.py
++++ b/Lib/typing.py
+@@ -38,6 +38,7 @@
+     ParamSpecKwargs,
+     TypeAliasType,
+     Generic,
++    NoDefault,
+ )
+ 
+ # Please keep __all__ alphabetized within each category.
+@@ -138,6 +139,7 @@
+     'NewType',
+     'no_type_check',
+     'no_type_check_decorator',
++    'NoDefault',
+     'NoReturn',
+     'NotRequired',
+     'overload',
+@@ -266,6 +268,10 @@ def _collect_parameters(args):
+         >>> _collect_parameters((T, Callable[P, T]))
+         (~T, ~P)
+     """
++    # required type parameter cannot appear after parameter with default
++    default_encountered = False
++    # or after TypeVarTuple
++    type_var_tuple_encountered = False
+     parameters = []
+     for t in args:
+         if isinstance(t, type):
+@@ -280,27 +286,58 @@ def _collect_parameters(args):
+                         parameters.append(collected)
+         elif hasattr(t, '__typing_subst__'):
+             if t not in parameters:
++                if type_var_tuple_encountered and t.has_default():
++                    raise TypeError('Type parameter with a default'
++                                    ' follows TypeVarTuple')
++
++                if t.has_default():
++                    default_encountered = True
++                elif default_encountered:
++                    raise TypeError(f'Type parameter {t!r} without a default'
++                                    ' follows type parameter with a default')
++
+                 parameters.append(t)
+         else:
++            if _is_unpacked_typevartuple(t):
++                type_var_tuple_encountered = True
+             for x in getattr(t, '__parameters__', ()):
+                 if x not in parameters:
+                     parameters.append(x)
+     return tuple(parameters)
+ 
+ 
+-def _check_generic(cls, parameters, elen):
++def _check_generic_specialization(cls, arguments):
+     """Check correct count for parameters of a generic cls (internal helper).
+ 
+     This gives a nice error message in case of count mismatch.
+     """
+-    if not elen:
++    expected_len = len(cls.__parameters__)
++    if not expected_len:
+         raise TypeError(f"{cls} is not a generic class")
+-    alen = len(parameters)
+-    if alen != elen:
+-        raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments for {cls};"
+-                        f" actual {alen}, expected {elen}")
++    actual_len = len(arguments)
++    if actual_len != expected_len:
++        # deal with defaults
++        if actual_len < expected_len:
++            # If the parameter at index `actual_len` in the parameters list
++            # has a default, then all parameters after it must also have
++            # one, because we validated as much in _collect_parameters().
++            # That means that no error needs to be raised here, despite
++            # the number of arguments being passed not matching the number
++            # of parameters: all parameters that aren't explicitly
++            # specialized in this call are parameters with default values.
++            if cls.__parameters__[actual_len].has_default():
++                return
++
++            expected_len -= sum(p.has_default() for p in cls.__parameters__)
++            expect_val = f"at least {expected_len}"
++        else:
++            expect_val = expected_len
++
++        raise TypeError(f"Too {'many' if actual_len > expected_len else 'few'} arguments"
++                        f" for {cls}; actual {actual_len}, expected {expect_val}")
+ 
+-def _unpack_args(args):
++
++def _unpack_args(*args):
+     newargs = []
+     for arg in args:
+         subargs = getattr(arg, '__typing_unpacked_tuple_args__', None)
+@@ -1089,11 +1126,15 @@ def _typevartuple_prepare_subst(self, alias, args):
+     elif left + right > alen:
+         raise TypeError(f"Too few arguments for {alias};"
+                         f" actual {alen}, expected at least {plen-1}")
++    if left == alen - right and self.has_default():
++        replacement = _unpack_args(self.__default__)
++    else:
++        replacement = args[left: alen - right]
+ 
+     return (
+         *args[:left],
+         *([fillarg]*(typevartuple_index - left)),
+-        tuple(args[left: alen - right]),
++        replacement,
+         *([fillarg]*(plen - right - left - typevartuple_index - 1)),
+         *args[alen - right:],
+     )
+@@ -1111,6 +1152,8 @@ def _paramspec_subst(self, arg):
+ def _paramspec_prepare_subst(self, alias, args):
+     params = alias.__parameters__
+     i = params.index(self)
++    if i == len(args) and self.has_default():
++        args = [*args, self.__default__]
+     if i >= len(args):
+         raise TypeError(f"Too few arguments for {alias}")
+     # Special case where Z[[int, str, bool]] == Z[int, str, bool] in PEP 612.
+@@ -1124,33 +1167,33 @@ def _paramspec_prepare_subst(self, alias, args):
+ 
+ 
+ @_tp_cache
+-def _generic_class_getitem(cls, params):
++def _generic_class_getitem(cls, args):
+     """Parameterizes a generic class.
+ 
+     At least, parameterizing a generic class is the *main* thing this method
+     does. For example, for some generic class `Foo`, this is called when we
+-    do `Foo[int]` - there, with `cls=Foo` and `params=int`.
++    do `Foo[int]` - there, with `cls=Foo` and `args=int`.
+ 
+     However, note that this method is also called when defining generic
+     classes in the first place with `class Foo(Generic[T]): ...`.
+     """
+-    if not isinstance(params, tuple):
+-        params = (params,)
++    if not isinstance(args, tuple):
++        args = (args,)
+ 
+-    params = tuple(_type_convert(p) for p in params)
++    args = tuple(_type_convert(p) for p in args)
+     is_generic_or_protocol = cls in (Generic, Protocol)
+ 
+     if is_generic_or_protocol:
+         # Generic and Protocol can only be subscripted with unique type variables.
+-        if not params:
++        if not args:
+             raise TypeError(
+                 f"Parameter list to {cls.__qualname__}[...] cannot be empty"
+             )
+-        if not all(_is_typevar_like(p) for p in params):
++        if not all(_is_typevar_like(p) for p in args):
+             raise TypeError(
+                 f"Parameters to {cls.__name__}[...] must all be type variables "
+                 f"or parameter specification variables.")
+-        if len(set(params)) != len(params):
++        if len(set(args)) != len(args):
+             raise TypeError(
+                 f"Parameters to {cls.__name__}[...] must all be unique")
+     else:
+@@ -1158,18 +1201,18 @@ def _generic_class_getitem(cls, params):
+         for param in cls.__parameters__:
+             prepare = getattr(param, '__typing_prepare_subst__', None)
+             if prepare is not None:
+-                params = prepare(cls, params)
+-        _check_generic(cls, params, len(cls.__parameters__))
++                args = prepare(cls, args)
++        _check_generic_specialization(cls, args)
+ 
+         new_args = []
+-        for param, new_arg in zip(cls.__parameters__, params):
++        for param, new_arg in zip(cls.__parameters__, args):
+             if isinstance(param, TypeVarTuple):
+                 new_args.extend(new_arg)
+             else:
+                 new_args.append(new_arg)
+-        params = tuple(new_args)
++        args = tuple(new_args)
+ 
+-    return _GenericAlias(cls, params)
++    return _GenericAlias(cls, args)
+ 
+ 
+ def _generic_init_subclass(cls, *args, **kwargs):
+@@ -1390,8 +1433,7 @@ def __getitem__(self, args):
+         # Preprocess `args`.
+         if not isinstance(args, tuple):
+             args = (args,)
+-        args = tuple(_type_convert(p) for p in args)
+-        args = _unpack_args(args)
++        args = _unpack_args(*(_type_convert(p) for p in args))
+         new_args = self._determine_new_args(args)
+         r = self.copy_with(new_args)
+         return r
+@@ -1552,7 +1594,12 @@ def __getitem__(self, params):
+             params = (params,)
+         msg = "Parameters to generic types must be types."
+         params = tuple(_type_check(p, msg) for p in params)
+-        _check_generic(self, params, self._nparams)
++        actual_len = len(params)
++        if actual_len != self._nparams:
++            if not self._nparams:
++                raise TypeError(f"{self} is not a generic class")
++            raise TypeError(f"Too {'many' if actual_len > self._nparams else 'few'} arguments for {self};"
++                            f" actual {actual_len}, expected {self._nparams}")
+         return self.copy_with(params)
+ 
+     def copy_with(self, params):
+diff --git a/Modules/_typingmodule.c b/Modules/_typingmodule.c
+index 9ea72bf89c..180f3d7eb0 100644
+--- a/Modules/_typingmodule.c
++++ b/Modules/_typingmodule.c
+@@ -63,6 +63,9 @@ _typing_exec(PyObject *m)
+     if (PyModule_AddObjectRef(m, "TypeAliasType", (PyObject *)&_PyTypeAlias_Type) < 0) {
+         return -1;
+     }
++    if (PyModule_AddObjectRef(m, "NoDefault", (PyObject *)&_Py_NoDefaultStruct) < 0) {
++        return -1;
++    }
+     return 0;
+ }
+ 
+diff --git a/Objects/clinic/typevarobject.c.h b/Objects/clinic/typevarobject.c.h
+index 2bb0a98a2e..0ba4ff48bc 100644
+--- a/Objects/clinic/typevarobject.c.h
++++ b/Objects/clinic/typevarobject.c.h
+@@ -9,16 +9,16 @@ preserve
+ #include "pycore_modsupport.h"    // _PyArg_UnpackKeywordsWithVararg()
+ 
+ PyDoc_STRVAR(typevar_new__doc__,
+-"typevar(name, *constraints, bound=None, covariant=False,\n"
+-"        contravariant=False, infer_variance=False)\n"
++"typevar(name, *constraints, bound=None, default=typing.NoDefault,\n"
++"        covariant=False, contravariant=False, infer_variance=False)\n"
+ "--\n"
+ "\n"
+ "Create a TypeVar.");
+ 
+ static PyObject *
+ typevar_new_impl(PyTypeObject *type, PyObject *name, PyObject *constraints,
+-                 PyObject *bound, int covariant, int contravariant,
+-                 int infer_variance);
++                 PyObject *bound, PyObject *default_value, int covariant,
++                 int contravariant, int infer_variance);
+ 
+ static PyObject *
+ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+@@ -26,14 +26,14 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     PyObject *return_value = NULL;
+     #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+ 
+-    #define NUM_KEYWORDS 5
++    #define NUM_KEYWORDS 6
+     static struct {
+         PyGC_Head _this_is_not_used;
+         PyObject_VAR_HEAD
+         PyObject *ob_item[NUM_KEYWORDS];
+     } _kwtuple = {
+         .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+-        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
++        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(default), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
+     };
+     #undef NUM_KEYWORDS
+     #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+@@ -42,20 +42,21 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     #  define KWTUPLE NULL
+     #endif  // !Py_BUILD_CORE
+ 
+-    static const char * const _keywords[] = {"name", "bound", "covariant", "contravariant", "infer_variance", NULL};
++    static const char * const _keywords[] = {"name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL};
+     static _PyArg_Parser _parser = {
+         .keywords = _keywords,
+         .fname = "typevar",
+         .kwtuple = KWTUPLE,
+     };
+     #undef KWTUPLE
+-    PyObject *argsbuf[6];
++    PyObject *argsbuf[7];
+     PyObject * const *fastargs;
+     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+     Py_ssize_t noptargs = Py_MIN(nargs, 1) + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
+     PyObject *name;
+     PyObject *constraints = NULL;
+     PyObject *bound = Py_None;
++    PyObject *default_value = &_Py_NoDefaultStruct;
+     int covariant = 0;
+     int contravariant = 0;
+     int infer_variance = 0;
+@@ -80,7 +81,13 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+         }
+     }
+     if (fastargs[3]) {
+-        covariant = PyObject_IsTrue(fastargs[3]);
++        default_value = fastargs[3];
++        if (!--noptargs) {
++            goto skip_optional_kwonly;
++        }
++    }
++    if (fastargs[4]) {
++        covariant = PyObject_IsTrue(fastargs[4]);
+         if (covariant < 0) {
+             goto exit;
+         }
+@@ -88,8 +95,8 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+             goto skip_optional_kwonly;
+         }
+     }
+-    if (fastargs[4]) {
+-        contravariant = PyObject_IsTrue(fastargs[4]);
++    if (fastargs[5]) {
++        contravariant = PyObject_IsTrue(fastargs[5]);
+         if (contravariant < 0) {
+             goto exit;
+         }
+@@ -97,12 +104,12 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+             goto skip_optional_kwonly;
+         }
+     }
+-    infer_variance = PyObject_IsTrue(fastargs[5]);
++    infer_variance = PyObject_IsTrue(fastargs[6]);
+     if (infer_variance < 0) {
+         goto exit;
+     }
+ skip_optional_kwonly:
+-    return_value = typevar_new_impl(type, name, constraints, bound, covariant, contravariant, infer_variance);
++    return_value = typevar_new_impl(type, name, constraints, bound, default_value, covariant, contravariant, infer_variance);
+ 
+ exit:
+     Py_XDECREF(constraints);
+@@ -117,6 +124,36 @@ PyDoc_STRVAR(typevar_typing_subst__doc__,
+ #define TYPEVAR_TYPING_SUBST_METHODDEF    \
+     {"__typing_subst__", (PyCFunction)typevar_typing_subst, METH_O, typevar_typing_subst__doc__},
+ 
++PyDoc_STRVAR(typevar_typing_prepare_subst__doc__,
++"__typing_prepare_subst__($self, alias, args, /)\n"
++"--\n"
++"\n");
++
++#define TYPEVAR_TYPING_PREPARE_SUBST_METHODDEF    \
++    {"__typing_prepare_subst__", _PyCFunction_CAST(typevar_typing_prepare_subst), METH_FASTCALL, typevar_typing_prepare_subst__doc__},
++
++static PyObject *
++typevar_typing_prepare_subst_impl(typevarobject *self, PyObject *alias,
++                                  PyObject *args);
++
++static PyObject *
++typevar_typing_prepare_subst(typevarobject *self, PyObject *const *args, Py_ssize_t nargs)
++{
++    PyObject *return_value = NULL;
++    PyObject *alias;
++    PyObject *__clinic_args;
++
++    if (!_PyArg_CheckPositional("__typing_prepare_subst__", nargs, 2, 2)) {
++        goto exit;
++    }
++    alias = args[0];
++    __clinic_args = args[1];
++    return_value = typevar_typing_prepare_subst_impl(self, alias, __clinic_args);
++
++exit:
++    return return_value;
++}
++
+ PyDoc_STRVAR(typevar_reduce__doc__,
+ "__reduce__($self, /)\n"
+ "--\n"
+@@ -134,6 +171,23 @@ typevar_reduce(typevarobject *self, PyObject *Py_UNUSED(ignored))
+     return typevar_reduce_impl(self);
+ }
+ 
++PyDoc_STRVAR(typevar_has_default__doc__,
++"has_default($self, /)\n"
++"--\n"
++"\n");
++
++#define TYPEVAR_HAS_DEFAULT_METHODDEF    \
++    {"has_default", (PyCFunction)typevar_has_default, METH_NOARGS, typevar_has_default__doc__},
++
++static PyObject *
++typevar_has_default_impl(typevarobject *self);
++
++static PyObject *
++typevar_has_default(typevarobject *self, PyObject *Py_UNUSED(ignored))
++{
++    return typevar_has_default_impl(self);
++}
++
+ PyDoc_STRVAR(paramspecargs_new__doc__,
+ "paramspecargs(origin)\n"
+ "--\n"
+@@ -243,15 +297,16 @@ exit:
+ }
+ 
+ PyDoc_STRVAR(paramspec_new__doc__,
+-"paramspec(name, *, bound=None, covariant=False, contravariant=False,\n"
+-"          infer_variance=False)\n"
++"paramspec(name, *, bound=None, default=typing.NoDefault,\n"
++"          covariant=False, contravariant=False, infer_variance=False)\n"
+ "--\n"
+ "\n"
+ "Create a ParamSpec object.");
+ 
+ static PyObject *
+ paramspec_new_impl(PyTypeObject *type, PyObject *name, PyObject *bound,
+-                   int covariant, int contravariant, int infer_variance);
++                   PyObject *default_value, int covariant, int contravariant,
++                   int infer_variance);
+ 
+ static PyObject *
+ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+@@ -259,14 +314,14 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     PyObject *return_value = NULL;
+     #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+ 
+-    #define NUM_KEYWORDS 5
++    #define NUM_KEYWORDS 6
+     static struct {
+         PyGC_Head _this_is_not_used;
+         PyObject_VAR_HEAD
+         PyObject *ob_item[NUM_KEYWORDS];
+     } _kwtuple = {
+         .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+-        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
++        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(default), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
+     };
+     #undef NUM_KEYWORDS
+     #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+@@ -275,19 +330,20 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     #  define KWTUPLE NULL
+     #endif  // !Py_BUILD_CORE
+ 
+-    static const char * const _keywords[] = {"name", "bound", "covariant", "contravariant", "infer_variance", NULL};
++    static const char * const _keywords[] = {"name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL};
+     static _PyArg_Parser _parser = {
+         .keywords = _keywords,
+         .fname = "paramspec",
+         .kwtuple = KWTUPLE,
+     };
+     #undef KWTUPLE
+-    PyObject *argsbuf[5];
++    PyObject *argsbuf[6];
+     PyObject * const *fastargs;
+     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
+     PyObject *name;
+     PyObject *bound = Py_None;
++    PyObject *default_value = &_Py_NoDefaultStruct;
+     int covariant = 0;
+     int contravariant = 0;
+     int infer_variance = 0;
+@@ -311,7 +367,13 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+         }
+     }
+     if (fastargs[2]) {
+-        covariant = PyObject_IsTrue(fastargs[2]);
++        default_value = fastargs[2];
++        if (!--noptargs) {
++            goto skip_optional_kwonly;
++        }
++    }
++    if (fastargs[3]) {
++        covariant = PyObject_IsTrue(fastargs[3]);
+         if (covariant < 0) {
+             goto exit;
+         }
+@@ -319,8 +381,8 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+             goto skip_optional_kwonly;
+         }
+     }
+-    if (fastargs[3]) {
+-        contravariant = PyObject_IsTrue(fastargs[3]);
++    if (fastargs[4]) {
++        contravariant = PyObject_IsTrue(fastargs[4]);
+         if (contravariant < 0) {
+             goto exit;
+         }
+@@ -328,12 +390,12 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+             goto skip_optional_kwonly;
+         }
+     }
+-    infer_variance = PyObject_IsTrue(fastargs[4]);
++    infer_variance = PyObject_IsTrue(fastargs[5]);
+     if (infer_variance < 0) {
+         goto exit;
+     }
+ skip_optional_kwonly:
+-    return_value = paramspec_new_impl(type, name, bound, covariant, contravariant, infer_variance);
++    return_value = paramspec_new_impl(type, name, bound, default_value, covariant, contravariant, infer_variance);
+ 
+ exit:
+     return return_value;
+@@ -394,14 +456,32 @@ paramspec_reduce(paramspecobject *self, PyObject *Py_UNUSED(ignored))
+     return paramspec_reduce_impl(self);
+ }
+ 
++PyDoc_STRVAR(paramspec_has_default__doc__,
++"has_default($self, /)\n"
++"--\n"
++"\n");
++
++#define PARAMSPEC_HAS_DEFAULT_METHODDEF    \
++    {"has_default", (PyCFunction)paramspec_has_default, METH_NOARGS, paramspec_has_default__doc__},
++
++static PyObject *
++paramspec_has_default_impl(paramspecobject *self);
++
++static PyObject *
++paramspec_has_default(paramspecobject *self, PyObject *Py_UNUSED(ignored))
++{
++    return paramspec_has_default_impl(self);
++}
++
+ PyDoc_STRVAR(typevartuple__doc__,
+-"typevartuple(name)\n"
++"typevartuple(name, *, default=typing.NoDefault)\n"
+ "--\n"
+ "\n"
+ "Create a new TypeVarTuple with the given name.");
+ 
+ static PyObject *
+-typevartuple_impl(PyTypeObject *type, PyObject *name);
++typevartuple_impl(PyTypeObject *type, PyObject *name,
++                  PyObject *default_value);
+ 
+ static PyObject *
+ typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+@@ -409,14 +489,14 @@ typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     PyObject *return_value = NULL;
+     #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+ 
+-    #define NUM_KEYWORDS 1
++    #define NUM_KEYWORDS 2
+     static struct {
+         PyGC_Head _this_is_not_used;
+         PyObject_VAR_HEAD
+         PyObject *ob_item[NUM_KEYWORDS];
+     } _kwtuple = {
+         .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+-        .ob_item = { &_Py_ID(name), },
++        .ob_item = { &_Py_ID(name), &_Py_ID(default), },
+     };
+     #undef NUM_KEYWORDS
+     #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+@@ -425,17 +505,19 @@ typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+     #  define KWTUPLE NULL
+     #endif  // !Py_BUILD_CORE
+ 
+-    static const char * const _keywords[] = {"name", NULL};
++    static const char * const _keywords[] = {"name", "default", NULL};
+     static _PyArg_Parser _parser = {
+         .keywords = _keywords,
+         .fname = "typevartuple",
+         .kwtuple = KWTUPLE,
+     };
+     #undef KWTUPLE
+-    PyObject *argsbuf[1];
++    PyObject *argsbuf[2];
+     PyObject * const *fastargs;
+     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
++    Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
+     PyObject *name;
++    PyObject *default_value = &_Py_NoDefaultStruct;
+ 
+     fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf);
+     if (!fastargs) {
+@@ -446,7 +528,12 @@ typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+         goto exit;
+     }
+     name = fastargs[0];
+-    return_value = typevartuple_impl(type, name);
++    if (!noptargs) {
++        goto skip_optional_kwonly;
++    }
++    default_value = fastargs[1];
++skip_optional_kwonly:
++    return_value = typevartuple_impl(type, name, default_value);
+ 
+ exit:
+     return return_value;
+@@ -507,6 +594,23 @@ typevartuple_reduce(typevartupleobject *self, PyObject *Py_UNUSED(ignored))
+     return typevartuple_reduce_impl(self);
+ }
+ 
++PyDoc_STRVAR(typevartuple_has_default__doc__,
++"has_default($self, /)\n"
++"--\n"
++"\n");
++
++#define TYPEVARTUPLE_HAS_DEFAULT_METHODDEF    \
++    {"has_default", (PyCFunction)typevartuple_has_default, METH_NOARGS, typevartuple_has_default__doc__},
++
++static PyObject *
++typevartuple_has_default_impl(typevartupleobject *self);
++
++static PyObject *
++typevartuple_has_default(typevartupleobject *self, PyObject *Py_UNUSED(ignored))
++{
++    return typevartuple_has_default_impl(self);
++}
++
+ PyDoc_STRVAR(typealias_reduce__doc__,
+ "__reduce__($self, /)\n"
+ "--\n"
+@@ -591,4 +695,4 @@ skip_optional_kwonly:
+ exit:
+     return return_value;
+ }
+-/*[clinic end generated code: output=5a582d9d89ad787b input=a9049054013a1b77]*/
++/*[clinic end generated code: output=73b39e550e4e336c input=a9049054013a1b77]*/
+diff --git a/Objects/typevarobject.c b/Objects/typevarobject.c
+index 7f80c9c61b..cc91604526 100644
+--- a/Objects/typevarobject.c
++++ b/Objects/typevarobject.c
+@@ -23,6 +23,8 @@ typedef struct {
+     PyObject *evaluate_bound;
+     PyObject *constraints;
+     PyObject *evaluate_constraints;
++    PyObject *default_value;
++    PyObject *evaluate_default;
+     bool covariant;
+     bool contravariant;
+     bool infer_variance;
+@@ -31,12 +33,16 @@ typedef struct {
+ typedef struct {
+     PyObject_HEAD
+     PyObject *name;
++    PyObject *default_value;
++    PyObject *evaluate_default;
+ } typevartupleobject;
+ 
+ typedef struct {
+     PyObject_HEAD
+     PyObject *name;
+     PyObject *bound;
++    PyObject *default_value;
++    PyObject *evaluate_default;
+     bool covariant;
+     bool contravariant;
+     bool infer_variance;
+@@ -53,6 +59,64 @@ typedef struct {
+ 
+ #include "clinic/typevarobject.c.h"
+ 
++/* NoDefault is a marker object to indicate that a parameter has no default. */
++
++static PyObject *
++NoDefault_repr(PyObject *op)
++{
++    return PyUnicode_FromString("typing.NoDefault");
++}
++
++static PyObject *
++NoDefault_reduce(PyObject *op, PyObject *Py_UNUSED(ignored))
++{
++    return PyUnicode_FromString("NoDefault");
++}
++
++static PyMethodDef notimplemented_methods[] = {
++    {"__reduce__", NoDefault_reduce, METH_NOARGS, NULL},
++    {NULL, NULL}
++};
++
++static PyObject *
++nodefault_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
++{
++    if (PyTuple_GET_SIZE(args) || (kwargs && PyDict_GET_SIZE(kwargs))) {
++        PyErr_SetString(PyExc_TypeError, "NoDefaultType takes no arguments");
++        return NULL;
++    }
++    return &_Py_NoDefaultStruct;
++}
++
++static void
++nodefault_dealloc(PyObject *nodefault)
++{
++    /* This should never get called, but we also don't want to SEGV if
++     * we accidentally decref NoDefault out of existence. Instead,
++     * since NoDefault is an immortal object, re-set the reference count.
++     */
++    _Py_SetImmortal(nodefault);
++}
++
++PyDoc_STRVAR(notimplemented_doc,
++"NoDefaultType()\n"
++"--\n\n"
++"The type of the NoDefault singleton.");
++
++PyTypeObject _PyNoDefault_Type = {
++    PyVarObject_HEAD_INIT(&PyType_Type, 0)
++    "NoDefaultType",
++    .tp_dealloc = nodefault_dealloc,
++    .tp_repr = NoDefault_repr,
++    .tp_flags = Py_TPFLAGS_DEFAULT,
++    .tp_doc = notimplemented_doc,
++    .tp_methods = notimplemented_methods,
++    .tp_new = nodefault_new,
++};
++
++PyObject _Py_NoDefaultStruct = _PyObject_HEAD_INIT(&_PyNoDefault_Type);
++
++
+ static PyObject *
+ call_typing_func_object(const char *name, PyObject **args, size_t nargs)
+ {
+@@ -200,6 +264,8 @@ typevar_dealloc(PyObject *self)
+     Py_XDECREF(tv->evaluate_bound);
+     Py_XDECREF(tv->constraints);
+     Py_XDECREF(tv->evaluate_constraints);
++    Py_XDECREF(tv->default_value);
++    Py_XDECREF(tv->evaluate_default);
+     PyObject_ClearManagedDict(self);
+     PyObject_ClearWeakRefs(self);
+ 
+@@ -216,6 +282,8 @@ typevar_traverse(PyObject *self, visitproc visit, void *arg)
+     Py_VISIT(tv->evaluate_bound);
+     Py_VISIT(tv->constraints);
+     Py_VISIT(tv->evaluate_constraints);
++    Py_VISIT(tv->default_value);
++    Py_VISIT(tv->evaluate_default);
+     PyObject_VisitManagedDict(self, visit, arg);
+     return 0;
+ }
+@@ -227,6 +295,8 @@ typevar_clear(typevarobject *self)
+     Py_CLEAR(self->evaluate_bound);
+     Py_CLEAR(self->constraints);
+     Py_CLEAR(self->evaluate_constraints);
++    Py_CLEAR(self->default_value);
++    Py_CLEAR(self->evaluate_default);
+     PyObject_ClearManagedDict((PyObject *)self);
+     return 0;
+ }
+@@ -266,6 +336,20 @@ typevar_bound(typevarobject *self, void *Py_UNUSED(ignored))
+     return bound;
+ }
+ 
++static PyObject *
++typevar_default(typevarobject *self, void *unused)
++{
++    if (self->default_value != NULL) {
++        return Py_NewRef(self->default_value);
++    }
++    if (self->evaluate_default == NULL) {
++        return &_Py_NoDefaultStruct;
++    }
++    PyObject *default_value = PyObject_CallNoArgs(self->evaluate_default);
++    self->default_value = Py_XNewRef(default_value);
++    return default_value;
++}
++
+ static PyObject *
+ typevar_constraints(typevarobject *self, void *Py_UNUSED(ignored))
+ {
+@@ -283,12 +367,14 @@ typevar_constraints(typevarobject *self, void *Py_UNUSED(ignored))
+ static PyGetSetDef typevar_getset[] = {
+     {"__bound__", (getter)typevar_bound, NULL, NULL, NULL},
+     {"__constraints__", (getter)typevar_constraints, NULL, NULL, NULL},
++    {"__default__", (getter)typevar_default, NULL, NULL, NULL},
+     {0}
+ };
+ 
+ static typevarobject *
+ typevar_alloc(PyObject *name, PyObject *bound, PyObject *evaluate_bound,
+               PyObject *constraints, PyObject *evaluate_constraints,
++              PyObject *default_value,
+               bool covariant, bool contravariant, bool infer_variance,
+               PyObject *module)
+ {
+@@ -305,6 +391,8 @@ typevar_alloc(PyObject *name, PyObject *bound, PyObject *evaluate_bound,
+     tv->evaluate_bound = Py_XNewRef(evaluate_bound);
+     tv->constraints = Py_XNewRef(constraints);
+     tv->evaluate_constraints = Py_XNewRef(evaluate_constraints);
++    tv->default_value = Py_XNewRef(default_value);
++    tv->evaluate_default = NULL;
+ 
+     tv->covariant = covariant;
+     tv->contravariant = contravariant;
+@@ -328,6 +416,7 @@ typevar.__new__ as typevar_new
+     name: object(subclass_of="&PyUnicode_Type")
+     *constraints: object
+     bound: object = None
++    default as default_value: object(c_default="&_Py_NoDefaultStruct") = typing.NoDefault
+     covariant: bool = False
+     contravariant: bool = False
+     infer_variance: bool = False
+@@ -337,9 +426,9 @@ Create a TypeVar.
+ 
+ static PyObject *
+ typevar_new_impl(PyTypeObject *type, PyObject *name, PyObject *constraints,
+-                 PyObject *bound, int covariant, int contravariant,
+-                 int infer_variance)
+-/*[clinic end generated code: output=1d200450ee99226d input=41ae33a916bfe76f]*/
++                 PyObject *bound, PyObject *default_value, int covariant,
++                 int contravariant, int infer_variance)
++/*[clinic end generated code: output=d2b248ff074eaab6 input=836f97f631d7293a]*/
+ {
+     if (covariant && contravariant) {
+         PyErr_SetString(PyExc_ValueError,
+@@ -386,6 +475,7 @@ typevar_new_impl(PyTypeObject *type, PyObject *name, PyObject *constraints,
+ 
+     PyObject *tv = (PyObject *)typevar_alloc(name, bound, NULL,
+                                              constraints, NULL,
++                                             default_value,
+                                              covariant, contravariant,
+                                              infer_variance, module);
+     Py_XDECREF(bound);
+@@ -410,6 +500,66 @@ typevar_typing_subst(typevarobject *self, PyObject *arg)
+     return result;
+ }
+ 
++/*[clinic input]
++typevar.__typing_prepare_subst__ as typevar_typing_prepare_subst
++
++    alias: object
++    args: object
++    /
++
++[clinic start generated code]*/
++
++static PyObject *
++typevar_typing_prepare_subst_impl(typevarobject *self, PyObject *alias,
++                                  PyObject *args)
++/*[clinic end generated code: output=82c3f4691e0ded22 input=201a750415d14ffb]*/
++{
++    PyObject *params = PyObject_GetAttrString(alias, "__parameters__");
++    if (params == NULL) {
++        return NULL;
++    }
++    Py_ssize_t i = PySequence_Index(params, (PyObject *)self);
++    if (i == -1) {
++        Py_DECREF(params);
++        return NULL;
++    }
++    Py_ssize_t args_len = PySequence_Length(args);
++    if (args_len == -1) {
++        Py_DECREF(params);
++        return NULL;
++    }
++    if (i < args_len) {
++        // We already have a value for our TypeVar
++        Py_DECREF(params);
++        return Py_NewRef(args);
++    }
++    else if (i == args_len) {
++        // If the TypeVar has a default, use it.
++        PyObject *dflt = typevar_default(self, NULL);
++        if (dflt == NULL) {
++            Py_DECREF(params);
++            return NULL;
++        }
++        if (dflt != &_Py_NoDefaultStruct) {
++            PyObject *new_args = PyTuple_Pack(1, dflt);
++            Py_DECREF(dflt);
++            if (new_args == NULL) {
++                Py_DECREF(params);
++                return NULL;
++            }
++            PyObject *result = PySequence_Concat(args, new_args);
++            Py_DECREF(params);
++            Py_DECREF(new_args);
++            return result;
++        }
++    }
++    Py_DECREF(params);
++    PyErr_Format(PyExc_TypeError,
++                 "Too few arguments for %S; actual %d, expected at least %d",
++                 alias, args_len, i + 1);
++    return NULL;
++}
++
+ /*[clinic input]
+ typevar.__reduce__ as typevar_reduce
+ 
+@@ -422,6 +572,23 @@ typevar_reduce_impl(typevarobject *self)
+     return Py_NewRef(self->name);
+ }
+ 
++
++/*[clinic input]
++typevar.has_default as typevar_has_default
++
++[clinic start generated code]*/
++
++static PyObject *
++typevar_has_default_impl(typevarobject *self)
++/*[clinic end generated code: output=76bf0b8dc98b97dd input=31024aa030761cf6]*/
++{
++    if (self->evaluate_default != NULL ||
++        (self->default_value != &_Py_NoDefaultStruct && self->default_value != NULL)) {
++        Py_RETURN_TRUE;
++    }
++    Py_RETURN_FALSE;
++}
++
+ static PyObject *
+ typevar_mro_entries(PyObject *self, PyObject *args)
+ {
+@@ -432,7 +599,9 @@ typevar_mro_entries(PyObject *self, PyObject *args)
+ 
+ static PyMethodDef typevar_methods[] = {
+     TYPEVAR_TYPING_SUBST_METHODDEF
++    TYPEVAR_TYPING_PREPARE_SUBST_METHODDEF
+     TYPEVAR_REDUCE_METHODDEF
++    TYPEVAR_HAS_DEFAULT_METHODDEF
+     {"__mro_entries__", typevar_mro_entries, METH_O},
+     {0}
+ };
+@@ -457,12 +626,18 @@ variables::\n\
+     class StrOrBytesSequence[A: (str, bytes)]:\n\
+         ...\n\
+ \n\
++Type variables can also have defaults:\n\
++\n\
++    class IntDefault[T = int]:\n\
++        ...\n\
++\n\
+ However, if desired, reusable type variables can also be constructed\n\
+ manually, like so::\n\
+ \n\
+    T = TypeVar('T')  # Can be anything\n\
+    S = TypeVar('S', bound=str)  # Can be any subtype of str\n\
+    A = TypeVar('A', str, bytes)  # Must be exactly str or bytes\n\
++   D = TypeVar('D', default=int)  # Defaults to int\n\
+ \n\
+ Type variables exist primarily for the benefit of static type\n\
+ checkers.  They serve as the parameters for generic types as well\n\
+@@ -739,6 +914,8 @@ paramspec_dealloc(PyObject *self)
+ 
+     Py_DECREF(ps->name);
+     Py_XDECREF(ps->bound);
++    Py_XDECREF(ps->default_value);
++    Py_XDECREF(ps->evaluate_default);
+     PyObject_ClearManagedDict(self);
+     PyObject_ClearWeakRefs(self);
+ 
+@@ -752,6 +929,8 @@ paramspec_traverse(PyObject *self, visitproc visit, void *arg)
+     Py_VISIT(Py_TYPE(self));
+     paramspecobject *ps = (paramspecobject *)self;
+     Py_VISIT(ps->bound);
++    Py_VISIT(ps->default_value);
++    Py_VISIT(ps->evaluate_default);
+     PyObject_VisitManagedDict(self, visit, arg);
+     return 0;
+ }
+@@ -760,6 +939,8 @@ static int
+ paramspec_clear(paramspecobject *self)
+ {
+     Py_CLEAR(self->bound);
++    Py_CLEAR(self->default_value);
++    Py_CLEAR(self->evaluate_default);
+     PyObject_ClearManagedDict((PyObject *)self);
+     return 0;
+ }
+@@ -800,14 +981,29 @@ paramspec_kwargs(PyObject *self, void *unused)
+     return (PyObject *)paramspecattr_new(tp, self);
+ }
+ 
++static PyObject *
++paramspec_default(paramspecobject *self, void *unused)
++{
++    if (self->default_value != NULL) {
++        return Py_NewRef(self->default_value);
++    }
++    if (self->evaluate_default == NULL) {
++        return &_Py_NoDefaultStruct;
++    }
++    PyObject *default_value = PyObject_CallNoArgs(self->evaluate_default);
++    self->default_value = Py_XNewRef(default_value);
++    return default_value;
++}
++
+ static PyGetSetDef paramspec_getset[] = {
+     {"args", (getter)paramspec_args, NULL, PyDoc_STR("Represents positional arguments."), NULL},
+     {"kwargs", (getter)paramspec_kwargs, NULL, PyDoc_STR("Represents keyword arguments."), NULL},
++    {"__default__", (getter)paramspec_default, NULL, "The default value for this ParamSpec.", NULL},
+     {0},
+ };
+ 
+ static paramspecobject *
+-paramspec_alloc(PyObject *name, PyObject *bound, bool covariant,
++paramspec_alloc(PyObject *name, PyObject *bound, PyObject *default_value, bool covariant,
+                 bool contravariant, bool infer_variance, PyObject *module)
+ {
+     PyTypeObject *tp = _PyInterpreterState_GET()->cached_objects.paramspec_type;
+@@ -820,6 +1016,8 @@ paramspec_alloc(PyObject *name, PyObject *bound, bool covariant,
+     ps->covariant = covariant;
+     ps->contravariant = contravariant;
+     ps->infer_variance = infer_variance;
++    ps->default_value = Py_XNewRef(default_value);
++    ps->evaluate_default = NULL;
+     _PyObject_GC_TRACK(ps);
+     if (module != NULL) {
+         if (PyObject_SetAttrString((PyObject *)ps, "__module__", module) < 0) {
+@@ -837,6 +1035,7 @@ paramspec.__new__ as paramspec_new
+     name: object(subclass_of="&PyUnicode_Type")
+     *
+     bound: object = None
++    default as default_value: object(c_default="&_Py_NoDefaultStruct") = typing.NoDefault
+     covariant: bool = False
+     contravariant: bool = False
+     infer_variance: bool = False
+@@ -846,8 +1045,9 @@ Create a ParamSpec object.
+ 
+ static PyObject *
+ paramspec_new_impl(PyTypeObject *type, PyObject *name, PyObject *bound,
+-                   int covariant, int contravariant, int infer_variance)
+-/*[clinic end generated code: output=fd2daab79cba62da input=57c49c581979b952]*/
++                   PyObject *default_value, int covariant, int contravariant,
++                   int infer_variance)
++/*[clinic end generated code: output=47ca9d63fa5a094d input=495e1565bc067ab9]*/
+ {
+     if (covariant && contravariant) {
+         PyErr_SetString(PyExc_ValueError, "Bivariant types are not supported.");
+@@ -869,7 +1069,7 @@ paramspec_new_impl(PyTypeObject *type, PyObject *name, PyObject *bound,
+         return NULL;
+     }
+     PyObject *ps = (PyObject *)paramspec_alloc(
+-        name, bound, covariant, contravariant, infer_variance, module);
++        name, bound, default_value, covariant, contravariant, infer_variance, module);
+     Py_XDECREF(bound);
+     Py_DECREF(module);
+     return ps;
+@@ -925,6 +1125,22 @@ paramspec_reduce_impl(paramspecobject *self)
+     return Py_NewRef(self->name);
+ }
+ 
++/*[clinic input]
++paramspec.has_default as paramspec_has_default
++
++[clinic start generated code]*/
++
++static PyObject *
++paramspec_has_default_impl(paramspecobject *self)
++/*[clinic end generated code: output=daaae7467a6a4368 input=2112e97eeb76cd59]*/
++{
++    if (self->evaluate_default != NULL ||
++        (self->default_value != &_Py_NoDefaultStruct && self->default_value != NULL)) {
++        Py_RETURN_TRUE;
++    }
++    Py_RETURN_FALSE;
++}
++
+ static PyObject *
+ paramspec_mro_entries(PyObject *self, PyObject *args)
+ {
+@@ -936,6 +1152,7 @@ paramspec_mro_entries(PyObject *self, PyObject *args)
+ static PyMethodDef paramspec_methods[] = {
+     PARAMSPEC_TYPING_SUBST_METHODDEF
+     PARAMSPEC_TYPING_PREPARE_SUBST_METHODDEF
++    PARAMSPEC_HAS_DEFAULT_METHODDEF
+     PARAMSPEC_REDUCE_METHODDEF
+     {"__mro_entries__", paramspec_mro_entries, METH_O},
+     {0}
+@@ -950,10 +1167,17 @@ where the use of '**' creates a parameter specification::\n\
+ \n\
+     type IntFunc[**P] = Callable[P, int]\n\
+ \n\
++The following syntax creates a parameter specification that defaults\n\
++to a callable accepting two positional-only arguments of types int\n\
++and str:\n\
++\n\
++    type IntFuncDefault[**P = (int, str)] = Callable[P, int]\n\
++\n\
+ For compatibility with Python 3.11 and earlier, ParamSpec objects\n\
+ can also be created as follows::\n\
+ \n\
+     P = ParamSpec('P')\n\
++    DefaultP = ParamSpec('DefaultP', default=(int, str))\n\
+ \n\
+ Parameter specification variables exist primarily for the benefit of\n\
+ static type checkers.  They are used to forward the parameter types of\n\
+@@ -1021,6 +1245,8 @@ typevartuple_dealloc(PyObject *self)
+     typevartupleobject *tvt = (typevartupleobject *)self;
+ 
+     Py_DECREF(tvt->name);
++    Py_XDECREF(tvt->default_value);
++    Py_XDECREF(tvt->evaluate_default);
+     PyObject_ClearManagedDict(self);
+     PyObject_ClearWeakRefs(self);
+ 
+@@ -1060,7 +1286,7 @@ static PyMemberDef typevartuple_members[] = {
+ };
+ 
+ static typevartupleobject *
+-typevartuple_alloc(PyObject *name, PyObject *module)
++typevartuple_alloc(PyObject *name, PyObject *module, PyObject *default_value)
+ {
+     PyTypeObject *tp = _PyInterpreterState_GET()->cached_objects.typevartuple_type;
+     typevartupleobject *tvt = PyObject_GC_New(typevartupleobject, tp);
+@@ -1068,6 +1294,8 @@ typevartuple_alloc(PyObject *name, PyObject *module)
+         return NULL;
+     }
+     tvt->name = Py_NewRef(name);
++    tvt->default_value = Py_XNewRef(default_value);
++    tvt->evaluate_default = NULL;
+     _PyObject_GC_TRACK(tvt);
+     if (module != NULL) {
+         if (PyObject_SetAttrString((PyObject *)tvt, "__module__", module) < 0) {
+@@ -1083,19 +1311,22 @@ typevartuple_alloc(PyObject *name, PyObject *module)
+ typevartuple.__new__
+ 
+     name: object(subclass_of="&PyUnicode_Type")
++    *
++    default as default_value: object(c_default="&_Py_NoDefaultStruct") = typing.NoDefault
+ 
+ Create a new TypeVarTuple with the given name.
+ [clinic start generated code]*/
+ 
+ static PyObject *
+-typevartuple_impl(PyTypeObject *type, PyObject *name)
+-/*[clinic end generated code: output=09d417a28f976202 input=00d28abcf1fc96bb]*/
++typevartuple_impl(PyTypeObject *type, PyObject *name,
++                  PyObject *default_value)
++/*[clinic end generated code: output=9d6b76dfe95aae51 input=e149739929a866d0]*/
+ {
+     PyObject *module = caller();
+     if (module == NULL) {
+         return NULL;
+     }
+-    PyObject *result = (PyObject *)typevartuple_alloc(name, module);
++    PyObject *result = (PyObject *)typevartuple_alloc(name, module, default_value);
+     Py_DECREF(module);
+     return result;
+ }
+@@ -1148,6 +1379,23 @@ typevartuple_reduce_impl(typevartupleobject *self)
+     return Py_NewRef(self->name);
+ }
+ 
++
++/*[clinic input]
++typevartuple.has_default as typevartuple_has_default
++
++[clinic start generated code]*/
++
++static PyObject *
++typevartuple_has_default_impl(typevartupleobject *self)
++/*[clinic end generated code: output=4895f602f56a5e29 input=9ef3250ddb2c1851]*/
++{
++    if (self->evaluate_default != NULL ||
++        (self->default_value != &_Py_NoDefaultStruct && self->default_value != NULL)) {
++        Py_RETURN_TRUE;
++    }
++    Py_RETURN_FALSE;
++}
++
+ static PyObject *
+ typevartuple_mro_entries(PyObject *self, PyObject *args)
+ {
+@@ -1160,6 +1408,8 @@ static int
+ typevartuple_traverse(PyObject *self, visitproc visit, void *arg)
+ {
+     Py_VISIT(Py_TYPE(self));
++    Py_VISIT(((typevartupleobject *)self)->default_value);
++    Py_VISIT(((typevartupleobject *)self)->evaluate_default);
+     PyObject_VisitManagedDict(self, visit, arg);
+     return 0;
+ }
+@@ -1167,14 +1417,36 @@ typevartuple_traverse(PyObject *self, visitproc visit, void *arg)
+ static int
+ typevartuple_clear(PyObject *self)
+ {
++    Py_CLEAR(((typevartupleobject *)self)->default_value);
++    Py_CLEAR(((typevartupleobject *)self)->evaluate_default);
+     PyObject_ClearManagedDict(self);
+     return 0;
+ }
+ 
++static PyObject *
++typevartuple_default(typevartupleobject *self, void *unused)
++{
++    if (self->default_value != NULL) {
++        return Py_NewRef(self->default_value);
++    }
++    if (self->evaluate_default == NULL) {
++        return &_Py_NoDefaultStruct;
++    }
++    PyObject *default_value = PyObject_CallNoArgs(self->evaluate_default);
++    self->default_value = Py_XNewRef(default_value);
++    return default_value;
++}
++
++static PyGetSetDef typevartuple_getset[] = {
++    {"__default__", (getter)typevartuple_default, NULL, "The default value for this TypeVarTuple.", NULL},
++    {0},
++};
++
+ static PyMethodDef typevartuple_methods[] = {
+     TYPEVARTUPLE_TYPING_SUBST_METHODDEF
+     TYPEVARTUPLE_TYPING_PREPARE_SUBST_METHODDEF
+     TYPEVARTUPLE_REDUCE_METHODDEF
++    TYPEVARTUPLE_HAS_DEFAULT_METHODDEF
+     {"__mro_entries__", typevartuple_mro_entries, METH_O},
+     {0}
+ };
+@@ -1190,10 +1462,15 @@ where a single '*' indicates a type variable tuple::\n\
+     def move_first_element_to_last[T, *Ts](tup: tuple[T, *Ts]) -> tuple[*Ts, T]:\n\
+         return (*tup[1:], tup[0])\n\
+ \n\
++Type variables tuples can have default values:\n\
++\n\
++    type AliasWithDefault[*Ts = (str, int)] = tuple[*Ts]\n\
++\n\
+ For compatibility with Python 3.11 and earlier, TypeVarTuple objects\n\
+ can also be created as follows::\n\
+ \n\
+     Ts = TypeVarTuple('Ts')  # Can be given any name\n\
++    DefaultTs = TypeVarTuple('Ts', default=(str, int))\n\
+ \n\
+ Just as a TypeVar (type variable) is a placeholder for a single type,\n\
+ a TypeVarTuple is a placeholder for an *arbitrary* number of types. For\n\
+@@ -1218,6 +1495,7 @@ PyType_Slot typevartuple_slots[] = {
+     {Py_tp_doc, (void *)typevartuple_doc},
+     {Py_tp_members, typevartuple_members},
+     {Py_tp_methods, typevartuple_methods},
++    {Py_tp_getset, typevartuple_getset},
+     {Py_tp_new, typevartuple},
+     {Py_tp_iter, typevartuple_iter},
+     {Py_tp_repr, typevartuple_repr},
+@@ -1241,21 +1519,21 @@ PyObject *
+ _Py_make_typevar(PyObject *name, PyObject *evaluate_bound, PyObject *evaluate_constraints)
+ {
+     return (PyObject *)typevar_alloc(name, NULL, evaluate_bound, NULL, evaluate_constraints,
+-                                     false, false, true, NULL);
++                                     NULL, false, false, true, NULL);
+ }
+ 
+ PyObject *
+ _Py_make_paramspec(PyThreadState *Py_UNUSED(ignored), PyObject *v)
+ {
+     assert(PyUnicode_Check(v));
+-    return (PyObject *)paramspec_alloc(v, NULL, false, false, true, NULL);
++    return (PyObject *)paramspec_alloc(v, NULL, NULL, false, false, true, NULL);
+ }
+ 
+ PyObject *
+ _Py_make_typevartuple(PyThreadState *Py_UNUSED(ignored), PyObject *v)
+ {
+     assert(PyUnicode_Check(v));
+-    return (PyObject *)typevartuple_alloc(v, NULL);
++    return (PyObject *)typevartuple_alloc(v, NULL, NULL);
+ }
+ 
+ static void
+@@ -1687,3 +1965,24 @@ void _Py_clear_generic_types(PyInterpreterState *interp)
+     Py_CLEAR(interp->cached_objects.paramspecargs_type);
+     Py_CLEAR(interp->cached_objects.paramspeckwargs_type);
+ }
++
++PyObject *
++_Py_set_typeparam_default(PyThreadState *ts, PyObject *typeparam, PyObject *evaluate_default)
++{
++    if (Py_IS_TYPE(typeparam, ts->interp->cached_objects.typevar_type)) {
++        Py_XSETREF(((typevarobject *)typeparam)->evaluate_default, Py_NewRef(evaluate_default));
++        return Py_NewRef(typeparam);
++    }
++    else if (Py_IS_TYPE(typeparam, ts->interp->cached_objects.paramspec_type)) {
++        Py_XSETREF(((paramspecobject *)typeparam)->evaluate_default, Py_NewRef(evaluate_default));
++        return Py_NewRef(typeparam);
++    }
++    else if (Py_IS_TYPE(typeparam, ts->interp->cached_objects.typevartuple_type)) {
++        Py_XSETREF(((typevartupleobject *)typeparam)->evaluate_default, Py_NewRef(evaluate_default));
++        return Py_NewRef(typeparam);
++    }
++    else {
++        PyErr_Format(PyExc_TypeError, "Expected a type param, got %R", typeparam);
++        return NULL;
++    }
++}
+diff --git a/Parser/Python.asdl b/Parser/Python.asdl
+index 0d15486727..80776ffe44 100644
+--- a/Parser/Python.asdl
++++ b/Parser/Python.asdl
+@@ -145,8 +145,8 @@ module Python
+ 
+     type_ignore = TypeIgnore(int lineno, string tag)
+ 
+-    type_param = TypeVar(identifier name, expr? bound)
+-               | ParamSpec(identifier name)
+-               | TypeVarTuple(identifier name)
++    type_param = TypeVar(identifier name, expr? bound, expr? default_value)
++               | ParamSpec(identifier name, expr? default_value)
++               | TypeVarTuple(identifier name, expr? default_value)
+                attributes (int lineno, int col_offset, int end_lineno, int end_col_offset)
+ }
+diff --git a/Parser/parser.c b/Parser/parser.c
+index 0715e9775a..e34fcada15 100644
+--- a/Parser/parser.c
++++ b/Parser/parser.c
+@@ -186,431 +186,433 @@ static char *soft_keywords[] = {
+ #define type_param_seq_type 1099
+ #define type_param_type 1100
+ #define type_param_bound_type 1101
+-#define expressions_type 1102
+-#define expression_type 1103
+-#define yield_expr_type 1104
+-#define star_expressions_type 1105
+-#define star_expression_type 1106
+-#define star_named_expressions_type 1107
+-#define star_named_expression_type 1108
+-#define assignment_expression_type 1109
+-#define named_expression_type 1110
+-#define disjunction_type 1111
+-#define conjunction_type 1112
+-#define inversion_type 1113
+-#define comparison_type 1114
+-#define compare_op_bitwise_or_pair_type 1115
+-#define eq_bitwise_or_type 1116
+-#define noteq_bitwise_or_type 1117
+-#define lte_bitwise_or_type 1118
+-#define lt_bitwise_or_type 1119
+-#define gte_bitwise_or_type 1120
+-#define gt_bitwise_or_type 1121
+-#define notin_bitwise_or_type 1122
+-#define in_bitwise_or_type 1123
+-#define isnot_bitwise_or_type 1124
+-#define is_bitwise_or_type 1125
+-#define bitwise_or_type 1126  // Left-recursive
+-#define bitwise_xor_type 1127  // Left-recursive
+-#define bitwise_and_type 1128  // Left-recursive
+-#define shift_expr_type 1129  // Left-recursive
+-#define sum_type 1130  // Left-recursive
+-#define term_type 1131  // Left-recursive
+-#define factor_type 1132
+-#define power_type 1133
+-#define await_primary_type 1134
+-#define primary_type 1135  // Left-recursive
+-#define slices_type 1136
+-#define slice_type 1137
+-#define atom_type 1138
+-#define group_type 1139
+-#define lambdef_type 1140
+-#define lambda_params_type 1141
+-#define lambda_parameters_type 1142
+-#define lambda_slash_no_default_type 1143
+-#define lambda_slash_with_default_type 1144
+-#define lambda_star_etc_type 1145
+-#define lambda_kwds_type 1146
+-#define lambda_param_no_default_type 1147
+-#define lambda_param_with_default_type 1148
+-#define lambda_param_maybe_default_type 1149
+-#define lambda_param_type 1150
+-#define fstring_middle_type 1151
+-#define fstring_replacement_field_type 1152
+-#define fstring_conversion_type 1153
+-#define fstring_full_format_spec_type 1154
+-#define fstring_format_spec_type 1155
+-#define fstring_type 1156
+-#define string_type 1157
+-#define strings_type 1158
+-#define list_type 1159
+-#define tuple_type 1160
+-#define set_type 1161
+-#define dict_type 1162
+-#define double_starred_kvpairs_type 1163
+-#define double_starred_kvpair_type 1164
+-#define kvpair_type 1165
+-#define for_if_clauses_type 1166
+-#define for_if_clause_type 1167
+-#define listcomp_type 1168
+-#define setcomp_type 1169
+-#define genexp_type 1170
+-#define dictcomp_type 1171
+-#define arguments_type 1172
+-#define args_type 1173
+-#define kwargs_type 1174
+-#define starred_expression_type 1175
+-#define kwarg_or_starred_type 1176
+-#define kwarg_or_double_starred_type 1177
+-#define star_targets_type 1178
+-#define star_targets_list_seq_type 1179
+-#define star_targets_tuple_seq_type 1180
+-#define star_target_type 1181
+-#define target_with_star_atom_type 1182
+-#define star_atom_type 1183
+-#define single_target_type 1184
+-#define single_subscript_attribute_target_type 1185
+-#define t_primary_type 1186  // Left-recursive
+-#define t_lookahead_type 1187
+-#define del_targets_type 1188
+-#define del_target_type 1189
+-#define del_t_atom_type 1190
+-#define type_expressions_type 1191
+-#define func_type_comment_type 1192
+-#define invalid_arguments_type 1193
+-#define invalid_kwarg_type 1194
+-#define expression_without_invalid_type 1195
+-#define invalid_legacy_expression_type 1196
+-#define invalid_expression_type 1197
+-#define invalid_named_expression_type 1198
+-#define invalid_assignment_type 1199
+-#define invalid_ann_assign_target_type 1200
+-#define invalid_del_stmt_type 1201
+-#define invalid_block_type 1202
+-#define invalid_comprehension_type 1203
+-#define invalid_dict_comprehension_type 1204
+-#define invalid_parameters_type 1205
+-#define invalid_default_type 1206
+-#define invalid_star_etc_type 1207
+-#define invalid_kwds_type 1208
+-#define invalid_parameters_helper_type 1209
+-#define invalid_lambda_parameters_type 1210
+-#define invalid_lambda_parameters_helper_type 1211
+-#define invalid_lambda_star_etc_type 1212
+-#define invalid_lambda_kwds_type 1213
+-#define invalid_double_type_comments_type 1214
+-#define invalid_with_item_type 1215
+-#define invalid_for_target_type 1216
+-#define invalid_group_type 1217
+-#define invalid_import_type 1218
+-#define invalid_import_from_targets_type 1219
+-#define invalid_compound_stmt_type 1220
+-#define invalid_with_stmt_type 1221
+-#define invalid_with_stmt_indent_type 1222
+-#define invalid_try_stmt_type 1223
+-#define invalid_except_stmt_type 1224
+-#define invalid_finally_stmt_type 1225
+-#define invalid_except_stmt_indent_type 1226
+-#define invalid_except_star_stmt_indent_type 1227
+-#define invalid_match_stmt_type 1228
+-#define invalid_case_block_type 1229
+-#define invalid_as_pattern_type 1230
+-#define invalid_class_pattern_type 1231
+-#define invalid_class_argument_pattern_type 1232
+-#define invalid_if_stmt_type 1233
+-#define invalid_elif_stmt_type 1234
+-#define invalid_else_stmt_type 1235
+-#define invalid_while_stmt_type 1236
+-#define invalid_for_stmt_type 1237
+-#define invalid_def_raw_type 1238
+-#define invalid_class_def_raw_type 1239
+-#define invalid_double_starred_kvpairs_type 1240
+-#define invalid_kvpair_type 1241
+-#define invalid_starred_expression_type 1242
+-#define invalid_replacement_field_type 1243
+-#define invalid_conversion_character_type 1244
+-#define invalid_arithmetic_type 1245
+-#define invalid_factor_type 1246
+-#define _loop0_1_type 1247
+-#define _loop0_2_type 1248
+-#define _loop1_3_type 1249
+-#define _loop0_5_type 1250
+-#define _gather_4_type 1251
+-#define _tmp_6_type 1252
+-#define _tmp_7_type 1253
+-#define _tmp_8_type 1254
+-#define _tmp_9_type 1255
+-#define _tmp_10_type 1256
+-#define _tmp_11_type 1257
+-#define _tmp_12_type 1258
+-#define _tmp_13_type 1259
+-#define _loop1_14_type 1260
+-#define _tmp_15_type 1261
+-#define _tmp_16_type 1262
+-#define _tmp_17_type 1263
+-#define _loop0_19_type 1264
+-#define _gather_18_type 1265
+-#define _loop0_21_type 1266
+-#define _gather_20_type 1267
+-#define _tmp_22_type 1268
+-#define _tmp_23_type 1269
+-#define _loop0_24_type 1270
+-#define _loop1_25_type 1271
+-#define _loop0_27_type 1272
+-#define _gather_26_type 1273
+-#define _tmp_28_type 1274
+-#define _loop0_30_type 1275
+-#define _gather_29_type 1276
+-#define _tmp_31_type 1277
+-#define _loop1_32_type 1278
+-#define _tmp_33_type 1279
+-#define _tmp_34_type 1280
+-#define _tmp_35_type 1281
+-#define _loop0_36_type 1282
+-#define _loop0_37_type 1283
+-#define _loop0_38_type 1284
+-#define _loop1_39_type 1285
+-#define _loop0_40_type 1286
+-#define _loop1_41_type 1287
+-#define _loop1_42_type 1288
+-#define _loop1_43_type 1289
+-#define _loop0_44_type 1290
+-#define _loop1_45_type 1291
+-#define _loop0_46_type 1292
+-#define _loop1_47_type 1293
+-#define _loop0_48_type 1294
+-#define _loop0_49_type 1295
+-#define _loop1_50_type 1296
+-#define _loop0_52_type 1297
+-#define _gather_51_type 1298
+-#define _loop0_54_type 1299
+-#define _gather_53_type 1300
+-#define _loop0_56_type 1301
+-#define _gather_55_type 1302
+-#define _loop0_58_type 1303
+-#define _gather_57_type 1304
+-#define _tmp_59_type 1305
+-#define _loop1_60_type 1306
+-#define _loop1_61_type 1307
+-#define _tmp_62_type 1308
+-#define _tmp_63_type 1309
+-#define _loop1_64_type 1310
+-#define _loop0_66_type 1311
+-#define _gather_65_type 1312
+-#define _tmp_67_type 1313
+-#define _tmp_68_type 1314
+-#define _tmp_69_type 1315
+-#define _tmp_70_type 1316
+-#define _loop0_72_type 1317
+-#define _gather_71_type 1318
+-#define _loop0_74_type 1319
+-#define _gather_73_type 1320
+-#define _tmp_75_type 1321
+-#define _loop0_77_type 1322
+-#define _gather_76_type 1323
+-#define _loop0_79_type 1324
+-#define _gather_78_type 1325
+-#define _loop0_81_type 1326
+-#define _gather_80_type 1327
+-#define _loop1_82_type 1328
+-#define _loop1_83_type 1329
+-#define _loop0_85_type 1330
+-#define _gather_84_type 1331
+-#define _loop1_86_type 1332
+-#define _loop1_87_type 1333
+-#define _loop1_88_type 1334
+-#define _tmp_89_type 1335
+-#define _loop0_91_type 1336
+-#define _gather_90_type 1337
+-#define _tmp_92_type 1338
+-#define _tmp_93_type 1339
+-#define _tmp_94_type 1340
+-#define _tmp_95_type 1341
+-#define _tmp_96_type 1342
+-#define _tmp_97_type 1343
+-#define _loop0_98_type 1344
+-#define _loop0_99_type 1345
+-#define _loop0_100_type 1346
+-#define _loop1_101_type 1347
+-#define _loop0_102_type 1348
+-#define _loop1_103_type 1349
+-#define _loop1_104_type 1350
+-#define _loop1_105_type 1351
+-#define _loop0_106_type 1352
+-#define _loop1_107_type 1353
+-#define _loop0_108_type 1354
+-#define _loop1_109_type 1355
+-#define _loop0_110_type 1356
+-#define _loop1_111_type 1357
+-#define _loop0_112_type 1358
+-#define _loop0_113_type 1359
+-#define _loop1_114_type 1360
+-#define _tmp_115_type 1361
+-#define _loop0_117_type 1362
+-#define _gather_116_type 1363
+-#define _loop1_118_type 1364
+-#define _loop0_119_type 1365
+-#define _loop0_120_type 1366
+-#define _tmp_121_type 1367
+-#define _tmp_122_type 1368
+-#define _loop0_124_type 1369
+-#define _gather_123_type 1370
+-#define _tmp_125_type 1371
+-#define _loop0_127_type 1372
+-#define _gather_126_type 1373
+-#define _loop0_129_type 1374
+-#define _gather_128_type 1375
+-#define _loop0_131_type 1376
+-#define _gather_130_type 1377
+-#define _loop0_133_type 1378
+-#define _gather_132_type 1379
+-#define _loop0_134_type 1380
+-#define _loop0_136_type 1381
+-#define _gather_135_type 1382
+-#define _loop1_137_type 1383
+-#define _tmp_138_type 1384
+-#define _loop0_140_type 1385
+-#define _gather_139_type 1386
+-#define _loop0_142_type 1387
+-#define _gather_141_type 1388
+-#define _loop0_144_type 1389
+-#define _gather_143_type 1390
+-#define _loop0_146_type 1391
+-#define _gather_145_type 1392
+-#define _loop0_148_type 1393
+-#define _gather_147_type 1394
+-#define _tmp_149_type 1395
+-#define _tmp_150_type 1396
+-#define _loop0_152_type 1397
+-#define _gather_151_type 1398
+-#define _tmp_153_type 1399
+-#define _tmp_154_type 1400
+-#define _tmp_155_type 1401
+-#define _tmp_156_type 1402
+-#define _tmp_157_type 1403
+-#define _tmp_158_type 1404
+-#define _tmp_159_type 1405
+-#define _tmp_160_type 1406
+-#define _tmp_161_type 1407
+-#define _tmp_162_type 1408
+-#define _loop0_163_type 1409
+-#define _loop0_164_type 1410
+-#define _loop0_165_type 1411
+-#define _tmp_166_type 1412
+-#define _tmp_167_type 1413
+-#define _tmp_168_type 1414
+-#define _tmp_169_type 1415
+-#define _loop0_170_type 1416
+-#define _loop0_171_type 1417
+-#define _loop0_172_type 1418
+-#define _loop1_173_type 1419
+-#define _tmp_174_type 1420
+-#define _loop0_175_type 1421
+-#define _tmp_176_type 1422
+-#define _loop0_177_type 1423
+-#define _loop1_178_type 1424
+-#define _tmp_179_type 1425
+-#define _tmp_180_type 1426
+-#define _tmp_181_type 1427
+-#define _loop0_182_type 1428
+-#define _tmp_183_type 1429
+-#define _tmp_184_type 1430
+-#define _loop1_185_type 1431
+-#define _tmp_186_type 1432
+-#define _loop0_187_type 1433
+-#define _loop0_188_type 1434
+-#define _loop0_189_type 1435
+-#define _loop0_191_type 1436
+-#define _gather_190_type 1437
+-#define _tmp_192_type 1438
+-#define _loop0_193_type 1439
+-#define _tmp_194_type 1440
+-#define _loop0_195_type 1441
+-#define _loop1_196_type 1442
+-#define _loop1_197_type 1443
+-#define _tmp_198_type 1444
+-#define _tmp_199_type 1445
+-#define _loop0_200_type 1446
+-#define _tmp_201_type 1447
+-#define _tmp_202_type 1448
+-#define _tmp_203_type 1449
+-#define _loop0_205_type 1450
+-#define _gather_204_type 1451
+-#define _loop0_207_type 1452
+-#define _gather_206_type 1453
+-#define _loop0_209_type 1454
+-#define _gather_208_type 1455
+-#define _loop0_211_type 1456
+-#define _gather_210_type 1457
+-#define _loop0_213_type 1458
+-#define _gather_212_type 1459
+-#define _tmp_214_type 1460
+-#define _loop0_215_type 1461
+-#define _loop1_216_type 1462
+-#define _tmp_217_type 1463
+-#define _loop0_218_type 1464
+-#define _loop1_219_type 1465
+-#define _tmp_220_type 1466
+-#define _tmp_221_type 1467
+-#define _tmp_222_type 1468
+-#define _tmp_223_type 1469
+-#define _tmp_224_type 1470
+-#define _tmp_225_type 1471
+-#define _tmp_226_type 1472
+-#define _tmp_227_type 1473
+-#define _tmp_228_type 1474
+-#define _tmp_229_type 1475
+-#define _loop0_231_type 1476
+-#define _gather_230_type 1477
+-#define _tmp_232_type 1478
+-#define _tmp_233_type 1479
+-#define _tmp_234_type 1480
+-#define _tmp_235_type 1481
+-#define _tmp_236_type 1482
+-#define _tmp_237_type 1483
+-#define _tmp_238_type 1484
+-#define _loop0_239_type 1485
+-#define _tmp_240_type 1486
+-#define _tmp_241_type 1487
+-#define _tmp_242_type 1488
+-#define _tmp_243_type 1489
+-#define _tmp_244_type 1490
+-#define _tmp_245_type 1491
+-#define _tmp_246_type 1492
+-#define _tmp_247_type 1493
+-#define _tmp_248_type 1494
+-#define _tmp_249_type 1495
+-#define _tmp_250_type 1496
+-#define _tmp_251_type 1497
+-#define _tmp_252_type 1498
+-#define _tmp_253_type 1499
+-#define _tmp_254_type 1500
+-#define _tmp_255_type 1501
+-#define _loop0_256_type 1502
+-#define _tmp_257_type 1503
+-#define _tmp_258_type 1504
+-#define _tmp_259_type 1505
+-#define _tmp_260_type 1506
+-#define _tmp_261_type 1507
+-#define _tmp_262_type 1508
+-#define _tmp_263_type 1509
+-#define _tmp_264_type 1510
+-#define _tmp_265_type 1511
+-#define _tmp_266_type 1512
+-#define _tmp_267_type 1513
+-#define _tmp_268_type 1514
+-#define _tmp_269_type 1515
+-#define _tmp_270_type 1516
+-#define _tmp_271_type 1517
+-#define _tmp_272_type 1518
+-#define _loop0_274_type 1519
+-#define _gather_273_type 1520
+-#define _tmp_275_type 1521
+-#define _tmp_276_type 1522
+-#define _tmp_277_type 1523
+-#define _tmp_278_type 1524
+-#define _tmp_279_type 1525
+-#define _tmp_280_type 1526
++#define type_param_default_type 1102
++#define type_param_starred_default_type 1103
++#define expressions_type 1104
++#define expression_type 1105
++#define yield_expr_type 1106
++#define star_expressions_type 1107
++#define star_expression_type 1108
++#define star_named_expressions_type 1109
++#define star_named_expression_type 1110
++#define assignment_expression_type 1111
++#define named_expression_type 1112
++#define disjunction_type 1113
++#define conjunction_type 1114
++#define inversion_type 1115
++#define comparison_type 1116
++#define compare_op_bitwise_or_pair_type 1117
++#define eq_bitwise_or_type 1118
++#define noteq_bitwise_or_type 1119
++#define lte_bitwise_or_type 1120
++#define lt_bitwise_or_type 1121
++#define gte_bitwise_or_type 1122
++#define gt_bitwise_or_type 1123
++#define notin_bitwise_or_type 1124
++#define in_bitwise_or_type 1125
++#define isnot_bitwise_or_type 1126
++#define is_bitwise_or_type 1127
++#define bitwise_or_type 1128  // Left-recursive
++#define bitwise_xor_type 1129  // Left-recursive
++#define bitwise_and_type 1130  // Left-recursive
++#define shift_expr_type 1131  // Left-recursive
++#define sum_type 1132  // Left-recursive
++#define term_type 1133  // Left-recursive
++#define factor_type 1134
++#define power_type 1135
++#define await_primary_type 1136
++#define primary_type 1137  // Left-recursive
++#define slices_type 1138
++#define slice_type 1139
++#define atom_type 1140
++#define group_type 1141
++#define lambdef_type 1142
++#define lambda_params_type 1143
++#define lambda_parameters_type 1144
++#define lambda_slash_no_default_type 1145
++#define lambda_slash_with_default_type 1146
++#define lambda_star_etc_type 1147
++#define lambda_kwds_type 1148
++#define lambda_param_no_default_type 1149
++#define lambda_param_with_default_type 1150
++#define lambda_param_maybe_default_type 1151
++#define lambda_param_type 1152
++#define fstring_middle_type 1153
++#define fstring_replacement_field_type 1154
++#define fstring_conversion_type 1155
++#define fstring_full_format_spec_type 1156
++#define fstring_format_spec_type 1157
++#define fstring_type 1158
++#define string_type 1159
++#define strings_type 1160
++#define list_type 1161
++#define tuple_type 1162
++#define set_type 1163
++#define dict_type 1164
++#define double_starred_kvpairs_type 1165
++#define double_starred_kvpair_type 1166
++#define kvpair_type 1167
++#define for_if_clauses_type 1168
++#define for_if_clause_type 1169
++#define listcomp_type 1170
++#define setcomp_type 1171
++#define genexp_type 1172
++#define dictcomp_type 1173
++#define arguments_type 1174
++#define args_type 1175
++#define kwargs_type 1176
++#define starred_expression_type 1177
++#define kwarg_or_starred_type 1178
++#define kwarg_or_double_starred_type 1179
++#define star_targets_type 1180
++#define star_targets_list_seq_type 1181
++#define star_targets_tuple_seq_type 1182
++#define star_target_type 1183
++#define target_with_star_atom_type 1184
++#define star_atom_type 1185
++#define single_target_type 1186
++#define single_subscript_attribute_target_type 1187
++#define t_primary_type 1188  // Left-recursive
++#define t_lookahead_type 1189
++#define del_targets_type 1190
++#define del_target_type 1191
++#define del_t_atom_type 1192
++#define type_expressions_type 1193
++#define func_type_comment_type 1194
++#define invalid_arguments_type 1195
++#define invalid_kwarg_type 1196
++#define expression_without_invalid_type 1197
++#define invalid_legacy_expression_type 1198
++#define invalid_expression_type 1199
++#define invalid_named_expression_type 1200
++#define invalid_assignment_type 1201
++#define invalid_ann_assign_target_type 1202
++#define invalid_del_stmt_type 1203
++#define invalid_block_type 1204
++#define invalid_comprehension_type 1205
++#define invalid_dict_comprehension_type 1206
++#define invalid_parameters_type 1207
++#define invalid_default_type 1208
++#define invalid_star_etc_type 1209
++#define invalid_kwds_type 1210
++#define invalid_parameters_helper_type 1211
++#define invalid_lambda_parameters_type 1212
++#define invalid_lambda_parameters_helper_type 1213
++#define invalid_lambda_star_etc_type 1214
++#define invalid_lambda_kwds_type 1215
++#define invalid_double_type_comments_type 1216
++#define invalid_with_item_type 1217
++#define invalid_for_target_type 1218
++#define invalid_group_type 1219
++#define invalid_import_type 1220
++#define invalid_import_from_targets_type 1221
++#define invalid_compound_stmt_type 1222
++#define invalid_with_stmt_type 1223
++#define invalid_with_stmt_indent_type 1224
++#define invalid_try_stmt_type 1225
++#define invalid_except_stmt_type 1226
++#define invalid_finally_stmt_type 1227
++#define invalid_except_stmt_indent_type 1228
++#define invalid_except_star_stmt_indent_type 1229
++#define invalid_match_stmt_type 1230
++#define invalid_case_block_type 1231
++#define invalid_as_pattern_type 1232
++#define invalid_class_pattern_type 1233
++#define invalid_class_argument_pattern_type 1234
++#define invalid_if_stmt_type 1235
++#define invalid_elif_stmt_type 1236
++#define invalid_else_stmt_type 1237
++#define invalid_while_stmt_type 1238
++#define invalid_for_stmt_type 1239
++#define invalid_def_raw_type 1240
++#define invalid_class_def_raw_type 1241
++#define invalid_double_starred_kvpairs_type 1242
++#define invalid_kvpair_type 1243
++#define invalid_starred_expression_type 1244
++#define invalid_replacement_field_type 1245
++#define invalid_conversion_character_type 1246
++#define invalid_arithmetic_type 1247
++#define invalid_factor_type 1248
++#define _loop0_1_type 1249
++#define _loop0_2_type 1250
++#define _loop1_3_type 1251
++#define _loop0_5_type 1252
++#define _gather_4_type 1253
++#define _tmp_6_type 1254
++#define _tmp_7_type 1255
++#define _tmp_8_type 1256
++#define _tmp_9_type 1257
++#define _tmp_10_type 1258
++#define _tmp_11_type 1259
++#define _tmp_12_type 1260
++#define _tmp_13_type 1261
++#define _loop1_14_type 1262
++#define _tmp_15_type 1263
++#define _tmp_16_type 1264
++#define _tmp_17_type 1265
++#define _loop0_19_type 1266
++#define _gather_18_type 1267
++#define _loop0_21_type 1268
++#define _gather_20_type 1269
++#define _tmp_22_type 1270
++#define _tmp_23_type 1271
++#define _loop0_24_type 1272
++#define _loop1_25_type 1273
++#define _loop0_27_type 1274
++#define _gather_26_type 1275
++#define _tmp_28_type 1276
++#define _loop0_30_type 1277
++#define _gather_29_type 1278
++#define _tmp_31_type 1279
++#define _loop1_32_type 1280
++#define _tmp_33_type 1281
++#define _tmp_34_type 1282
++#define _tmp_35_type 1283
++#define _loop0_36_type 1284
++#define _loop0_37_type 1285
++#define _loop0_38_type 1286
++#define _loop1_39_type 1287
++#define _loop0_40_type 1288
++#define _loop1_41_type 1289
++#define _loop1_42_type 1290
++#define _loop1_43_type 1291
++#define _loop0_44_type 1292
++#define _loop1_45_type 1293
++#define _loop0_46_type 1294
++#define _loop1_47_type 1295
++#define _loop0_48_type 1296
++#define _loop0_49_type 1297
++#define _loop1_50_type 1298
++#define _loop0_52_type 1299
++#define _gather_51_type 1300
++#define _loop0_54_type 1301
++#define _gather_53_type 1302
++#define _loop0_56_type 1303
++#define _gather_55_type 1304
++#define _loop0_58_type 1305
++#define _gather_57_type 1306
++#define _tmp_59_type 1307
++#define _loop1_60_type 1308
++#define _loop1_61_type 1309
++#define _tmp_62_type 1310
++#define _tmp_63_type 1311
++#define _loop1_64_type 1312
++#define _loop0_66_type 1313
++#define _gather_65_type 1314
++#define _tmp_67_type 1315
++#define _tmp_68_type 1316
++#define _tmp_69_type 1317
++#define _tmp_70_type 1318
++#define _loop0_72_type 1319
++#define _gather_71_type 1320
++#define _loop0_74_type 1321
++#define _gather_73_type 1322
++#define _tmp_75_type 1323
++#define _loop0_77_type 1324
++#define _gather_76_type 1325
++#define _loop0_79_type 1326
++#define _gather_78_type 1327
++#define _loop0_81_type 1328
++#define _gather_80_type 1329
++#define _loop1_82_type 1330
++#define _loop1_83_type 1331
++#define _loop0_85_type 1332
++#define _gather_84_type 1333
++#define _loop1_86_type 1334
++#define _loop1_87_type 1335
++#define _loop1_88_type 1336
++#define _tmp_89_type 1337
++#define _loop0_91_type 1338
++#define _gather_90_type 1339
++#define _tmp_92_type 1340
++#define _tmp_93_type 1341
++#define _tmp_94_type 1342
++#define _tmp_95_type 1343
++#define _tmp_96_type 1344
++#define _tmp_97_type 1345
++#define _loop0_98_type 1346
++#define _loop0_99_type 1347
++#define _loop0_100_type 1348
++#define _loop1_101_type 1349
++#define _loop0_102_type 1350
++#define _loop1_103_type 1351
++#define _loop1_104_type 1352
++#define _loop1_105_type 1353
++#define _loop0_106_type 1354
++#define _loop1_107_type 1355
++#define _loop0_108_type 1356
++#define _loop1_109_type 1357
++#define _loop0_110_type 1358
++#define _loop1_111_type 1359
++#define _loop0_112_type 1360
++#define _loop0_113_type 1361
++#define _loop1_114_type 1362
++#define _tmp_115_type 1363
++#define _loop0_117_type 1364
++#define _gather_116_type 1365
++#define _loop1_118_type 1366
++#define _loop0_119_type 1367
++#define _loop0_120_type 1368
++#define _tmp_121_type 1369
++#define _tmp_122_type 1370
++#define _loop0_124_type 1371
++#define _gather_123_type 1372
++#define _tmp_125_type 1373
++#define _loop0_127_type 1374
++#define _gather_126_type 1375
++#define _loop0_129_type 1376
++#define _gather_128_type 1377
++#define _loop0_131_type 1378
++#define _gather_130_type 1379
++#define _loop0_133_type 1380
++#define _gather_132_type 1381
++#define _loop0_134_type 1382
++#define _loop0_136_type 1383
++#define _gather_135_type 1384
++#define _loop1_137_type 1385
++#define _tmp_138_type 1386
++#define _loop0_140_type 1387
++#define _gather_139_type 1388
++#define _loop0_142_type 1389
++#define _gather_141_type 1390
++#define _loop0_144_type 1391
++#define _gather_143_type 1392
++#define _loop0_146_type 1393
++#define _gather_145_type 1394
++#define _loop0_148_type 1395
++#define _gather_147_type 1396
++#define _tmp_149_type 1397
++#define _tmp_150_type 1398
++#define _loop0_152_type 1399
++#define _gather_151_type 1400
++#define _tmp_153_type 1401
++#define _tmp_154_type 1402
++#define _tmp_155_type 1403
++#define _tmp_156_type 1404
++#define _tmp_157_type 1405
++#define _tmp_158_type 1406
++#define _tmp_159_type 1407
++#define _tmp_160_type 1408
++#define _tmp_161_type 1409
++#define _tmp_162_type 1410
++#define _loop0_163_type 1411
++#define _loop0_164_type 1412
++#define _loop0_165_type 1413
++#define _tmp_166_type 1414
++#define _tmp_167_type 1415
++#define _tmp_168_type 1416
++#define _tmp_169_type 1417
++#define _loop0_170_type 1418
++#define _loop0_171_type 1419
++#define _loop0_172_type 1420
++#define _loop1_173_type 1421
++#define _tmp_174_type 1422
++#define _loop0_175_type 1423
++#define _tmp_176_type 1424
++#define _loop0_177_type 1425
++#define _loop1_178_type 1426
++#define _tmp_179_type 1427
++#define _tmp_180_type 1428
++#define _tmp_181_type 1429
++#define _loop0_182_type 1430
++#define _tmp_183_type 1431
++#define _tmp_184_type 1432
++#define _loop1_185_type 1433
++#define _tmp_186_type 1434
++#define _loop0_187_type 1435
++#define _loop0_188_type 1436
++#define _loop0_189_type 1437
++#define _loop0_191_type 1438
++#define _gather_190_type 1439
++#define _tmp_192_type 1440
++#define _loop0_193_type 1441
++#define _tmp_194_type 1442
++#define _loop0_195_type 1443
++#define _loop1_196_type 1444
++#define _loop1_197_type 1445
++#define _tmp_198_type 1446
++#define _tmp_199_type 1447
++#define _loop0_200_type 1448
++#define _tmp_201_type 1449
++#define _tmp_202_type 1450
++#define _tmp_203_type 1451
++#define _loop0_205_type 1452
++#define _gather_204_type 1453
++#define _loop0_207_type 1454
++#define _gather_206_type 1455
++#define _loop0_209_type 1456
++#define _gather_208_type 1457
++#define _loop0_211_type 1458
++#define _gather_210_type 1459
++#define _loop0_213_type 1460
++#define _gather_212_type 1461
++#define _tmp_214_type 1462
++#define _loop0_215_type 1463
++#define _loop1_216_type 1464
++#define _tmp_217_type 1465
++#define _loop0_218_type 1466
++#define _loop1_219_type 1467
++#define _tmp_220_type 1468
++#define _tmp_221_type 1469
++#define _tmp_222_type 1470
++#define _tmp_223_type 1471
++#define _tmp_224_type 1472
++#define _tmp_225_type 1473
++#define _tmp_226_type 1474
++#define _tmp_227_type 1475
++#define _tmp_228_type 1476
++#define _tmp_229_type 1477
++#define _loop0_231_type 1478
++#define _gather_230_type 1479
++#define _tmp_232_type 1480
++#define _tmp_233_type 1481
++#define _tmp_234_type 1482
++#define _tmp_235_type 1483
++#define _tmp_236_type 1484
++#define _tmp_237_type 1485
++#define _tmp_238_type 1486
++#define _loop0_239_type 1487
++#define _tmp_240_type 1488
++#define _tmp_241_type 1489
++#define _tmp_242_type 1490
++#define _tmp_243_type 1491
++#define _tmp_244_type 1492
++#define _tmp_245_type 1493
++#define _tmp_246_type 1494
++#define _tmp_247_type 1495
++#define _tmp_248_type 1496
++#define _tmp_249_type 1497
++#define _tmp_250_type 1498
++#define _tmp_251_type 1499
++#define _tmp_252_type 1500
++#define _tmp_253_type 1501
++#define _tmp_254_type 1502
++#define _tmp_255_type 1503
++#define _loop0_256_type 1504
++#define _tmp_257_type 1505
++#define _tmp_258_type 1506
++#define _tmp_259_type 1507
++#define _tmp_260_type 1508
++#define _tmp_261_type 1509
++#define _tmp_262_type 1510
++#define _tmp_263_type 1511
++#define _tmp_264_type 1512
++#define _tmp_265_type 1513
++#define _tmp_266_type 1514
++#define _tmp_267_type 1515
++#define _tmp_268_type 1516
++#define _tmp_269_type 1517
++#define _tmp_270_type 1518
++#define _tmp_271_type 1519
++#define _tmp_272_type 1520
++#define _loop0_274_type 1521
++#define _gather_273_type 1522
++#define _tmp_275_type 1523
++#define _tmp_276_type 1524
++#define _tmp_277_type 1525
++#define _tmp_278_type 1526
++#define _tmp_279_type 1527
++#define _tmp_280_type 1528
+ 
+ static mod_ty file_rule(Parser *p);
+ static mod_ty interactive_rule(Parser *p);
+@@ -714,6 +716,8 @@ static asdl_type_param_seq* type_params_rule(Parser *p);
+ static asdl_type_param_seq* type_param_seq_rule(Parser *p);
+ static type_param_ty type_param_rule(Parser *p);
+ static expr_ty type_param_bound_rule(Parser *p);
++static expr_ty type_param_default_rule(Parser *p);
++static expr_ty type_param_starred_default_rule(Parser *p);
+ static expr_ty expressions_rule(Parser *p);
+ static expr_ty expression_rule(Parser *p);
+ static expr_ty yield_expr_rule(Parser *p);
+@@ -10646,11 +10650,11 @@ type_param_seq_rule(Parser *p)
+ }
+ 
+ // type_param:
+-//     | NAME type_param_bound?
++//     | NAME type_param_bound? type_param_default?
+ //     | '*' NAME ':' expression
+-//     | '*' NAME
++//     | '*' NAME type_param_starred_default?
+ //     | '**' NAME ':' expression
+-//     | '**' NAME
++//     | '**' NAME type_param_default?
+ static type_param_ty
+ type_param_rule(Parser *p)
+ {
+@@ -10676,21 +10680,24 @@ type_param_rule(Parser *p)
+     UNUSED(_start_lineno); // Only used by EXTRA macro
+     int _start_col_offset = p->tokens[_mark]->col_offset;
+     UNUSED(_start_col_offset); // Only used by EXTRA macro
+-    { // NAME type_param_bound?
++    { // NAME type_param_bound? type_param_default?
+         if (p->error_indicator) {
+             p->level--;
+             return NULL;
+         }
+-        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "NAME type_param_bound?"));
++        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "NAME type_param_bound? type_param_default?"));
+         expr_ty a;
+         void *b;
++        void *c;
+         if (
+             (a = _PyPegen_name_token(p))  // NAME
+             &&
+             (b = type_param_bound_rule(p), !p->error_indicator)  // type_param_bound?
++            &&
++            (c = type_param_default_rule(p), !p->error_indicator)  // type_param_default?
+         )
+         {
+-            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "NAME type_param_bound?"));
++            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "NAME type_param_bound? type_param_default?"));
+             Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+             if (_token == NULL) {
+                 p->level--;
+@@ -10700,7 +10707,7 @@ type_param_rule(Parser *p)
+             UNUSED(_end_lineno); // Only used by EXTRA macro
+             int _end_col_offset = _token->end_col_offset;
+             UNUSED(_end_col_offset); // Only used by EXTRA macro
+-            _res = _PyAST_TypeVar ( a -> v . Name . id , b , EXTRA );
++            _res = _PyAST_TypeVar ( a -> v . Name . id , b , c , EXTRA );
+             if (_res == NULL && PyErr_Occurred()) {
+                 p->error_indicator = 1;
+                 p->level--;
+@@ -10710,7 +10717,7 @@ type_param_rule(Parser *p)
+         }
+         p->mark = _mark;
+         D(fprintf(stderr, "%*c%s type_param[%d-%d]: %s failed!\n", p->level, ' ',
+-                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "NAME type_param_bound?"));
++                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "NAME type_param_bound? type_param_default?"));
+     }
+     { // '*' NAME ':' expression
+         if (p->error_indicator) {
+@@ -10745,21 +10752,24 @@ type_param_rule(Parser *p)
+         D(fprintf(stderr, "%*c%s type_param[%d-%d]: %s failed!\n", p->level, ' ',
+                   p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'*' NAME ':' expression"));
+     }
+-    { // '*' NAME
++    { // '*' NAME type_param_starred_default?
+         if (p->error_indicator) {
+             p->level--;
+             return NULL;
+         }
+-        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'*' NAME"));
++        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'*' NAME type_param_starred_default?"));
+         Token * _literal;
+         expr_ty a;
++        void *b;
+         if (
+             (_literal = _PyPegen_expect_token(p, 16))  // token='*'
+             &&
+             (a = _PyPegen_name_token(p))  // NAME
++            &&
++            (b = type_param_starred_default_rule(p), !p->error_indicator)  // type_param_starred_default?
+         )
+         {
+-            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'*' NAME"));
++            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'*' NAME type_param_starred_default?"));
+             Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+             if (_token == NULL) {
+                 p->level--;
+@@ -10769,7 +10779,7 @@ type_param_rule(Parser *p)
+             UNUSED(_end_lineno); // Only used by EXTRA macro
+             int _end_col_offset = _token->end_col_offset;
+             UNUSED(_end_col_offset); // Only used by EXTRA macro
+-            _res = _PyAST_TypeVarTuple ( a -> v . Name . id , EXTRA );
++            _res = _PyAST_TypeVarTuple ( a -> v . Name . id , b , EXTRA );
+             if (_res == NULL && PyErr_Occurred()) {
+                 p->error_indicator = 1;
+                 p->level--;
+@@ -10779,7 +10789,7 @@ type_param_rule(Parser *p)
+         }
+         p->mark = _mark;
+         D(fprintf(stderr, "%*c%s type_param[%d-%d]: %s failed!\n", p->level, ' ',
+-                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'*' NAME"));
++                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'*' NAME type_param_starred_default?"));
+     }
+     { // '**' NAME ':' expression
+         if (p->error_indicator) {
+@@ -10814,21 +10824,24 @@ type_param_rule(Parser *p)
+         D(fprintf(stderr, "%*c%s type_param[%d-%d]: %s failed!\n", p->level, ' ',
+                   p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'**' NAME ':' expression"));
+     }
+-    { // '**' NAME
++    { // '**' NAME type_param_default?
+         if (p->error_indicator) {
+             p->level--;
+             return NULL;
+         }
+-        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'**' NAME"));
++        D(fprintf(stderr, "%*c> type_param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'**' NAME type_param_default?"));
+         Token * _literal;
+         expr_ty a;
++        void *b;
+         if (
+             (_literal = _PyPegen_expect_token(p, 35))  // token='**'
+             &&
+             (a = _PyPegen_name_token(p))  // NAME
++            &&
++            (b = type_param_default_rule(p), !p->error_indicator)  // type_param_default?
+         )
+         {
+-            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'**' NAME"));
++            D(fprintf(stderr, "%*c+ type_param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'**' NAME type_param_default?"));
+             Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+             if (_token == NULL) {
+                 p->level--;
+@@ -10838,7 +10851,7 @@ type_param_rule(Parser *p)
+             UNUSED(_end_lineno); // Only used by EXTRA macro
+             int _end_col_offset = _token->end_col_offset;
+             UNUSED(_end_col_offset); // Only used by EXTRA macro
+-            _res = _PyAST_ParamSpec ( a -> v . Name . id , EXTRA );
++            _res = _PyAST_ParamSpec ( a -> v . Name . id , b , EXTRA );
+             if (_res == NULL && PyErr_Occurred()) {
+                 p->error_indicator = 1;
+                 p->level--;
+@@ -10848,7 +10861,7 @@ type_param_rule(Parser *p)
+         }
+         p->mark = _mark;
+         D(fprintf(stderr, "%*c%s type_param[%d-%d]: %s failed!\n", p->level, ' ',
+-                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'**' NAME"));
++                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'**' NAME type_param_default?"));
+     }
+     _res = NULL;
+   done:
+@@ -10903,6 +10916,98 @@ type_param_bound_rule(Parser *p)
+     return _res;
+ }
+ 
++// type_param_default: '=' expression
++static expr_ty
++type_param_default_rule(Parser *p)
++{
++    if (p->level++ == MAXSTACK) {
++        _Pypegen_stack_overflow(p);
++    }
++    if (p->error_indicator) {
++        p->level--;
++        return NULL;
++    }
++    expr_ty _res = NULL;
++    int _mark = p->mark;
++    { // '=' expression
++        if (p->error_indicator) {
++            p->level--;
++            return NULL;
++        }
++        D(fprintf(stderr, "%*c> type_param_default[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'=' expression"));
++        Token * _literal;
++        expr_ty e;
++        if (
++            (_literal = _PyPegen_expect_token(p, 22))  // token='='
++            &&
++            (e = expression_rule(p))  // expression
++        )
++        {
++            D(fprintf(stderr, "%*c+ type_param_default[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'=' expression"));
++            _res = CHECK_VERSION ( expr_ty , 13 , "Type parameter defaults are" , e );
++            if (_res == NULL && PyErr_Occurred()) {
++                p->error_indicator = 1;
++                p->level--;
++                return NULL;
++            }
++            goto done;
++        }
++        p->mark = _mark;
++        D(fprintf(stderr, "%*c%s type_param_default[%d-%d]: %s failed!\n", p->level, ' ',
++                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'=' expression"));
++    }
++    _res = NULL;
++  done:
++    p->level--;
++    return _res;
++}
++
++// type_param_starred_default: '=' star_expression
++static expr_ty
++type_param_starred_default_rule(Parser *p)
++{
++    if (p->level++ == MAXSTACK) {
++        _Pypegen_stack_overflow(p);
++    }
++    if (p->error_indicator) {
++        p->level--;
++        return NULL;
++    }
++    expr_ty _res = NULL;
++    int _mark = p->mark;
++    { // '=' star_expression
++        if (p->error_indicator) {
++            p->level--;
++            return NULL;
++        }
++        D(fprintf(stderr, "%*c> type_param_starred_default[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'=' star_expression"));
++        Token * _literal;
++        expr_ty e;
++        if (
++            (_literal = _PyPegen_expect_token(p, 22))  // token='='
++            &&
++            (e = star_expression_rule(p))  // star_expression
++        )
++        {
++            D(fprintf(stderr, "%*c+ type_param_starred_default[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'=' star_expression"));
++            _res = CHECK_VERSION ( expr_ty , 13 , "Type parameter defaults are" , e );
++            if (_res == NULL && PyErr_Occurred()) {
++                p->error_indicator = 1;
++                p->level--;
++                return NULL;
++            }
++            goto done;
++        }
++        p->mark = _mark;
++        D(fprintf(stderr, "%*c%s type_param_starred_default[%d-%d]: %s failed!\n", p->level, ' ',
++                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'=' star_expression"));
++    }
++    _res = NULL;
++  done:
++    p->level--;
++    return _res;
++}
++
+ // expressions: expression ((',' expression))+ ','? | expression ',' | expression
+ static expr_ty
+ expressions_rule(Parser *p)
+diff --git a/Python/Python-ast.c b/Python/Python-ast.c
+index 60b46263a0..cc7734e0db 100644
+--- a/Python/Python-ast.c
++++ b/Python/Python-ast.c
+@@ -203,6 +203,7 @@ void _PyAST_Fini(PyInterpreterState *interp)
+     Py_CLEAR(state->conversion);
+     Py_CLEAR(state->ctx);
+     Py_CLEAR(state->decorator_list);
++    Py_CLEAR(state->default_value);
+     Py_CLEAR(state->defaults);
+     Py_CLEAR(state->elt);
+     Py_CLEAR(state->elts);
+@@ -311,6 +312,7 @@ static int init_identifiers(struct ast_state *state)
+     if ((state->conversion = PyUnicode_InternFromString("conversion")) == NULL) return -1;
+     if ((state->ctx = PyUnicode_InternFromString("ctx")) == NULL) return -1;
+     if ((state->decorator_list = PyUnicode_InternFromString("decorator_list")) == NULL) return -1;
++    if ((state->default_value = PyUnicode_InternFromString("default_value")) == NULL) return -1;
+     if ((state->defaults = PyUnicode_InternFromString("defaults")) == NULL) return -1;
+     if ((state->elt = PyUnicode_InternFromString("elt")) == NULL) return -1;
+     if ((state->elts = PyUnicode_InternFromString("elts")) == NULL) return -1;
+@@ -809,12 +811,15 @@ static PyObject* ast2obj_type_param(struct ast_state *state, struct validator
+ static const char * const TypeVar_fields[]={
+     "name",
+     "bound",
++    "default_value",
+ };
+ static const char * const ParamSpec_fields[]={
+     "name",
++    "default_value",
+ };
+ static const char * const TypeVarTuple_fields[]={
+     "name",
++    "default_value",
+ };
+ 
+ 
+@@ -4913,6 +4918,22 @@ add_ast_annotations(struct ast_state *state)
+             return 0;
+         }
+     }
++    {
++        PyObject *type = state->expr_type;
++        type = _Py_union_type_or(type, Py_None);
++        cond = type != NULL;
++        if (!cond) {
++            Py_DECREF(TypeVar_annotations);
++            return 0;
++        }
++        cond = PyDict_SetItemString(TypeVar_annotations, "default_value", type)
++                                    == 0;
++        Py_DECREF(type);
++        if (!cond) {
++            Py_DECREF(TypeVar_annotations);
++            return 0;
++        }
++    }
+     cond = PyObject_SetAttrString(state->TypeVar_type, "_field_types",
+                                   TypeVar_annotations) == 0;
+     if (!cond) {
+@@ -4938,6 +4959,22 @@ add_ast_annotations(struct ast_state *state)
+             return 0;
+         }
+     }
++    {
++        PyObject *type = state->expr_type;
++        type = _Py_union_type_or(type, Py_None);
++        cond = type != NULL;
++        if (!cond) {
++            Py_DECREF(ParamSpec_annotations);
++            return 0;
++        }
++        cond = PyDict_SetItemString(ParamSpec_annotations, "default_value",
++                                    type) == 0;
++        Py_DECREF(type);
++        if (!cond) {
++            Py_DECREF(ParamSpec_annotations);
++            return 0;
++        }
++    }
+     cond = PyObject_SetAttrString(state->ParamSpec_type, "_field_types",
+                                   ParamSpec_annotations) == 0;
+     if (!cond) {
+@@ -4964,6 +5001,22 @@ add_ast_annotations(struct ast_state *state)
+             return 0;
+         }
+     }
++    {
++        PyObject *type = state->expr_type;
++        type = _Py_union_type_or(type, Py_None);
++        cond = type != NULL;
++        if (!cond) {
++            Py_DECREF(TypeVarTuple_annotations);
++            return 0;
++        }
++        cond = PyDict_SetItemString(TypeVarTuple_annotations, "default_value",
++                                    type) == 0;
++        Py_DECREF(type);
++        if (!cond) {
++            Py_DECREF(TypeVarTuple_annotations);
++            return 0;
++        }
++    }
+     cond = PyObject_SetAttrString(state->TypeVarTuple_type, "_field_types",
+                                   TypeVarTuple_annotations) == 0;
+     if (!cond) {
+@@ -6243,28 +6296,37 @@ init_types(struct ast_state *state)
+     if (!state->TypeIgnore_type) return -1;
+     state->type_param_type = make_type(state, "type_param", state->AST_type,
+                                        NULL, 0,
+-        "type_param = TypeVar(identifier name, expr? bound)\n"
+-        "           | ParamSpec(identifier name)\n"
+-        "           | TypeVarTuple(identifier name)");
++        "type_param = TypeVar(identifier name, expr? bound, expr? default_value)\n"
++        "           | ParamSpec(identifier name, expr? default_value)\n"
++        "           | TypeVarTuple(identifier name, expr? default_value)");
+     if (!state->type_param_type) return -1;
+     if (add_attributes(state, state->type_param_type, type_param_attributes, 4)
+         < 0) return -1;
+     state->TypeVar_type = make_type(state, "TypeVar", state->type_param_type,
+-                                    TypeVar_fields, 2,
+-        "TypeVar(identifier name, expr? bound)");
++                                    TypeVar_fields, 3,
++        "TypeVar(identifier name, expr? bound, expr? default_value)");
+     if (!state->TypeVar_type) return -1;
+     if (PyObject_SetAttr(state->TypeVar_type, state->bound, Py_None) == -1)
+         return -1;
++    if (PyObject_SetAttr(state->TypeVar_type, state->default_value, Py_None) ==
++        -1)
++        return -1;
+     state->ParamSpec_type = make_type(state, "ParamSpec",
+                                       state->type_param_type, ParamSpec_fields,
+-                                      1,
+-        "ParamSpec(identifier name)");
++                                      2,
++        "ParamSpec(identifier name, expr? default_value)");
+     if (!state->ParamSpec_type) return -1;
++    if (PyObject_SetAttr(state->ParamSpec_type, state->default_value, Py_None)
++        == -1)
++        return -1;
+     state->TypeVarTuple_type = make_type(state, "TypeVarTuple",
+                                          state->type_param_type,
+-                                         TypeVarTuple_fields, 1,
+-        "TypeVarTuple(identifier name)");
++                                         TypeVarTuple_fields, 2,
++        "TypeVarTuple(identifier name, expr? default_value)");
+     if (!state->TypeVarTuple_type) return -1;
++    if (PyObject_SetAttr(state->TypeVarTuple_type, state->default_value,
++        Py_None) == -1)
++        return -1;
+ 
+     if (!add_ast_annotations(state)) {
+         return -1;
+@@ -8055,8 +8117,9 @@ _PyAST_TypeIgnore(int lineno, string tag, PyArena *arena)
+ }
+ 
+ type_param_ty
+-_PyAST_TypeVar(identifier name, expr_ty bound, int lineno, int col_offset, int
+-               end_lineno, int end_col_offset, PyArena *arena)
++_PyAST_TypeVar(identifier name, expr_ty bound, expr_ty default_value, int
++               lineno, int col_offset, int end_lineno, int end_col_offset,
++               PyArena *arena)
+ {
+     type_param_ty p;
+     if (!name) {
+@@ -8070,6 +8133,7 @@ _PyAST_TypeVar(identifier name, expr_ty bound, int lineno, int col_offset, int
+     p->kind = TypeVar_kind;
+     p->v.TypeVar.name = name;
+     p->v.TypeVar.bound = bound;
++    p->v.TypeVar.default_value = default_value;
+     p->lineno = lineno;
+     p->col_offset = col_offset;
+     p->end_lineno = end_lineno;
+@@ -8078,8 +8142,8 @@ _PyAST_TypeVar(identifier name, expr_ty bound, int lineno, int col_offset, int
+ }
+ 
+ type_param_ty
+-_PyAST_ParamSpec(identifier name, int lineno, int col_offset, int end_lineno,
+-                 int end_col_offset, PyArena *arena)
++_PyAST_ParamSpec(identifier name, expr_ty default_value, int lineno, int
++                 col_offset, int end_lineno, int end_col_offset, PyArena *arena)
+ {
+     type_param_ty p;
+     if (!name) {
+@@ -8092,6 +8156,7 @@ _PyAST_ParamSpec(identifier name, int lineno, int col_offset, int end_lineno,
+         return NULL;
+     p->kind = ParamSpec_kind;
+     p->v.ParamSpec.name = name;
++    p->v.ParamSpec.default_value = default_value;
+     p->lineno = lineno;
+     p->col_offset = col_offset;
+     p->end_lineno = end_lineno;
+@@ -8100,8 +8165,9 @@ _PyAST_ParamSpec(identifier name, int lineno, int col_offset, int end_lineno,
+ }
+ 
+ type_param_ty
+-_PyAST_TypeVarTuple(identifier name, int lineno, int col_offset, int
+-                    end_lineno, int end_col_offset, PyArena *arena)
++_PyAST_TypeVarTuple(identifier name, expr_ty default_value, int lineno, int
++                    col_offset, int end_lineno, int end_col_offset, PyArena
++                    *arena)
+ {
+     type_param_ty p;
+     if (!name) {
+@@ -8114,6 +8180,7 @@ _PyAST_TypeVarTuple(identifier name, int lineno, int col_offset, int
+         return NULL;
+     p->kind = TypeVarTuple_kind;
+     p->v.TypeVarTuple.name = name;
++    p->v.TypeVarTuple.default_value = default_value;
+     p->lineno = lineno;
+     p->col_offset = col_offset;
+     p->end_lineno = end_lineno;
+@@ -10079,6 +10146,11 @@ ast2obj_type_param(struct ast_state *state, struct validator *vstate, void* _o)
+         if (PyObject_SetAttr(result, state->bound, value) == -1)
+             goto failed;
+         Py_DECREF(value);
++        value = ast2obj_expr(state, vstate, o->v.TypeVar.default_value);
++        if (!value) goto failed;
++        if (PyObject_SetAttr(result, state->default_value, value) == -1)
++            goto failed;
++        Py_DECREF(value);
+         break;
+     case ParamSpec_kind:
+         tp = (PyTypeObject *)state->ParamSpec_type;
+@@ -10089,6 +10161,11 @@ ast2obj_type_param(struct ast_state *state, struct validator *vstate, void* _o)
+         if (PyObject_SetAttr(result, state->name, value) == -1)
+             goto failed;
+         Py_DECREF(value);
++        value = ast2obj_expr(state, vstate, o->v.ParamSpec.default_value);
++        if (!value) goto failed;
++        if (PyObject_SetAttr(result, state->default_value, value) == -1)
++            goto failed;
++        Py_DECREF(value);
+         break;
+     case TypeVarTuple_kind:
+         tp = (PyTypeObject *)state->TypeVarTuple_type;
+@@ -10099,6 +10176,11 @@ ast2obj_type_param(struct ast_state *state, struct validator *vstate, void* _o)
+         if (PyObject_SetAttr(result, state->name, value) == -1)
+             goto failed;
+         Py_DECREF(value);
++        value = ast2obj_expr(state, vstate, o->v.TypeVarTuple.default_value);
++        if (!value) goto failed;
++        if (PyObject_SetAttr(result, state->default_value, value) == -1)
++            goto failed;
++        Py_DECREF(value);
+         break;
+     }
+     value = ast2obj_int(state, vstate, o->lineno);
+@@ -16935,6 +17017,7 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+     if (isinstance) {
+         identifier name;
+         expr_ty bound;
++        expr_ty default_value;
+ 
+         if (PyObject_GetOptionalAttr(obj, state->name, &tmp) < 0) {
+             return -1;
+@@ -16970,8 +17053,25 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+             if (res != 0) goto failed;
+             Py_CLEAR(tmp);
+         }
+-        *out = _PyAST_TypeVar(name, bound, lineno, col_offset, end_lineno,
+-                              end_col_offset, arena);
++        if (PyObject_GetOptionalAttr(obj, state->default_value, &tmp) < 0) {
++            return -1;
++        }
++        if (tmp == NULL || tmp == Py_None) {
++            Py_CLEAR(tmp);
++            default_value = NULL;
++        }
++        else {
++            int res;
++            if (_Py_EnterRecursiveCall(" while traversing 'TypeVar' node")) {
++                goto failed;
++            }
++            res = obj2ast_expr(state, tmp, &default_value, arena);
++            _Py_LeaveRecursiveCall();
++            if (res != 0) goto failed;
++            Py_CLEAR(tmp);
++        }
++        *out = _PyAST_TypeVar(name, bound, default_value, lineno, col_offset,
++                              end_lineno, end_col_offset, arena);
+         if (*out == NULL) goto failed;
+         return 0;
+     }
+@@ -16982,6 +17082,7 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+     }
+     if (isinstance) {
+         identifier name;
++        expr_ty default_value;
+ 
+         if (PyObject_GetOptionalAttr(obj, state->name, &tmp) < 0) {
+             return -1;
+@@ -17000,8 +17101,25 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+             if (res != 0) goto failed;
+             Py_CLEAR(tmp);
+         }
+-        *out = _PyAST_ParamSpec(name, lineno, col_offset, end_lineno,
+-                                end_col_offset, arena);
++        if (PyObject_GetOptionalAttr(obj, state->default_value, &tmp) < 0) {
++            return -1;
++        }
++        if (tmp == NULL || tmp == Py_None) {
++            Py_CLEAR(tmp);
++            default_value = NULL;
++        }
++        else {
++            int res;
++            if (_Py_EnterRecursiveCall(" while traversing 'ParamSpec' node")) {
++                goto failed;
++            }
++            res = obj2ast_expr(state, tmp, &default_value, arena);
++            _Py_LeaveRecursiveCall();
++            if (res != 0) goto failed;
++            Py_CLEAR(tmp);
++        }
++        *out = _PyAST_ParamSpec(name, default_value, lineno, col_offset,
++                                end_lineno, end_col_offset, arena);
+         if (*out == NULL) goto failed;
+         return 0;
+     }
+@@ -17012,6 +17130,7 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+     }
+     if (isinstance) {
+         identifier name;
++        expr_ty default_value;
+ 
+         if (PyObject_GetOptionalAttr(obj, state->name, &tmp) < 0) {
+             return -1;
+@@ -17030,8 +17149,25 @@ obj2ast_type_param(struct ast_state *state, PyObject* obj, type_param_ty* out,
+             if (res != 0) goto failed;
+             Py_CLEAR(tmp);
+         }
+-        *out = _PyAST_TypeVarTuple(name, lineno, col_offset, end_lineno,
+-                                   end_col_offset, arena);
++        if (PyObject_GetOptionalAttr(obj, state->default_value, &tmp) < 0) {
++            return -1;
++        }
++        if (tmp == NULL || tmp == Py_None) {
++            Py_CLEAR(tmp);
++            default_value = NULL;
++        }
++        else {
++            int res;
++            if (_Py_EnterRecursiveCall(" while traversing 'TypeVarTuple' node")) {
++                goto failed;
++            }
++            res = obj2ast_expr(state, tmp, &default_value, arena);
++            _Py_LeaveRecursiveCall();
++            if (res != 0) goto failed;
++            Py_CLEAR(tmp);
++        }
++        *out = _PyAST_TypeVarTuple(name, default_value, lineno, col_offset,
++                                   end_lineno, end_col_offset, arena);
+         if (*out == NULL) goto failed;
+         return 0;
+     }
+diff --git a/Python/ast.c b/Python/ast.c
+index 71b09d889f..1d1a48ec88 100644
+--- a/Python/ast.c
++++ b/Python/ast.c
+@@ -1011,13 +1011,19 @@ validate_typeparam(struct validator *state, type_param_ty tp)
+         case TypeVar_kind:
+             ret = validate_name(tp->v.TypeVar.name) &&
+                 (!tp->v.TypeVar.bound ||
+-                 validate_expr(state, tp->v.TypeVar.bound, Load));
++                 validate_expr(state, tp->v.TypeVar.bound, Load)) &&
++                (!tp->v.TypeVar.default_value ||
++                 validate_expr(state, tp->v.TypeVar.default_value, Load));
+             break;
+         case ParamSpec_kind:
+-            ret = validate_name(tp->v.ParamSpec.name);
++            ret = validate_name(tp->v.ParamSpec.name) &&
++                (!tp->v.ParamSpec.default_value ||
++                 validate_expr(state, tp->v.ParamSpec.default_value, Load));
+             break;
+         case TypeVarTuple_kind:
+-            ret = validate_name(tp->v.TypeVarTuple.name);
++            ret = validate_name(tp->v.TypeVarTuple.name) &&
++                (!tp->v.TypeVarTuple.default_value ||
++                 validate_expr(state, tp->v.TypeVarTuple.default_value, Load));
+             break;
+     }
+     return ret;
+diff --git a/Python/compile.c b/Python/compile.c
+index feedd98883..ec47af151f 100644
+--- a/Python/compile.c
++++ b/Python/compile.c
+@@ -2116,6 +2116,36 @@ wrap_in_stopiteration_handler(struct compiler *c)
+     return SUCCESS;
+ }
+ 
++static int
++compiler_type_param_bound_or_default(struct compiler *c, expr_ty e,
++                                     identifier name, void *key,
++                                     bool allow_starred)
++{
++    if (compiler_enter_scope(c, name, COMPILER_SCOPE_TYPEPARAMS,
++                             key, e->lineno) == -1) {
++        return ERROR;
++    }
++    if (allow_starred && e->kind == Starred_kind) {
++        VISIT(c, expr, e->v.Starred.value);
++        ADDOP_I(c, LOC(e), UNPACK_SEQUENCE, (Py_ssize_t)1);
++    }
++    else {
++        VISIT(c, expr, e);
++    }
++    ADDOP_IN_SCOPE(c, LOC(e), RETURN_VALUE);
++    PyCodeObject *co = optimize_and_assemble(c, 1);
++    compiler_exit_scope(c);
++    if (co == NULL) {
++        return ERROR;
++    }
++    if (compiler_make_closure(c, LOC(e), co, 0) < 0) {
++        Py_DECREF(co);
++        return ERROR;
++    }
++    Py_DECREF(co);
++    return SUCCESS;
++}
++
+ static int
+ compiler_type_params(struct compiler *c, asdl_type_param_seq *type_params)
+ {
+@@ -2123,6 +2153,7 @@ compiler_type_params(struct compiler *c, asdl_type_param_seq *type_params)
+         return SUCCESS;
+     }
+     Py_ssize_t n = asdl_seq_LEN(type_params);
++    bool seen_default = false;
+ 
+     for (Py_ssize_t i = 0; i < n; i++) {
+         type_param_ty typeparam = asdl_seq_GET(type_params, i);
+@@ -2132,22 +2163,10 @@ compiler_type_params(struct compiler *c, asdl_type_param_seq *type_params)
+             ADDOP_LOAD_CONST(c, loc, typeparam->v.TypeVar.name);
+             if (typeparam->v.TypeVar.bound) {
+                 expr_ty bound = typeparam->v.TypeVar.bound;
+-                if (compiler_enter_scope(c, typeparam->v.TypeVar.name, COMPILER_SCOPE_TYPEPARAMS,
+-                                        (void *)typeparam, bound->lineno) == -1) {
++                if (compiler_type_param_bound_or_default(c, bound, typeparam->v.TypeVar.name,
++                                                         (void *)typeparam, false) < 0) {
+                     return ERROR;
+                 }
+-                VISIT_IN_SCOPE(c, expr, bound);
+-                ADDOP_IN_SCOPE(c, loc, RETURN_VALUE);
+-                PyCodeObject *co = optimize_and_assemble(c, 1);
+-                compiler_exit_scope(c);
+-                if (co == NULL) {
+-                    return ERROR;
+-                }
+-                if (compiler_make_closure(c, loc, co, 0) < 0) {
+-                    Py_DECREF(co);
+-                    return ERROR;
+-                }
+-                Py_DECREF(co);
+ 
+                 int intrinsic = bound->kind == Tuple_kind
+                     ? INTRINSIC_TYPEVAR_WITH_CONSTRAINTS
+@@ -2157,18 +2176,60 @@ compiler_type_params(struct compiler *c, asdl_type_param_seq *type_params)
+             else {
+                 ADDOP_I(c, loc, CALL_INTRINSIC_1, INTRINSIC_TYPEVAR);
+             }
++            if (typeparam->v.TypeVar.default_value) {
++                seen_default = true;
++                expr_ty default_ = typeparam->v.TypeVar.default_value;
++                if (compiler_type_param_bound_or_default(c, default_, typeparam->v.TypeVar.name,
++                                                         (void *)((uintptr_t)typeparam + 1), false) < 0) {
++                    return ERROR;
++                }
++                ADDOP_I(c, loc, CALL_INTRINSIC_2, INTRINSIC_SET_TYPEPARAM_DEFAULT);
++            }
++            else if (seen_default) {
++                return compiler_error(c, loc, "non-default type parameter '%U' "
++                                      "follows default type parameter",
++                                      typeparam->v.TypeVar.name);
++            }
+             ADDOP_I(c, loc, COPY, 1);
+             RETURN_IF_ERROR(compiler_nameop(c, loc, typeparam->v.TypeVar.name, Store));
+             break;
+         case TypeVarTuple_kind:
+             ADDOP_LOAD_CONST(c, loc, typeparam->v.TypeVarTuple.name);
+             ADDOP_I(c, loc, CALL_INTRINSIC_1, INTRINSIC_TYPEVARTUPLE);
++            if (typeparam->v.TypeVarTuple.default_value) {
++                expr_ty default_ = typeparam->v.TypeVarTuple.default_value;
++                if (compiler_type_param_bound_or_default(c, default_, typeparam->v.TypeVarTuple.name,
++                                                         (void *)typeparam, true) < 0) {
++                    return ERROR;
++                }
++                ADDOP_I(c, loc, CALL_INTRINSIC_2, INTRINSIC_SET_TYPEPARAM_DEFAULT);
++                seen_default = true;
++            }
++            else if (seen_default) {
++                return compiler_error(c, loc, "non-default type parameter '%U' "
++                                      "follows default type parameter",
++                                      typeparam->v.TypeVarTuple.name);
++            }
+             ADDOP_I(c, loc, COPY, 1);
+             RETURN_IF_ERROR(compiler_nameop(c, loc, typeparam->v.TypeVarTuple.name, Store));
+             break;
+         case ParamSpec_kind:
+             ADDOP_LOAD_CONST(c, loc, typeparam->v.ParamSpec.name);
+             ADDOP_I(c, loc, CALL_INTRINSIC_1, INTRINSIC_PARAMSPEC);
++            if (typeparam->v.ParamSpec.default_value) {
++                expr_ty default_ = typeparam->v.ParamSpec.default_value;
++                if (compiler_type_param_bound_or_default(c, default_, typeparam->v.ParamSpec.name,
++                                                         (void *)typeparam, false) < 0) {
++                    return ERROR;
++                }
++                ADDOP_I(c, loc, CALL_INTRINSIC_2, INTRINSIC_SET_TYPEPARAM_DEFAULT);
++                seen_default = true;
++            }
++            else if (seen_default) {
++                return compiler_error(c, loc, "non-default type parameter '%U' "
++                                      "follows default type parameter",
++                                      typeparam->v.ParamSpec.name);
++            }
+             ADDOP_I(c, loc, COPY, 1);
+             RETURN_IF_ERROR(compiler_nameop(c, loc, typeparam->v.ParamSpec.name, Store));
+             break;
+diff --git a/Python/intrinsics.c b/Python/intrinsics.c
+index d3146973b7..5b10c3ce7d 100644
+--- a/Python/intrinsics.c
++++ b/Python/intrinsics.c
+@@ -265,6 +265,7 @@ _PyIntrinsics_BinaryFunctions[] = {
+     INTRINSIC_FUNC_ENTRY(INTRINSIC_TYPEVAR_WITH_BOUND, make_typevar_with_bound)
+     INTRINSIC_FUNC_ENTRY(INTRINSIC_TYPEVAR_WITH_CONSTRAINTS, make_typevar_with_constraints)
+     INTRINSIC_FUNC_ENTRY(INTRINSIC_SET_FUNCTION_TYPE_PARAMS, _Py_set_function_type_params)
++    INTRINSIC_FUNC_ENTRY(INTRINSIC_SET_TYPEPARAM_DEFAULT, _Py_set_typeparam_default)
+ };
+ 
+ #undef INTRINSIC_FUNC_ENTRY
+diff --git a/Python/symtable.c b/Python/symtable.c
+index eecd159b2c..2ec21a2d37 100644
+--- a/Python/symtable.c
++++ b/Python/symtable.c
+@@ -2275,6 +2275,24 @@ symtable_visit_expr(struct symtable *st, expr_ty e)
+     VISIT_QUIT(st, 1);
+ }
+ 
++static int
++symtable_visit_type_param_bound_or_default(struct symtable *st, expr_ty e, identifier name, void *key)
++{
++    if (e) {
++        int is_in_class = st->st_cur->ste_can_see_class_scope;
++        if (!symtable_enter_block(st, name, TypeVarBoundBlock, key, LOCATION(e)))
++            return 0;
++        st->st_cur->ste_can_see_class_scope = is_in_class;
++        if (is_in_class && !symtable_add_def(st, &_Py_ID(__classdict__), USE, LOCATION(e))) {
++            VISIT_QUIT(st, 0);
++        }
++        VISIT(st, expr, e);
++        if (!symtable_exit_block(st))
++            return 0;
++    }
++    return 1;
++}
++
+ static int
+ symtable_visit_type_param(struct symtable *st, type_param_ty tp)
+ {
+@@ -2287,28 +2305,39 @@ symtable_visit_type_param(struct symtable *st, type_param_ty tp)
+     case TypeVar_kind:
+         if (!symtable_add_def(st, tp->v.TypeVar.name, DEF_TYPE_PARAM | DEF_LOCAL, LOCATION(tp)))
+             VISIT_QUIT(st, 0);
+-        if (tp->v.TypeVar.bound) {
+-            int is_in_class = st->st_cur->ste_can_see_class_scope;
+-            if (!symtable_enter_block(st, tp->v.TypeVar.name,
+-                                      TypeVarBoundBlock, (void *)tp,
+-                                      LOCATION(tp)))
+-                VISIT_QUIT(st, 0);
+-            st->st_cur->ste_can_see_class_scope = is_in_class;
+-            if (is_in_class && !symtable_add_def(st, &_Py_ID(__classdict__), USE, LOCATION(tp->v.TypeVar.bound))) {
+-                VISIT_QUIT(st, 0);
+-            }
+-            VISIT(st, expr, tp->v.TypeVar.bound);
+-            if (!symtable_exit_block(st))
+-                VISIT_QUIT(st, 0);
++
++        // We must use a different key for the bound and default. The obvious choice would be to
++        // use the .bound and .default_value pointers, but that fails when the expression immediately
++        // inside the bound or default is a comprehension: we would reuse the same key for
++        // the comprehension scope. Therefore, use the address + 1 as the second key.
++        // The only requirement for the key is that it is unique and it matches the logic in
++        // compile.c where the scope is retrieved.
++        if (!symtable_visit_type_param_bound_or_default(st, tp->v.TypeVar.bound, tp->v.TypeVar.name,
++                                                        (void *)tp)) {
++            VISIT_QUIT(st, 0);
++        }
++        if (!symtable_visit_type_param_bound_or_default(st, tp->v.TypeVar.default_value, tp->v.TypeVar.name,
++                                                        (void *)((uintptr_t)tp + 1))) {
++            VISIT_QUIT(st, 0);
+         }
+         break;
+     case TypeVarTuple_kind:
+-        if (!symtable_add_def(st, tp->v.TypeVarTuple.name, DEF_TYPE_PARAM | DEF_LOCAL, LOCATION(tp)))
++        if (!symtable_add_def(st, tp->v.TypeVarTuple.name, DEF_TYPE_PARAM | DEF_LOCAL, LOCATION(tp))) {
+             VISIT_QUIT(st, 0);
++        }
++        if (!symtable_visit_type_param_bound_or_default(st, tp->v.TypeVarTuple.default_value, tp->v.TypeVarTuple.name,
++                                                        (void *)tp)) {
++            VISIT_QUIT(st, 0);
++        }
+         break;
+     case ParamSpec_kind:
+-        if (!symtable_add_def(st, tp->v.ParamSpec.name, DEF_TYPE_PARAM | DEF_LOCAL, LOCATION(tp)))
++        if (!symtable_add_def(st, tp->v.ParamSpec.name, DEF_TYPE_PARAM | DEF_LOCAL, LOCATION(tp))) {
+             VISIT_QUIT(st, 0);
++        }
++        if (!symtable_visit_type_param_bound_or_default(st, tp->v.ParamSpec.default_value, tp->v.ParamSpec.name,
++                                                        (void *)tp)) {
++            VISIT_QUIT(st, 0);
++        }
+         break;
+     }
+     VISIT_QUIT(st, 1);

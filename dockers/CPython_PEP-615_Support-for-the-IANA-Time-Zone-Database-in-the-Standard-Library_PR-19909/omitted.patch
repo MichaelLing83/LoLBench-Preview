@@ -1,0 +1,244 @@
+diff --git a/.github/workflows/coverage.yml b/.github/workflows/coverage.yml
+index 75bdf83f6c5..6dd973bf8e4 100644
+--- a/.github/workflows/coverage.yml
++++ b/.github/workflows/coverage.yml
+@@ -48,6 +48,7 @@ jobs:
+         ./python -m venv .venv
+         source ./.venv/bin/activate
+         python -m pip install -U coverage
++        python -m pip install -r Misc/requirements-test.txt
+         python -m test.pythoninfo
+     - name: 'Tests with coverage'
+       run: >
+diff --git a/.travis.yml b/.travis.yml
+index 3c2fb4bdc78..133385fbf5c 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -87,6 +87,7 @@ matrix:
+         # Need a venv that can parse covered code.
+         - ./python -m venv venv
+         - ./venv/bin/python -m pip install -U coverage
++        - ./venv/bin/python -m pip install -r Misc/requirements-test.txt
+         - ./venv/bin/python -m test.pythoninfo
+       script:
+         # Skip tests that re-run the entire test suite.
+diff --git a/Misc/requirements-test.txt b/Misc/requirements-test.txt
+new file mode 100644
+index 00000000000..6e46c12e4f9
+--- /dev/null
++++ b/Misc/requirements-test.txt
+@@ -0,0 +1 @@
++tzdata==2020.1rc0
+diff --git a/PCbuild/_zoneinfo.vcxproj b/PCbuild/_zoneinfo.vcxproj
+new file mode 100644
+index 00000000000..6e6389c3773
+--- /dev/null
++++ b/PCbuild/_zoneinfo.vcxproj
+@@ -0,0 +1,109 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|ARM">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|Win32">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|x64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|Win32">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|x64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM">
++      <Configuration>Release</Configuration>
++      <Platform>ARM</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{FCBE1EF2-E0F0-40B1-88B5-00A35D378742}</ProjectGuid>
++    <RootNamespace>_zoneinfo</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="python.props" />
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Label="Configuration">
++    <ConfigurationType>DynamicLibrary</ConfigurationType>
++    <CharacterSet>NotSet</CharacterSet>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <PropertyGroup>
++    <TargetExt>.pyd</TargetExt>
++  </PropertyGroup>
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
++    <Import Project="pyproject.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
++  </PropertyGroup>
++  <ItemGroup>
++    <ClCompile Include="..\Modules\_zoneinfo.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <ResourceCompile Include="..\PC\python_nt.rc" />
++  </ItemGroup>
++  <ItemGroup>
++    <ProjectReference Include="pythoncore.vcxproj">
++      <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
++      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
++    </ProjectReference>
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+diff --git a/PCbuild/_zoneinfo.vcxproj.filters b/PCbuild/_zoneinfo.vcxproj.filters
+new file mode 100644
+index 00000000000..e3c3ef4c72a
+--- /dev/null
++++ b/PCbuild/_zoneinfo.vcxproj.filters
+@@ -0,0 +1,16 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <ResourceCompile Include="..\PC\python_nt.rc" />
++  </ItemGroup>
++  <ItemGroup>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{2422278e-eeeb-4241-8182-433e2bc5a7fc}</UniqueIdentifier>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\Modules\_zoneinfo.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++</Project>
+diff --git a/PCbuild/lib.pyproj b/PCbuild/lib.pyproj
+index ee01d109f16..7ce88e5690b 100644
+--- a/PCbuild/lib.pyproj
++++ b/PCbuild/lib.pyproj
+@@ -1396,6 +1396,10 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <Compile Include="test\test_zipimport.py" />
+     <Compile Include="test\test_zipimport_support.py" />
+     <Compile Include="test\test_zlib.py" />
++    <Compile Include="test\test_zoneinfo\__init__.py" />
++    <Compile Include="test\test_zoneinfo\__main__.py" />
++    <Compile Include="test\test_zoneinfo\_support.py" />
++    <Compile Include="test\test_zoneinfo\test_zoneinfo.py" />
+     <Compile Include="test\test__locale.py" />
+     <Compile Include="test\test__opcode.py" />
+     <Compile Include="test\test__osx_support.py" />
+@@ -1563,6 +1567,10 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <Compile Include="xml\__init__.py" />
+     <Compile Include="zipapp.py" />
+     <Compile Include="zipfile.py" />
++    <Compile Include="zoneinfo\_common.py" />
++    <Compile Include="zoneinfo\__init__.py" />
++    <Compile Include="zoneinfo\_tzpath.py" />
++    <Compile Include="zoneinfo\_zoneinfo.py" />
+     <Compile Include="_bootlocale.py" />
+     <Compile Include="_collections_abc.py" />
+     <Compile Include="_compat_pickle.py" />
+diff --git a/PCbuild/pcbuild.proj b/PCbuild/pcbuild.proj
+index 9c4d352b434..4d416c589e4 100644
+--- a/PCbuild/pcbuild.proj
++++ b/PCbuild/pcbuild.proj
+@@ -51,7 +51,7 @@ ﻿<?xml version="1.0" encoding="utf-8"?>
+     <!-- pyshellext.dll -->
+     <Projects Include="pyshellext.vcxproj" />
+     <!-- Extension modules -->
+-    <ExtensionModules Include="_asyncio;_decimal;_elementtree;_msi;_multiprocessing;_overlapped;pyexpat;_queue;select;unicodedata;winsound;_uuid" />
++    <ExtensionModules Include="_asyncio;_zoneinfo;_decimal;_elementtree;_msi;_multiprocessing;_overlapped;pyexpat;_queue;select;unicodedata;winsound;_uuid" />
+     <ExtensionModules Include="_ctypes" Condition="$(IncludeCTypes)" />
+     <!-- Extension modules that require external sources -->
+     <ExternalModules Include="_bz2;_lzma;_sqlite3" />
+diff --git a/PCbuild/pcbuild.sln b/PCbuild/pcbuild.sln
+index 6d4c9506e5e..61db4e02ad3 100644
+--- a/PCbuild/pcbuild.sln
++++ b/PCbuild/pcbuild.sln
+@@ -91,6 +91,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testconsole", "_testconsol
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_asyncio", "_asyncio.vcxproj", "{384C224A-7474-476E-A01B-750EA7DE918C}"
+ EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_zoneinfo", "_zoneinfo.vcxproj", "{FCBE1EF2-E0F0-40B1-88B5-00A35D378742}"
++EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_queue", "_queue.vcxproj", "{78D80A15-BD8C-44E2-B49E-1F05B0A0A687}"
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblzma", "liblzma.vcxproj", "{12728250-16EC-4DC6-94D7-E21DD88947F8}"
+diff --git a/PCbuild/readme.txt b/PCbuild/readme.txt
+index 5fe3e8c36ec..c44910e9bfc 100644
+--- a/PCbuild/readme.txt
++++ b/PCbuild/readme.txt
+@@ -132,6 +132,7 @@ library which are implemented in C; each one builds a DLL (renamed to
+ _asyncio
+ _ctypes
+ _ctypes_test
++_zoneinfo
+ _decimal
+ _elementtree
+ _hashlib
+diff --git a/Tools/msi/lib/lib_files.wxs b/Tools/msi/lib/lib_files.wxs
+index 95541599b9b..037fc38f1d9 100644
+--- a/Tools/msi/lib/lib_files.wxs
++++ b/Tools/msi/lib/lib_files.wxs
+@@ -1,6 +1,6 @@
+ ﻿<?xml version="1.0" encoding="UTF-8"?>
+ <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+-    <?define exts=pyexpat;select;unicodedata;winsound;_bz2;_elementtree;_socket;_ssl;_msi;_ctypes;_hashlib;_multiprocessing;_lzma;_decimal;_overlapped;_sqlite3;_asyncio;_queue;_uuid ?>
++    <?define exts=pyexpat;select;unicodedata;winsound;_bz2;_elementtree;_socket;_ssl;_msi;_ctypes;_hashlib;_multiprocessing;_lzma;_decimal;_overlapped;_sqlite3;_asyncio;_queue;_uuid;_zoneinfo ?>
+     <Fragment>
+         <DirectoryRef Id="Lib_venv_scripts_nt" />
+ 

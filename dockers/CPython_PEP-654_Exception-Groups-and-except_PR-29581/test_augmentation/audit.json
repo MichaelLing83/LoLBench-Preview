@@ -1,0 +1,536 @@
+{
+  "instance_id": "CPython_PEP-654_Exception-Groups-and-except_PR-29581",
+  "augmentation_pass": "lolbench-aug-2026-05-21",
+  "plan_reference": "docs/test_augmentation_plan.md",
+  "sidecar_files": {
+    "eval_tests_aug.patch": "ef1f1ff1194ea93419ae887e1b5ce7a270678b593030e51d0b0bc7908f7dc2e7",
+    "f2p_aug.txt": "bbcd88d723811313aad242b448dc53c220bf90a2372a32f91d63aea6da783a03",
+    "p2p_aug.txt": "e15b8d366f276b41933b057d9c864e09ac64b2feea539001b087cab06ed66bd5"
+  },
+  "summary": {
+    "new_f2p_count": 10,
+    "new_p2p_count": 4,
+    "mutants_targeted": 20,
+    "surviving_mutants_targeted": [
+      "mutant_001_unparse_trystar_as_try",
+      "mutant_002_unparse_handlers_always_except",
+      "mutant_003_subgroup_rejects_predicate_functions",
+      "mutant_004_split_tuple_allows_non_exception_entries",
+      "mutant_005_split_does_not_construct_rest",
+      "mutant_006_subgroup_constructs_rest_partition",
+      "mutant_007_reraise_projection_collects_groups_not_leaves",
+      "mutant_008_full_match_wraps_exception_groups",
+      "mutant_009_naked_exception_not_wrapped_for_except_star",
+      "mutant_010_exceptiongroup_allowed_in_except_star",
+      "mutant_011_reraise_metadata_always_treated_as_new_raise",
+      "mutant_012_naked_reraise_rewrapped_as_group",
+      "mutant_013_break_continue_return_allowed_in_except_star",
+      "mutant_014_trystar_finally_block_ignored",
+      "mutant_015_new_exception_in_except_star_block_dropped",
+      "mutant_016_unmatched_rest_not_reraised",
+      "mutant_017_try_star_else_body_omitted",
+      "mutant_018_trystar_compiled_as_regular_try",
+      "mutant_019_ast_validation_allows_empty_trystar",
+      "mutant_020_opcode_module_omits_prep_reraise_star"
+    ],
+    "coverage_gate": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 79.6,
+      "union_line_coverage_percent": 88.1,
+      "executable_lines_in_patch": 437,
+      "union_covered_lines": 385,
+      "coverage_complete": true,
+      "measurement_note": "gcov/gcovr line coverage over hand-authored C/H files touched by solution.patch; generated parser/asdl C sources (Parser/parser.c and Python/Python-ast.c), Python stdlib files, grammar/schema files, and build files are recorded separately and excluded from the measured denominator."
+    },
+    "no_modification_clauses_pinned": [
+      "Backwards Compatibility: ordinary exception handling and AST behavior remain compatible while exception groups and except* are added."
+    ]
+  },
+  "tests": [
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > except*"
+      ],
+      "kills_mutants": [
+        "mutant_001_unparse_trystar_as_try",
+        "mutant_002_unparse_handlers_always_except",
+        "mutant_019_ast_validation_allows_empty_trystar",
+        "mutant_020_opcode_module_omits_prep_reraise_star"
+      ],
+      "public_surface": "ast.parse, ast.unparse, compile, dis.get_instructions, and opcode.opmap for except* source.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Checks the public AST/unparse/opcode surface for TryStar: unparse must emit except*, PREP_RERAISE_STAR must be public and used by compiled except* code, and invalid TryStar ASTs must be rejected."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > ExceptionGroup and BaseExceptionGroup"
+      ],
+      "kills_mutants": [
+        "mutant_003_subgroup_rejects_predicate_functions",
+        "mutant_004_split_tuple_allows_non_exception_entries",
+        "mutant_005_split_does_not_construct_rest",
+        "mutant_006_subgroup_constructs_rest_partition"
+      ],
+      "public_surface": "ExceptionGroup.subgroup() and split() with type tuples, predicates, and subclass derive().",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Enforces the public partitioning contract: predicates are valid matchers, invalid tuple entries raise TypeError, split returns both match and rest, and subgroup does not derive the discarded complement."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > except* > Recursive Matching",
+        "Specification > except* > Naked Exceptions",
+        "Specification > except* > Forbidden Combinations"
+      ],
+      "kills_mutants": [
+        "mutant_008_full_match_wraps_exception_groups",
+        "mutant_009_naked_exception_not_wrapped_for_except_star",
+        "mutant_010_exceptiongroup_allowed_in_except_star"
+      ],
+      "public_surface": "raise/except* language semantics with ExceptionGroup, naked ValueError, and forbidden ExceptionGroup handlers.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Verifies full group matches are delivered as the original group, naked exceptions are wrapped for except* handlers, and except* refuses ExceptionGroup/BaseExceptionGroup handler types."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > except* > Recursive Matching",
+        "Specification > except* > Unmatched Exceptions",
+        "Specification > except* > Naked Exceptions",
+        "Specification > except* > Raising exceptions in an ``except*`` block",
+        "Specification > except* > Chaining"
+      ],
+      "kills_mutants": [
+        "mutant_007_reraise_projection_collects_groups_not_leaves",
+        "mutant_011_reraise_metadata_always_treated_as_new_raise",
+        "mutant_012_naked_reraise_rewrapped_as_group",
+        "mutant_016_unmatched_rest_not_reraised"
+      ],
+      "public_surface": "nested raise/except* flows with bare reraise and unmatched rest propagation.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Asserts recursive leaf routing, naked bare-reraise unwrapping, unmatched rest propagation, and recombination of reraised handled leaves with unmatched leaves."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > except*",
+        "Specification > except* > Raising New Exceptions"
+      ],
+      "kills_mutants": [
+        "mutant_014_trystar_finally_block_ignored",
+        "mutant_015_new_exception_in_except_star_block_dropped",
+        "mutant_017_try_star_else_body_omitted",
+        "mutant_018_trystar_compiled_as_regular_try"
+      ],
+      "public_surface": "try/except*/finally, try/except*/else, new exceptions raised inside except*, and multiple except* handler routing.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "Pins standard try semantics around TryStar and verifies except* routes independent subgroups rather than compiling as ordinary try/except."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_forbidden_control_flow_in_except_star_blocks",
+      "kind": "F2P",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Specification > except* > Forbidden Combinations"
+      ],
+      "kills_mutants": [
+        "mutant_013_break_continue_return_allowed_in_except_star"
+      ],
+      "public_surface": "compile() on source containing break, continue, and return inside except* blocks.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ],
+      "oracle_kind": "requirement-driven",
+      "rationale": "PEP 654 forbids break, continue, and return from except* blocks. The test compiles representative public source snippets and requires SyntaxError."
+    },
+    {
+      "test_id": "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_try_except_else_finally_order_is_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "ordinary try/except/else/finally statement execution.",
+      "internal_symbol_check": [
+        "ExceptionGroup",
+        "BaseExceptionGroup",
+        "except*",
+        "ast.TryStar",
+        "PREP_RERAISE_STAR"
+      ],
+      "no_modification_clause": "PEP 654 is additive for exception groups and except*; ordinary try/except, exception chaining, AST unparse for Try, and sys.exc_info semantics remain backward compatible.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Guards existing try statement ordering without using except* or ExceptionGroup."
+    },
+    {
+      "test_id": "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_regular_exception_chaining_and_context_are_unchanged",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "ordinary exception chaining through raise ... from ... and public __cause__/__context__.",
+      "internal_symbol_check": [
+        "ExceptionGroup",
+        "BaseExceptionGroup",
+        "except*",
+        "ast.TryStar",
+        "PREP_RERAISE_STAR"
+      ],
+      "no_modification_clause": "PEP 654 is additive for exception groups and except*; ordinary try/except, exception chaining, AST unparse for Try, and sys.exc_info semantics remain backward compatible.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Pins pre-existing exception chaining metadata outside exception-group handling."
+    },
+    {
+      "test_id": "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_ast_unparse_regular_try_uses_except_keyword",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "ast.parse and ast.unparse for ordinary try/except source.",
+      "internal_symbol_check": [
+        "ExceptionGroup",
+        "BaseExceptionGroup",
+        "except*",
+        "ast.TryStar",
+        "PREP_RERAISE_STAR"
+      ],
+      "no_modification_clause": "PEP 654 is additive for exception groups and except*; ordinary try/except, exception chaining, AST unparse for Try, and sys.exc_info semantics remain backward compatible.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Ensures the new TryStar unparse path does not alter ordinary Try unparse output."
+    },
+    {
+      "test_id": "test.test_exception_stability_aug.ExceptionStabilityAugTest.test_sys_exc_info_restores_after_handled_exception",
+      "kind": "P2P",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Backwards Compatibility"
+      ],
+      "public_surface": "sys.exc_info() around a handled ordinary exception.",
+      "internal_symbol_check": [
+        "ExceptionGroup",
+        "BaseExceptionGroup",
+        "except*",
+        "ast.TryStar",
+        "PREP_RERAISE_STAR"
+      ],
+      "no_modification_clause": "PEP 654 is additive for exception groups and except*; ordinary try/except, exception chaining, AST unparse for Try, and sys.exc_info semantics remain backward compatible.",
+      "oracle_kind": "requirement-driven",
+      "f2p_surface_collision": false,
+      "rationale": "Guards pre-existing exception-state restoration behavior outside except*."
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_exception_group_constructor_and_metadata_edges",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "oracle_kind": "requirement-driven",
+      "kills_mutants": [],
+      "requirement_sections": [
+        "Specification > ExceptionGroup and BaseExceptionGroup",
+        "Specification > ExceptionGroup and BaseExceptionGroup > Subclassing Exception Groups",
+        "Specification > except* > Chaining"
+      ],
+      "public_surface": "ExceptionGroup and BaseExceptionGroup constructors, subgroup(), split(), and exception chaining metadata.",
+      "rationale": "Broadens F2P coverage of the public ExceptionGroup object contract: constructor validation, BaseExceptionGroup auto-selection, split/subgroup none and full-match cases, predicate matching, and preserved cause/context metadata on derived subgroups.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ]
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_runtime_and_compile_matrix",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "oracle_kind": "requirement-driven",
+      "kills_mutants": [],
+      "requirement_sections": [
+        "Specification > except*",
+        "Specification > except* > Recursive Matching",
+        "Specification > except* > Unmatched Exceptions",
+        "Specification > except* > Raising New Exceptions",
+        "Specification > except* > Forbidden Combinations"
+      ],
+      "public_surface": "compile() and exec() of valid and invalid Python source using except* handlers, else/finally, tuple matching, and nested control flow.",
+      "rationale": "Covers additional public compile-time and runtime except* shapes that share the modified parser, compiler, and interpreter paths while asserting only PEP 654 user-visible behavior.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ]
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_try_star_ast_manual_construction_roundtrip",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "oracle_kind": "requirement-driven",
+      "kills_mutants": [],
+      "requirement_sections": [
+        "Specification > except*",
+        "Specification > except* > Caught Exception Objects"
+      ],
+      "public_surface": "ast.TryStar, ast.ExceptHandler, ast.fix_missing_locations, compile(), exec(), ast.unparse(), and ast.parse().",
+      "rationale": "Exercises the public AST construction, validation, unparse, and reparse path for TryStar without naming CPython internals, including rejection of malformed handlers.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ]
+    },
+    {
+      "test_id": "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_error_cleanup_and_reraise_edges",
+      "kind": "F2P",
+      "goals": [
+        "F2P-cov"
+      ],
+      "oracle_kind": "requirement-driven",
+      "kills_mutants": [],
+      "requirement_sections": [
+        "Specification > except*",
+        "Specification > except* > Unmatched Exceptions",
+        "Specification > except* > Raising exceptions in an ``except*`` block",
+        "Specification > except* > Chaining",
+        "Specification > except* > Caught Exception Objects",
+        "Specification > except* > Forbidden Combinations"
+      ],
+      "public_surface": "except* handler-name binding and cleanup, naked exception no-match propagation, mixed reraise/new-exception groups, runtime handler validation, and compile() of annotated TryStar blocks.",
+      "rationale": "Exercises additional public edge cases in the modified compiler and interpreter paths: handler variable cleanup, replacement exceptions combined with reraised subgroups, invalid runtime handler types, and annotated statements inside TryStar bodies/handlers/else/finally.",
+      "internal_symbol_check": [
+        "PyErr_*",
+        "_PyErr_*",
+        "compiler_try_star",
+        "exception_group_*",
+        "PREP_RERAISE_STAR implementation details"
+      ]
+    }
+  ],
+  "mutant_kill_coverage_check": {
+    "mutant_001_unparse_trystar_as_try": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface"
+      ]
+    },
+    "mutant_002_unparse_handlers_always_except": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface"
+      ]
+    },
+    "mutant_003_subgroup_rejects_predicate_functions": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts"
+      ]
+    },
+    "mutant_004_split_tuple_allows_non_exception_entries": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts"
+      ]
+    },
+    "mutant_005_split_does_not_construct_rest": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts"
+      ]
+    },
+    "mutant_006_subgroup_constructs_rest_partition": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_subgroup_and_split_partitioning_contracts"
+      ]
+    },
+    "mutant_007_reraise_projection_collects_groups_not_leaves": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest"
+      ]
+    },
+    "mutant_008_full_match_wraps_exception_groups": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers"
+      ]
+    },
+    "mutant_009_naked_exception_not_wrapped_for_except_star": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers"
+      ]
+    },
+    "mutant_010_exceptiongroup_allowed_in_except_star": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_matching_wrapping_and_forbidden_handlers"
+      ]
+    },
+    "mutant_011_reraise_metadata_always_treated_as_new_raise": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest"
+      ]
+    },
+    "mutant_012_naked_reraise_rewrapped_as_group": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest"
+      ]
+    },
+    "mutant_013_break_continue_return_allowed_in_except_star": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_forbidden_control_flow_in_except_star_blocks"
+      ]
+    },
+    "mutant_014_trystar_finally_block_ignored": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing"
+      ]
+    },
+    "mutant_015_new_exception_in_except_star_block_dropped": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing"
+      ]
+    },
+    "mutant_016_unmatched_rest_not_reraised": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_reraise_and_unmatched_rest"
+      ]
+    },
+    "mutant_017_try_star_else_body_omitted": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing"
+      ]
+    },
+    "mutant_018_trystar_compiled_as_regular_try": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_except_star_new_exceptions_finally_else_and_routing"
+      ]
+    },
+    "mutant_019_ast_validation_allows_empty_trystar": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface"
+      ]
+    },
+    "mutant_020_opcode_module_omits_prep_reraise_star": {
+      "killed_by_aug_f2p": [
+        "test.test_except_star_aug.ExceptionGroupAugTest.test_ast_unparse_opcode_and_validation_surface"
+      ]
+    }
+  },
+  "validation_status": {
+    "status": "validated",
+    "validated_at": "2026-05-21",
+    "validate_sh": {
+      "orig": {
+        "pre": "50 F2P ERROR, 59 P2P PASS",
+        "post": "50 F2P PASS, 59 P2P PASS, resolved=true"
+      },
+      "aug": {
+        "pre": "10 F2P ERROR, 4 P2P PASS",
+        "post": "10 F2P PASS, 4 P2P PASS, resolved=true"
+      },
+      "union": {
+        "pre": "60 F2P ERROR, 63 P2P PASS",
+        "post": "60 F2P PASS, 63 P2P PASS, resolved=true"
+      },
+      "mutants": "all 20 mutants killed by at least one union F2P; all 63 P2P passed for every mutant"
+    },
+    "coverage": {
+      "minimum_line_coverage_percent": 80,
+      "status": "passed",
+      "coverage_report": "coverage_out/coverage_report_union.json",
+      "baseline_coverage_report": "coverage_out/coverage_report_orig.json",
+      "baseline_union_line_coverage_percent": 79.6,
+      "union_line_coverage_percent": 88.1,
+      "executable_lines_in_patch": 437,
+      "union_covered_lines": 385,
+      "coverage_complete": true,
+      "measurement_note": "gcov/gcovr line coverage over hand-authored C/H files touched by solution.patch; generated parser/asdl C sources (Parser/parser.c and Python/Python-ast.c), Python stdlib files, grammar/schema files, and build files are recorded separately and excluded from the measured denominator."
+    }
+  }
+}

@@ -1,0 +1,381 @@
+diff --git a/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterAugTest.java b/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterAugTest.java
+new file mode 100644
+index 0000000..c2b310a
+--- /dev/null
++++ b/connect/json/src/test/java/org/apache/kafka/connect/json/JsonConverterAugTest.java
+@@ -0,0 +1,56 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.json;
++
++import org.apache.kafka.connect.data.SchemaAndValue;
++import org.junit.jupiter.api.Test;
++
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.Map;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++public class JsonConverterAugTest {
++    private static final String TOPIC = "topic";
++
++    @Test
++    public void testSchemalessNestedMapRoundTripStillPreservesValues() {
++        JsonConverter converter = new JsonConverter();
++        converter.configure(Collections.singletonMap("schemas.enable", false), false);
++
++        Map<String, Object> nested = new LinkedHashMap<>();
++        nested.put("numbers", Arrays.asList(1, 2, 3));
++        nested.put("flag", true);
++        nested.put("child", Collections.singletonMap("name", "connect"));
++
++        byte[] encoded = converter.fromConnectData(TOPIC, null, nested);
++        SchemaAndValue decoded = converter.toConnectData(TOPIC, encoded);
++        Map<?, ?> decodedMap = (Map<?, ?>) decoded.value();
++        java.util.List<?> numbers = (java.util.List<?>) decodedMap.get("numbers");
++        Map<?, ?> child = (Map<?, ?>) decodedMap.get("child");
++
++        assertEquals(null, decoded.schema());
++        assertEquals(3, numbers.size());
++        assertEquals(1, ((Number) numbers.get(0)).intValue());
++        assertEquals(2, ((Number) numbers.get(1)).intValue());
++        assertEquals(3, ((Number) numbers.get(2)).intValue());
++        assertEquals(true, decodedMap.get("flag"));
++        assertEquals("connect", child.get("name"));
++    }
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/integration/ConnectorPluginsConfigEndpointAugIntegrationTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/ConnectorPluginsConfigEndpointAugIntegrationTest.java
+new file mode 100644
+index 0000000..be8d3e2
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/integration/ConnectorPluginsConfigEndpointAugIntegrationTest.java
+@@ -0,0 +1,181 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.integration;
++
++import com.fasterxml.jackson.core.type.TypeReference;
++import com.fasterxml.jackson.databind.ObjectMapper;
++
++import org.apache.kafka.connect.runtime.rest.entities.ConfigKeyInfo;
++import org.apache.kafka.connect.util.clusters.EmbeddedConnectCluster;
++import org.apache.kafka.test.IntegrationTest;
++import org.junit.After;
++import org.junit.Before;
++import org.junit.Rule;
++import org.junit.Test;
++import org.junit.experimental.categories.Category;
++import org.junit.rules.TestRule;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import java.util.Arrays;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.Properties;
++import java.util.Set;
++import java.util.concurrent.TimeUnit;
++import java.util.stream.Collectors;
++
++import static org.apache.kafka.test.TestUtils.waitForCondition;
++import static org.junit.Assert.assertTrue;
++
++/**
++ * KIP-769 system-level test for the new {@code GET /connector-plugins/<plugin>/config}
++ * REST endpoint (documented in the KIP's Public Interfaces / Proposed Changes sections).
++ *
++ * <p>The KIP documents that this endpoint returns the configuration definitions of the
++ * specified plugin as a list of {@code ConfigKeyInfo} objects, and "will work with all
++ * plugins returned by {@code /connector_plugins}". The KIP's worked example shows that
++ * {@code GET /connector-plugins/org.apache.kafka.connect.transforms.Cast$Value/config}
++ * returns the {@code spec} configuration key.</p>
++ *
++ * <p>This test drives the real endpoint through an embedded Connect cluster (which starts an
++ * embedded Kafka broker on localhost) and asserts the documented configuration keys are
++ * present in the returned {@code List<ConfigKeyInfo>}. It names only the documented REST
++ * resource path and the documented {@code ConfigKeyInfo} response entity; it does not name
++ * any internal source symbol introduced by the PR.</p>
++ */
++@Category(IntegrationTest.class)
++public class ConnectorPluginsConfigEndpointAugIntegrationTest {
++
++    private static final Logger log =
++            LoggerFactory.getLogger(ConnectorPluginsConfigEndpointAugIntegrationTest.class);
++
++    private static final long WORKERS_UP_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60);
++    private static final int NUM_WORKERS = 1;
++
++    // KIP worked example: a transformation that defines a "spec" config key.
++    private static final String TRANSFORMATION_PLUGIN =
++            "org.apache.kafka.connect.transforms.Cast$Value";
++    private static final String TRANSFORMATION_CONFIG_KEY = "spec";
++
++    // A converter that overrides config() with at least one key ("converter.type"), exercising
++    // the converter dispatch path of the endpoint.
++    private static final String CONVERTER_PLUGIN =
++            "org.apache.kafka.connect.converters.ByteArrayConverter";
++    private static final String CONVERTER_CONFIG_KEY = "converter.type";
++
++    // Documented lowercase "type" values for the plugin listing (KIP Public Interfaces).
++    private static final List<String> DOCUMENTED_PLUGIN_TYPES = Arrays.asList(
++            "sink", "source", "converter", "header_converter", "transformation", "predicate");
++
++    private EmbeddedConnectCluster connect;
++
++    @Rule
++    public TestRule watcher = ConnectIntegrationTestUtils.newTestWatcher(log);
++
++    @Before
++    public void setup() throws InterruptedException {
++        Map<String, String> workerProps = new HashMap<>();
++
++        Properties brokerProps = new Properties();
++        brokerProps.put("auto.create.topics.enable", "false");
++
++        connect = new EmbeddedConnectCluster.Builder()
++                .name("connector-plugins-config-cluster")
++                .numWorkers(NUM_WORKERS)
++                .numBrokers(1)
++                .workerProps(workerProps)
++                .brokerProps(brokerProps)
++                .build();
++
++        connect.start();
++        connect.assertions().assertExactlyNumWorkersAreUp(NUM_WORKERS,
++                "Initial group of workers did not start in time.");
++
++        // Wait until the REST endpoint is serving plugin listings before querying config.
++        waitForCondition(this::connectorPluginsListed, WORKERS_UP_TIMEOUT_MS,
++                "Connect REST API did not list connector plugins in time.");
++    }
++
++    @After
++    public void close() {
++        if (connect != null) {
++            connect.stop();
++        }
++    }
++
++    @Test
++    public void testTransformationConfigEndpointExposesDocumentedKey() throws Exception {
++        List<String> keyNames = configKeyNames(TRANSFORMATION_PLUGIN);
++        assertTrue("GET /connector-plugins/" + TRANSFORMATION_PLUGIN
++                        + "/config must expose the documented '" + TRANSFORMATION_CONFIG_KEY
++                        + "' key, but returned " + keyNames,
++                keyNames.contains(TRANSFORMATION_CONFIG_KEY));
++    }
++
++    @Test
++    public void testConverterConfigEndpointExposesDocumentedKey() throws Exception {
++        List<String> keyNames = configKeyNames(CONVERTER_PLUGIN);
++        assertTrue("GET /connector-plugins/" + CONVERTER_PLUGIN
++                        + "/config must expose the converter's '" + CONVERTER_CONFIG_KEY
++                        + "' key, but returned " + keyNames,
++                keyNames.contains(CONVERTER_CONFIG_KEY));
++    }
++
++    @Test
++    public void testListAllPluginsExposeDocumentedLowercaseTypes() throws Exception {
++        // The KIP documents that, with connectorsOnly=false, the "type" field of each listed
++        // plugin takes one of the lowercase values "sink", "source", "converter",
++        // "header_converter", "transformation" and "predicate".
++        String body = getBody(connect.endpointForResource("connector-plugins?connectorsOnly=false"));
++        List<Map<String, Object>> plugins =
++                new ObjectMapper().readValue(body, new TypeReference<List<Map<String, Object>>>() { });
++        Set<Object> types = plugins.stream()
++                .map(plugin -> plugin.get("type"))
++                .collect(Collectors.toSet());
++
++        for (String documentedType : DOCUMENTED_PLUGIN_TYPES) {
++            assertTrue("GET /connector-plugins?connectorsOnly=false must report the documented "
++                            + "lowercase plugin type '" + documentedType + "', but reported " + types,
++                    types.contains(documentedType));
++        }
++    }
++
++    private boolean connectorPluginsListed() {
++        try {
++            String body = getBody(
++                    connect.endpointForResource("connector-plugins?connectorsOnly=false"));
++            return body != null && body.contains("\"class\"");
++        } catch (Exception e) {
++            return false;
++        }
++    }
++
++    /** Issue {@code GET /connector-plugins/<plugin>/config} and return the configuration key names. */
++    private List<String> configKeyNames(String plugin) throws Exception {
++        String body = getBody(connect.endpointForResource("connector-plugins/" + plugin + "/config"));
++        List<ConfigKeyInfo> configKeys =
++                new ObjectMapper().readValue(body, new TypeReference<List<ConfigKeyInfo>>() { });
++        return configKeys.stream().map(ConfigKeyInfo::name).collect(Collectors.toList());
++    }
++
++    /** GET the given URL and return its response body. */
++    private String getBody(String url) {
++        return (String) connect.requestGet(url).getEntity();
++    }
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/ConverterDefaultConfigAugTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/ConverterDefaultConfigAugTest.java
+new file mode 100644
+index 0000000..74768fc
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/ConverterDefaultConfigAugTest.java
+@@ -0,0 +1,75 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.runtime;
++
++import org.apache.kafka.common.config.ConfigDef;
++import org.apache.kafka.connect.data.Schema;
++import org.apache.kafka.connect.data.SchemaAndValue;
++import org.apache.kafka.connect.storage.Converter;
++import org.junit.Test;
++
++import java.util.Map;
++
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertTrue;
++
++/**
++ * KIP-769 documents that {@link Converter} gains a {@code config()} method with a default
++ * implementation, and that the returned configuration specification "may not be null". A
++ * converter that does not override {@code config()} must therefore observe a non-null, empty
++ * {@link ConfigDef} from the default method, never {@code null}.
++ *
++ * <p>This is a unit-level assertion on the documented default behavior of the public
++ * {@code Converter.config()} contract. It does not name any source symbol introduced by the
++ * PR other than the documented {@code Converter.config()} default.</p>
++ */
++public class ConverterDefaultConfigAugTest {
++
++    /**
++     * A minimal {@link Converter} that does not override {@code config()}, so it inherits the
++     * documented default implementation.
++     */
++    private static final class DefaultConfigConverter implements Converter {
++        @Override
++        public void configure(Map<String, ?> configs, boolean isKey) {
++        }
++
++        @Override
++        public byte[] fromConnectData(String topic, Schema schema, Object value) {
++            return new byte[0];
++        }
++
++        @Override
++        public SchemaAndValue toConnectData(String topic, byte[] value) {
++            return SchemaAndValue.NULL;
++        }
++    }
++
++    @Test
++    public void testDefaultConfigReturnsNonNullEmptyConfigDef() {
++        Converter converter = new DefaultConfigConverter();
++
++        ConfigDef config = converter.config();
++
++        // The KIP states the configuration specification "may not be null".
++        assertNotNull("Converter.config() default must not return null", config);
++        // A converter that does not override config() exposes no configuration keys, i.e. an
++        // empty ConfigDef equivalent to new ConfigDef().
++        assertTrue("Converter.config() default must be an empty ConfigDef",
++                config.configKeys().isEmpty());
++    }
++}
+diff --git a/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsListDefaultAugTest.java b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsListDefaultAugTest.java
+new file mode 100644
+index 0000000..dbc0409
+--- /dev/null
++++ b/connect/runtime/src/test/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsListDefaultAugTest.java
+@@ -0,0 +1,45 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.kafka.connect.runtime.rest.resources;
++
++import org.junit.Test;
++
++import javax.ws.rs.DefaultValue;
++import java.lang.reflect.Method;
++
++import static org.junit.Assert.assertEquals;
++
++/**
++ * KIP-769 documents that the {@code GET /connector-plugins} listing endpoint gains a
++ * {@code connectorsOnly} query parameter that "defaults to {@code true} so it's fully
++ * compatible with the current behavior".
++ *
++ * <p>This test asserts the documented default ("true") of the documented
++ * {@code listConnectorPlugins} query parameter on the documented {@code ConnectorPluginsResource}.
++ * It names only documented public-surface concepts and the JAX-RS {@code @DefaultValue}
++ * annotation; it does not name any internal source symbol introduced by the PR.</p>
++ */
++public class ConnectorPluginsListDefaultAugTest {
++
++    @Test
++    public void testConnectorsOnlyQueryParamDefaultsToTrue() throws Exception {
++        Method method = ConnectorPluginsResource.class.getMethod("listConnectorPlugins", boolean.class);
++        DefaultValue defaultValue = method.getParameters()[0].getAnnotation(DefaultValue.class);
++
++        assertEquals("true", defaultValue.value());
++    }
++}

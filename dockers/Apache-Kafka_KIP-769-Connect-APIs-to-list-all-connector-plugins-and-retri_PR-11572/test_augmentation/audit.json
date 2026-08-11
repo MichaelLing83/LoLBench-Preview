@@ -1,0 +1,132 @@
+{
+  "instance_id": "Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572",
+  "requirement_section_source": "requirement_pr_pairs/Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572.md",
+  "requirement_doc_gate": "requirement_docs/Apache-Kafka_KIP-769-Connect-APIs-to-list-all-connector-plugins-and-retri_PR-11572.md",
+  "sidecar_patch": "eval_tests_aug.patch",
+  "new_file_only_patch": true,
+  "internal_symbol_gate_note": "Forbidden PR-added source symbols (0 hits in requirement_docs): getConnectorConfigDef, connectorPluginConfig, newPlugin, convertConfigKey, PluginType, PluginInfo, sinkConnectors, sourceConnectors, headerConverters, addConnectorPlugins. The previously-shipped PluginInfoAugTest and PluginsAugTest selectors were dropped because their bodies named PluginType/PluginInfo and newPlugin respectively; the multi-method ConnectorPluginsResourceAugTest was replaced by a single-method file that only names documented surface. No remaining selected augmented F2P body names any forbidden symbol.",
+  "tests": [
+    {
+      "test_id": "org.apache.kafka.connect.runtime.rest.resources.ConnectorPluginsListDefaultAugTest#testConnectorsOnlyQueryParamDefaultsToTrue",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Public Interfaces"
+      ],
+      "kills_mutants": [
+        "mutant_001_connectors_only_default_false"
+      ],
+      "covers_files": [
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java"
+      ],
+      "public_surface": "Documented ConnectorPluginsResource.listConnectorPlugins connectorsOnly query parameter default for GET /connector-plugins.",
+      "oracle_kind": "requirement-driven",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.runtime.ConverterDefaultConfigAugTest#testDefaultConfigReturnsNonNullEmptyConfigDef",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut"
+      ],
+      "requirement_sections": [
+        "Proposed Changes"
+      ],
+      "kills_mutants": [
+        "mutant_011_converter_default_config_null"
+      ],
+      "covers_files": [
+        "connect/api/src/main/java/org/apache/kafka/connect/storage/Converter.java"
+      ],
+      "public_surface": "Documented Converter.config() default method on the public Converter interface.",
+      "oracle_kind": "requirement-driven",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.integration.ConnectorPluginsConfigEndpointAugIntegrationTest#testTransformationConfigEndpointExposesDocumentedKey",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes"
+      ],
+      "kills_mutants": [
+        "mutant_010_config_endpoint_returns_empty",
+        "mutant_013_transformation_config_ignored"
+      ],
+      "covers_files": [
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java",
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java"
+      ],
+      "public_surface": "Documented REST endpoint GET /connector-plugins/<plugin>/config (List<ConfigKeyInfo>) for org.apache.kafka.connect.transforms.Cast$Value, driven end-to-end through EmbeddedConnectCluster.",
+      "test_level": "system",
+      "oracle_kind": "requirement-driven",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.integration.ConnectorPluginsConfigEndpointAugIntegrationTest#testConverterConfigEndpointExposesDocumentedKey",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Proposed Changes"
+      ],
+      "kills_mutants": [
+        "mutant_010_config_endpoint_returns_empty",
+        "mutant_012_converter_config_ignored"
+      ],
+      "covers_files": [
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java",
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/AbstractHerder.java"
+      ],
+      "public_surface": "Documented REST endpoint GET /connector-plugins/<plugin>/config (List<ConfigKeyInfo>) for the ByteArrayConverter converter plugin, driven end-to-end through EmbeddedConnectCluster.",
+      "test_level": "system",
+      "oracle_kind": "requirement-driven",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.integration.ConnectorPluginsConfigEndpointAugIntegrationTest#testListAllPluginsExposeDocumentedLowercaseTypes",
+      "kind": "F2P-mut",
+      "goals": [
+        "F2P-mut",
+        "F2P-cov"
+      ],
+      "requirement_sections": [
+        "Public Interfaces"
+      ],
+      "kills_mutants": [
+        "mutant_009_plugin_type_uses_enum_name"
+      ],
+      "covers_files": [
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/PluginInfo.java",
+        "connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java"
+      ],
+      "public_surface": "Documented REST endpoint GET /connector-plugins?connectorsOnly=false plugin listing and its documented lowercase 'type' values, driven end-to-end through EmbeddedConnectCluster.",
+      "test_level": "system",
+      "oracle_kind": "requirement-driven",
+      "internal_symbol_check": []
+    },
+    {
+      "test_id": "org.apache.kafka.connect.json.JsonConverterAugTest#testSchemalessNestedMapRoundTripStillPreservesValues",
+      "kind": "P2P-stability",
+      "goals": [
+        "P2P-stability"
+      ],
+      "requirement_sections": [
+        "Compatibility, Deprecation, and Migration Plan"
+      ],
+      "stability_goal": "KIP-769 plugin listing/config changes must not affect unchanged JsonConverter schemaless round-trip behavior.",
+      "covers_files": [
+        "connect/json/src/main/java/org/apache/kafka/connect/json/JsonConverter.java"
+      ],
+      "public_surface": "JsonConverter public fromConnectData/toConnectData API.",
+      "internal_symbol_check": []
+    }
+  ]
+}

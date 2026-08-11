@@ -1,0 +1,1250 @@
+diff --git a/docs_src/annotated/tutorial001.py b/docs_src/annotated/tutorial001.py
+new file mode 100644
+index 00000000..959114b3
+--- /dev/null
++++ b/docs_src/annotated/tutorial001.py
+@@ -0,0 +1,18 @@
++from typing import Optional
++
++from fastapi import Depends, FastAPI
++from typing_extensions import Annotated
++
++app = FastAPI()
++
++
++async def common_parameters(q: Optional[str] = None, skip: int = 0, limit: int = 100):
++    return {"q": q, "skip": skip, "limit": limit}
++
++
++CommonParamsDepends = Annotated[dict, Depends(common_parameters)]
++
++
++@app.get("/items/")
++async def read_items(commons: CommonParamsDepends):
++    return commons
+diff --git a/docs_src/annotated/tutorial001_py39.py b/docs_src/annotated/tutorial001_py39.py
+new file mode 100644
+index 00000000..b05b89c4
+--- /dev/null
++++ b/docs_src/annotated/tutorial001_py39.py
+@@ -0,0 +1,17 @@
++from typing import Annotated, Optional
++
++from fastapi import Depends, FastAPI
++
++app = FastAPI()
++
++
++async def common_parameters(q: Optional[str] = None, skip: int = 0, limit: int = 100):
++    return {"q": q, "skip": skip, "limit": limit}
++
++
++CommonParamsDepends = Annotated[dict, Depends(common_parameters)]
++
++
++@app.get("/items/")
++async def read_items(commons: CommonParamsDepends):
++    return commons
+diff --git a/docs_src/annotated/tutorial002.py b/docs_src/annotated/tutorial002.py
+new file mode 100644
+index 00000000..2293fbb1
+--- /dev/null
++++ b/docs_src/annotated/tutorial002.py
+@@ -0,0 +1,21 @@
++from typing import Optional
++
++from fastapi import Depends, FastAPI
++from typing_extensions import Annotated
++
++app = FastAPI()
++
++
++class CommonQueryParams:
++    def __init__(self, q: Optional[str] = None, skip: int = 0, limit: int = 100):
++        self.q = q
++        self.skip = skip
++        self.limit = limit
++
++
++CommonQueryParamsDepends = Annotated[CommonQueryParams, Depends()]
++
++
++@app.get("/items/")
++async def read_items(commons: CommonQueryParamsDepends):
++    return commons
+diff --git a/docs_src/annotated/tutorial002_py39.py b/docs_src/annotated/tutorial002_py39.py
+new file mode 100644
+index 00000000..7fa1a874
+--- /dev/null
++++ b/docs_src/annotated/tutorial002_py39.py
+@@ -0,0 +1,20 @@
++from typing import Annotated, Optional
++
++from fastapi import Depends, FastAPI
++
++app = FastAPI()
++
++
++class CommonQueryParams:
++    def __init__(self, q: Optional[str] = None, skip: int = 0, limit: int = 100):
++        self.q = q
++        self.skip = skip
++        self.limit = limit
++
++
++CommonQueryParamsDepends = Annotated[CommonQueryParams, Depends()]
++
++
++@app.get("/items/")
++async def read_items(commons: CommonQueryParamsDepends):
++    return commons
+diff --git a/docs_src/annotated/tutorial003.py b/docs_src/annotated/tutorial003.py
+new file mode 100644
+index 00000000..353d8b80
+--- /dev/null
++++ b/docs_src/annotated/tutorial003.py
+@@ -0,0 +1,15 @@
++from fastapi import FastAPI, Path
++from fastapi.param_functions import Query
++from typing_extensions import Annotated
++
++app = FastAPI()
++
++
++@app.get("/items/{item_id}")
++async def read_items(item_id: Annotated[int, Path(gt=0)]):
++    return {"item_id": item_id}
++
++
++@app.get("/users")
++async def read_users(user_id: Annotated[str, Query(min_length=1)] = "me"):
++    return {"user_id": user_id}
+diff --git a/docs_src/annotated/tutorial003_py39.py b/docs_src/annotated/tutorial003_py39.py
+new file mode 100644
+index 00000000..9341b7d4
+--- /dev/null
++++ b/docs_src/annotated/tutorial003_py39.py
+@@ -0,0 +1,16 @@
++from typing import Annotated
++
++from fastapi import FastAPI, Path
++from fastapi.param_functions import Query
++
++app = FastAPI()
++
++
++@app.get("/items/{item_id}")
++async def read_items(item_id: Annotated[int, Path(gt=0)]):
++    return {"item_id": item_id}
++
++
++@app.get("/users")
++async def read_users(user_id: Annotated[str, Query(min_length=1)] = "me"):
++    return {"user_id": user_id}
+diff --git a/tests/main.py b/tests/main.py
+index fce66570..15760c03 100644
+--- a/tests/main.py
++++ b/tests/main.py
+@@ -49,12 +49,7 @@ def get_bool_id(item_id: bool):
+ 
+ 
+ @app.get("/path/param/{item_id}")
+-def get_path_param_id(item_id: str = Path()):
+-    return item_id
+-
+-
+-@app.get("/path/param-required/{item_id}")
+-def get_path_param_required_id(item_id: str = Path()):
++def get_path_param_id(item_id: Optional[str] = Path()):
+     return item_id
+ 
+ 
+diff --git a/tests/test_ambiguous_params.py b/tests/test_ambiguous_params.py
+new file mode 100644
+index 0000000..8d7ff24
+--- /dev/null
++++ b/tests/test_ambiguous_params.py
+@@ -0,0 +1,43 @@
++import pytest
++from fastapi import Depends, FastAPI, Path
++from fastapi.param_functions import Query
++from typing_extensions import Annotated
++
++app = FastAPI()
++
++
++def test_no_annotated_defaults():
++    with pytest.raises(AssertionError):
++
++        @app.get("/items/{item_id}/")
++        async def get_item(item_id: Annotated[int, Path(default=1)]):
++            pass  # pragma: nocover
++
++    with pytest.raises(AssertionError):
++
++        @app.get("/")
++        async def get(item_id: Annotated[int, Query(default=1)]):
++            pass  # pragma: nocover
++
++
++def test_no_multiple_annotations():
++    async def dep():
++        pass  # pragma: nocover
++
++    with pytest.raises(AssertionError):
++
++        @app.get("/")
++        async def get(foo: Annotated[int, Query(min_length=1), Query()]):
++            pass  # pragma: nocover
++
++    with pytest.raises(AssertionError):
++
++        @app.get("/")
++        async def get2(foo: Annotated[int, Depends(dep)] = Depends(dep)):
++            pass  # pragma: nocover
++
++    with pytest.raises(AssertionError):
++
++        @app.get("/")
++        async def get3(foo: Annotated[int, Query(min_length=1)] = Depends(dep)):
++            pass  # pragma: nocover
+diff --git a/tests/test_annotated.py b/tests/test_annotated.py
+new file mode 100644
+index 00000000..55601989
+--- /dev/null
++++ b/tests/test_annotated.py
+@@ -0,0 +1,226 @@
++import pytest
++from fastapi import FastAPI, Query
++from fastapi.testclient import TestClient
++from typing_extensions import Annotated
++
++app = FastAPI()
++
++
++@app.get("/default")
++async def default(foo: Annotated[str, Query()] = "foo"):
++    return {"foo": foo}
++
++
++@app.get("/required")
++async def required(foo: Annotated[str, Query(min_length=1)]):
++    return {"foo": foo}
++
++
++@app.get("/multiple")
++async def multiple(foo: Annotated[str, object(), Query(min_length=1)]):
++    return {"foo": foo}
++
++
++@app.get("/unrelated")
++async def unrelated(foo: Annotated[str, object()]):
++    return {"foo": foo}
++
++
++client = TestClient(app)
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/default": {
++            "get": {
++                "summary": "Default",
++                "operationId": "default_default_get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {"title": "Foo", "type": "string", "default": "foo"},
++                        "name": "foo",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++        "/required": {
++            "get": {
++                "summary": "Required",
++                "operationId": "required_required_get",
++                "parameters": [
++                    {
++                        "required": True,
++                        "schema": {"title": "Foo", "minLength": 1, "type": "string"},
++                        "name": "foo",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++        "/multiple": {
++            "get": {
++                "summary": "Multiple",
++                "operationId": "multiple_multiple_get",
++                "parameters": [
++                    {
++                        "required": True,
++                        "schema": {"title": "Foo", "minLength": 1, "type": "string"},
++                        "name": "foo",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++        "/unrelated": {
++            "get": {
++                "summary": "Unrelated",
++                "operationId": "unrelated_unrelated_get",
++                "parameters": [
++                    {
++                        "required": True,
++                        "schema": {"title": "Foo", "type": "string"},
++                        "name": "foo",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++        }
++    },
++}
++foo_is_missing = {
++    "detail": [
++        {
++            "loc": ["query", "foo"],
++            "msg": "field required",
++            "type": "value_error.missing",
++        }
++    ]
++}
++foo_is_short = {
++    "detail": [
++        {
++            "ctx": {"limit_value": 1},
++            "loc": ["query", "foo"],
++            "msg": "ensure this value has at least 1 characters",
++            "type": "value_error.any_str.min_length",
++        }
++    ]
++}
++
++
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/default", 200, {"foo": "foo"}),
++        ("/default?foo=bar", 200, {"foo": "bar"}),
++        ("/required?foo=bar", 200, {"foo": "bar"}),
++        ("/required", 422, foo_is_missing),
++        ("/required?foo=", 422, foo_is_short),
++        ("/multiple?foo=bar", 200, {"foo": "bar"}),
++        ("/multiple", 422, foo_is_missing),
++        ("/multiple?foo=", 422, foo_is_short),
++        ("/unrelated?foo=bar", 200, {"foo": "bar"}),
++        ("/unrelated", 422, foo_is_missing),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response):
++    response = client.get(path)
++    assert response.status_code == expected_status
++    assert response.json() == expected_response
+diff --git a/tests/test_application.py b/tests/test_application.py
+index b7d72f9a..a4f13e12 100644
+--- a/tests/test_application.py
++++ b/tests/test_application.py
+@@ -225,36 +225,6 @@ openapi_schema = {
+                 ],
+             }
+         },
+-        "/path/param-required/{item_id}": {
+-            "get": {
+-                "responses": {
+-                    "200": {
+-                        "description": "Successful Response",
+-                        "content": {"application/json": {"schema": {}}},
+-                    },
+-                    "422": {
+-                        "description": "Validation Error",
+-                        "content": {
+-                            "application/json": {
+-                                "schema": {
+-                                    "$ref": "#/components/schemas/HTTPValidationError"
+-                                }
+-                            }
+-                        },
+-                    },
+-                },
+-                "summary": "Get Path Param Required Id",
+-                "operationId": "get_path_param_required_id_path_param_required__item_id__get",
+-                "parameters": [
+-                    {
+-                        "required": True,
+-                        "schema": {"title": "Item Id", "type": "string"},
+-                        "name": "item_id",
+-                        "in": "path",
+-                    }
+-                ],
+-            }
+-        },
+         "/path/param-minlength/{item_id}": {
+             "get": {
+                 "responses": {
+diff --git a/tests/test_params_repr.py b/tests/test_params_repr.py
+index d721257d..d8dca1ea 100644
+--- a/tests/test_params_repr.py
++++ b/tests/test_params_repr.py
+@@ -19,8 +19,9 @@ def test_param_repr(params):
+     assert repr(Param(params)) == "Param(" + str(params) + ")"
+ 
+ 
+-def test_path_repr(params):
+-    assert repr(Path(params)) == "Path(Ellipsis)"
++def test_path_repr():
++    assert repr(Path()) == "Path(Ellipsis)"
++    assert repr(Path(...)) == "Path(Ellipsis)"
+ 
+ 
+ def test_query_repr(params):
+diff --git a/tests/test_path.py b/tests/test_path.py
+index d1a58bc6..03b93623 100644
+--- a/tests/test_path.py
++++ b/tests/test_path.py
+@@ -193,7 +193,6 @@ response_less_than_equal_3 = {
+         ("/path/bool/False", 200, False),
+         ("/path/bool/false", 200, False),
+         ("/path/param/foo", 200, "foo"),
+-        ("/path/param-required/foo", 200, "foo"),
+         ("/path/param-minlength/foo", 200, "foo"),
+         ("/path/param-minlength/fo", 422, response_at_least_3),
+         ("/path/param-maxlength/foo", 200, "foo"),
+diff --git a/tests/test_tutorial/test_annotated/__init__.py b/tests/test_tutorial/test_annotated/__init__.py
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial001.py b/tests/test_tutorial/test_annotated/test_tutorial001.py
+new file mode 100644
+index 00000000..50c9caca
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial001.py
+@@ -0,0 +1,100 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from docs_src.annotated.tutorial001 import app
++
++client = TestClient(app)
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/": {
++            "get": {
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++                "summary": "Read Items",
++                "operationId": "read_items_items__get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {"title": "Q", "type": "string"},
++                        "name": "q",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Skip", "type": "integer", "default": 0},
++                        "name": "skip",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Limit", "type": "integer", "default": 100},
++                        "name": "limit",
++                        "in": "query",
++                    },
++                ],
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++        }
++    },
++}
++
++
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items", 200, {"q": None, "skip": 0, "limit": 100}),
++        ("/items?q=foo", 200, {"q": "foo", "skip": 0, "limit": 100}),
++        ("/items?q=foo&skip=5", 200, {"q": "foo", "skip": 5, "limit": 100}),
++        ("/items?q=foo&skip=5&limit=30", 200, {"q": "foo", "skip": 5, "limit": 30}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response):
++    response = client.get(path)
++    assert response.status_code == expected_status
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial001_py39.py b/tests/test_tutorial/test_annotated/test_tutorial001_py39.py
+new file mode 100644
+index 00000000..576f5570
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial001_py39.py
+@@ -0,0 +1,107 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from ...utils import needs_py39
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/": {
++            "get": {
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++                "summary": "Read Items",
++                "operationId": "read_items_items__get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {"title": "Q", "type": "string"},
++                        "name": "q",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Skip", "type": "integer", "default": 0},
++                        "name": "skip",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Limit", "type": "integer", "default": 100},
++                        "name": "limit",
++                        "in": "query",
++                    },
++                ],
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++        }
++    },
++}
++
++
++@pytest.fixture(name="client")
++def get_client():
++    from docs_src.annotated.tutorial001_py39 import app
++
++    client = TestClient(app)
++    return client
++
++
++@needs_py39
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items", 200, {"q": None, "skip": 0, "limit": 100}),
++        ("/items?q=foo", 200, {"q": "foo", "skip": 0, "limit": 100}),
++        ("/items?q=foo&skip=5", 200, {"q": "foo", "skip": 5, "limit": 100}),
++        ("/items?q=foo&skip=5&limit=30", 200, {"q": "foo", "skip": 5, "limit": 30}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response, client):
++    response = client.get(path)
++    assert response.status_code == expected_status
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial002.py b/tests/test_tutorial/test_annotated/test_tutorial002.py
+new file mode 100644
+index 00000000..60c1233d
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial002.py
+@@ -0,0 +1,100 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from docs_src.annotated.tutorial002 import app
++
++client = TestClient(app)
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/": {
++            "get": {
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++                "summary": "Read Items",
++                "operationId": "read_items_items__get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {"title": "Q", "type": "string"},
++                        "name": "q",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Skip", "type": "integer", "default": 0},
++                        "name": "skip",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Limit", "type": "integer", "default": 100},
++                        "name": "limit",
++                        "in": "query",
++                    },
++                ],
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++        }
++    },
++}
++
++
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items", 200, {"q": None, "skip": 0, "limit": 100}),
++        ("/items?q=foo", 200, {"q": "foo", "skip": 0, "limit": 100}),
++        ("/items?q=foo&skip=5", 200, {"q": "foo", "skip": 5, "limit": 100}),
++        ("/items?q=foo&skip=5&limit=30", 200, {"q": "foo", "skip": 5, "limit": 30}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response):
++    response = client.get(path)
++    assert response.status_code == expected_status
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial002_py39.py b/tests/test_tutorial/test_annotated/test_tutorial002_py39.py
+new file mode 100644
+index 00000000..77a1f36a
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial002_py39.py
+@@ -0,0 +1,107 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from ...utils import needs_py39
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/": {
++            "get": {
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++                "summary": "Read Items",
++                "operationId": "read_items_items__get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {"title": "Q", "type": "string"},
++                        "name": "q",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Skip", "type": "integer", "default": 0},
++                        "name": "skip",
++                        "in": "query",
++                    },
++                    {
++                        "required": False,
++                        "schema": {"title": "Limit", "type": "integer", "default": 100},
++                        "name": "limit",
++                        "in": "query",
++                    },
++                ],
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++        }
++    },
++}
++
++
++@pytest.fixture(name="client")
++def get_client():
++    from docs_src.annotated.tutorial002_py39 import app
++
++    client = TestClient(app)
++    return client
++
++
++@needs_py39
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items", 200, {"q": None, "skip": 0, "limit": 100}),
++        ("/items?q=foo", 200, {"q": "foo", "skip": 0, "limit": 100}),
++        ("/items?q=foo&skip=5", 200, {"q": "foo", "skip": 5, "limit": 100}),
++        ("/items?q=foo&skip=5&limit=30", 200, {"q": "foo", "skip": 5, "limit": 30}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response, client):
++    response = client.get(path)
++    assert response.status_code == expected_status
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial003.py b/tests/test_tutorial/test_annotated/test_tutorial003.py
+new file mode 100644
+index 00000000..caf7ffdf
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial003.py
+@@ -0,0 +1,138 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from docs_src.annotated.tutorial003 import app
++
++client = TestClient(app)
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/{item_id}": {
++            "get": {
++                "summary": "Read Items",
++                "operationId": "read_items_items__item_id__get",
++                "parameters": [
++                    {
++                        "required": True,
++                        "schema": {
++                            "title": "Item Id",
++                            "exclusiveMinimum": 0.0,
++                            "type": "integer",
++                        },
++                        "name": "item_id",
++                        "in": "path",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++        "/users": {
++            "get": {
++                "summary": "Read Users",
++                "operationId": "read_users_users_get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {
++                            "title": "User Id",
++                            "minLength": 1,
++                            "type": "string",
++                            "default": "me",
++                        },
++                        "name": "user_id",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++        }
++    },
++}
++
++item_id_negative = {
++    "detail": [
++        {
++            "ctx": {"limit_value": 0},
++            "loc": ["path", "item_id"],
++            "msg": "ensure this value is greater than 0",
++            "type": "value_error.number.not_gt",
++        }
++    ]
++}
++
++
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items/1", 200, {"item_id": 1}),
++        ("/items/-1", 422, item_id_negative),
++        ("/users", 200, {"user_id": "me"}),
++        ("/users?user_id=foo", 200, {"user_id": "foo"}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response):
++    response = client.get(path)
++    assert response.status_code == expected_status, response.text
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_annotated/test_tutorial003_py39.py b/tests/test_tutorial/test_annotated/test_tutorial003_py39.py
+new file mode 100644
+index 00000000..7c828a0c
+--- /dev/null
++++ b/tests/test_tutorial/test_annotated/test_tutorial003_py39.py
+@@ -0,0 +1,145 @@
++import pytest
++from fastapi.testclient import TestClient
++
++from ...utils import needs_py39
++
++openapi_schema = {
++    "openapi": "3.0.2",
++    "info": {"title": "FastAPI", "version": "0.1.0"},
++    "paths": {
++        "/items/{item_id}": {
++            "get": {
++                "summary": "Read Items",
++                "operationId": "read_items_items__item_id__get",
++                "parameters": [
++                    {
++                        "required": True,
++                        "schema": {
++                            "title": "Item Id",
++                            "exclusiveMinimum": 0.0,
++                            "type": "integer",
++                        },
++                        "name": "item_id",
++                        "in": "path",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++        "/users": {
++            "get": {
++                "summary": "Read Users",
++                "operationId": "read_users_users_get",
++                "parameters": [
++                    {
++                        "required": False,
++                        "schema": {
++                            "title": "User Id",
++                            "minLength": 1,
++                            "type": "string",
++                            "default": "me",
++                        },
++                        "name": "user_id",
++                        "in": "query",
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "Successful Response",
++                        "content": {"application/json": {"schema": {}}},
++                    },
++                    "422": {
++                        "description": "Validation Error",
++                        "content": {
++                            "application/json": {
++                                "schema": {
++                                    "$ref": "#/components/schemas/HTTPValidationError"
++                                }
++                            }
++                        },
++                    },
++                },
++            }
++        },
++    },
++    "components": {
++        "schemas": {
++            "HTTPValidationError": {
++                "title": "HTTPValidationError",
++                "type": "object",
++                "properties": {
++                    "detail": {
++                        "title": "Detail",
++                        "type": "array",
++                        "items": {"$ref": "#/components/schemas/ValidationError"},
++                    }
++                },
++            },
++            "ValidationError": {
++                "title": "ValidationError",
++                "required": ["loc", "msg", "type"],
++                "type": "object",
++                "properties": {
++                    "loc": {
++                        "title": "Location",
++                        "type": "array",
++                        "items": {"anyOf": [{"type": "string"}, {"type": "integer"}]},
++                    },
++                    "msg": {"title": "Message", "type": "string"},
++                    "type": {"title": "Error Type", "type": "string"},
++                },
++            },
++        }
++    },
++}
++
++item_id_negative = {
++    "detail": [
++        {
++            "ctx": {"limit_value": 0},
++            "loc": ["path", "item_id"],
++            "msg": "ensure this value is greater than 0",
++            "type": "value_error.number.not_gt",
++        }
++    ]
++}
++
++
++@pytest.fixture(name="client")
++def get_client():
++    from docs_src.annotated.tutorial003_py39 import app
++
++    client = TestClient(app)
++    return client
++
++
++@needs_py39
++@pytest.mark.parametrize(
++    "path,expected_status,expected_response",
++    [
++        ("/items/1", 200, {"item_id": 1}),
++        ("/items/-1", 422, item_id_negative),
++        ("/users", 200, {"user_id": "me"}),
++        ("/users?user_id=foo", 200, {"user_id": "foo"}),
++        ("/openapi.json", 200, openapi_schema),
++    ],
++)
++def test_get(path, expected_status, expected_response, client):
++    response = client.get(path)
++    assert response.status_code == expected_status, response.text
++    assert response.json() == expected_response
+diff --git a/tests/test_tutorial/test_dataclasses/__init__.py b/tests/test_tutorial/test_dataclasses/__init__.py
+new file mode 100644
+index 00000000..e69de29b

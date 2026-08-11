@@ -1,0 +1,23 @@
+{
+  "instance_id": "fastapi_1",
+  "source_instance_id": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "source_slug": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "docker_slug": "FastAPI_PEP-593_Flexible-function-and-variable-annotations_PR-4871",
+  "dockerhub_image": "smartdub26/lolbench:fastapi_1-1.0.0",
+  "dockerhub_digest": "sha256:f895fc6938db9c627e8ca3e05b3463099f713e6b1f3435d1a8f5d14c4675b6d2",
+  "project": "fastapi",
+  "repo": "fastapi/fastapi",
+  "requirement_doc": "https://peps.python.org/pep-0593/",
+  "pr_link": "https://github.com/fastapi/fastapi/pull/4871",
+  "base_commit": "ef176c663195489b44030bfe1fb94a317762c8d5",
+  "merge_commit": "375513f11494bc3499050ad2a0d378fb6e37ca98",
+  "source_history_policy": "ancestors-only",
+  "lolbench_test_modes": [
+    "orig",
+    "aug",
+    "union"
+  ],
+  "default_lolbench_suite": "union",
+  "canonical_lolbench_suite": "union",
+  "augmentation_available": true
+}

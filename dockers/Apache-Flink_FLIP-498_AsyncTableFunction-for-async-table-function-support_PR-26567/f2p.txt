@@ -1,0 +1,6 @@
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFunc
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testConstantTableFuncWithLateral
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFunc
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testTableFuncWithCalc
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testRecoverableFailures
+org.apache.flink.table.planner.runtime.stream.table.AsyncCorrelateITCase#testRetries

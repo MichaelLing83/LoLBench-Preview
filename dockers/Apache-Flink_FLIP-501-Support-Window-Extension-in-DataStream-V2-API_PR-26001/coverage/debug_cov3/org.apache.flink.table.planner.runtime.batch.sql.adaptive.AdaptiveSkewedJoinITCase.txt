@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------------
+Test set: org.apache.flink.table.planner.runtime.batch.sql.adaptive.AdaptiveSkewedJoinITCase
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.055 s <<< FAILURE! -- in org.apache.flink.table.planner.runtime.batch.sql.adaptive.AdaptiveSkewedJoinITCase
+org.apache.flink.table.planner.runtime.batch.sql.adaptive.AdaptiveSkewedJoinITCase -- Time elapsed: 1.055 s <<< ERROR!
+java.net.UnknownHostException: eb038c6829a6: eb038c6829a6: Temporary failure in name resolution
+	at java.base/java.net.InetAddress.getLocalHost(InetAddress.java:1671)
+	at org.apache.flink.runtime.minicluster.MiniCluster.start(MiniCluster.java:457)
+	at org.apache.flink.runtime.testutils.MiniClusterResource.startMiniCluster(MiniClusterResource.java:250)
+	at org.apache.flink.runtime.testutils.MiniClusterResource.before(MiniClusterResource.java:112)
+	at org.apache.flink.runtime.testutils.InternalMiniClusterExtension.beforeAll(InternalMiniClusterExtension.java:80)
+	at org.apache.flink.test.junit5.MiniClusterExtension.beforeAll(MiniClusterExtension.java:231)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1182)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1655)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1622)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:165)
+Caused by: java.net.UnknownHostException: eb038c6829a6: Temporary failure in name resolution
+	at java.base/java.net.Inet6AddressImpl.lookupAllHostAddr(Native Method)
+	at java.base/java.net.InetAddress$PlatformNameService.lookupAllHostAddr(InetAddress.java:934)
+	at java.base/java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1543)
+	at java.base/java.net.InetAddress$NameServiceAddresses.get(InetAddress.java:852)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1533)
+	at java.base/java.net.InetAddress.getLocalHost(InetAddress.java:1666)
+	... 10 more
+
