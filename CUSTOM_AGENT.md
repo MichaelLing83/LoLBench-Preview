@@ -48,13 +48,22 @@ Key facilities the base class gives you:
 [Chrys](https://github.com/0x7c13/chrys). It mirrors how LoLBench runs Chrys
 natively:
 
-- **`install()`** — `git clone` Chrys, `uv python install 3.14 && uv sync --extra all`,
-  and write an OpenRouter model profile whose `model_id` comes from `self.model_name`
-  and whose key is `{{OPENROUTER_API_KEY}}` (resolved from `self.model_connection.env`).
+- **`install()`** — download the pinned Chrys tarball (via `curl` — the sandbox
+  reaches github over HTTPS but `git clone` trips an auth prompt through the proxy),
+  `uv python install 3.14 && uv sync --extra all`, and write an OpenRouter model
+  profile whose `model_id` comes from `self.model_name`.
 - **`run()`** — write the instruction to a file and call `chrys run --task <file>
-  --agent Code --workdir <repo> --json`, then `lolbench-submit`. The repo lives at
-  `/workspace/<project>` (e.g. `/workspace/ruff` for `ruff_1`), so point `--workdir`
-  at the actual checkout.
+  --agent Code --workdir <repo> --json`, then `lolbench-submit`. The repo is
+  auto-detected at `/workspace/<project>` (e.g. `/workspace/ruff` for `ruff_1`).
+
+Three environment realities the adapter (and this command) account for:
+
+1. **Chrys is a *private* repo** — the sandbox has no github credentials, so pass a
+   token: `--ae GITHUB_TOKEN=$(gh auth token)`. A **public** agent repo needs none.
+2. **Chrys reads `OPENROUTER_API_KEY` from its env** — forward it with
+   `--ae OPENROUTER_API_KEY=$OPENROUTER_API_KEY` so it reliably reaches the process.
+3. **Chrys builds its own Python env** — that install exceeds the default 360 s setup
+   budget, so extend it: `--agent-setup-timeout-multiplier 10`.
 
 Run it:
 
@@ -64,12 +73,19 @@ PYTHONPATH=. harbor run \
   -p harbor_tasks/ruff_1 \
   -a agents.chrys_agent:ChrysAgent \
   -m openrouter/deepseek/deepseek-v4-pro \
+  --ae OPENROUTER_API_KEY=$OPENROUTER_API_KEY \
+  --ae GITHUB_TOKEN=$(gh auth token) \
+  --agent-setup-timeout-multiplier 10 \
   --job-name ruff_1_chrys --jobs-dir harbor_runs/ruff_1 \
   --no-delete -n 1 -y \
   --ve LOLBENCH_SUITE=union
 
 cat harbor_runs/ruff_1/ruff_1_chrys/*/verifier/reward.json
 ```
+
+Validated on `ruff_1`: Chrys applied a patch that built and passed **5/19 F2P,
+51/51 P2P** (a genuine partial; `reward 0`) — confirming the custom-agent path
+works end-to-end.
 
 ### Anti-cheat notes for custom agents
 

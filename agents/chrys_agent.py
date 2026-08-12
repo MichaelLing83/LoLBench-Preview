@@ -18,8 +18,16 @@ Run it (from the repo root, with this dir importable):
     PYTHONPATH=. harbor run -p harbor_tasks/ruff_1 \
       -a agents.chrys_agent:ChrysAgent \
       -m openrouter/deepseek/deepseek-v4-pro \
+      --ae OPENROUTER_API_KEY=$OPENROUTER_API_KEY \
+      --ae GITHUB_TOKEN=$(gh auth token) \
+      --agent-setup-timeout-multiplier 10 \
       --job-name ruff_1_chrys --jobs-dir harbor_runs/ruff_1 --no-delete -n 1 -y \
       --ve LOLBENCH_SUITE=union
+
+Chrys is a PRIVATE repo, so the sandbox needs a token (`--ae GITHUB_TOKEN`); a
+public agent repo needs none. Chrys reads OPENROUTER_API_KEY from its env
+(`--ae OPENROUTER_API_KEY`), and its uv-based install exceeds the default 360 s
+setup budget (`--agent-setup-timeout-multiplier 10`).
 
 NOTE: this is a template. Exact base-class APIs can shift between Harbor
 versions; inspect yours with
@@ -28,7 +36,6 @@ and adjust. Validate on ``ruff_1`` before a full sweep.
 """
 from __future__ import annotations
 
-import shlex
 from typing import override
 
 from harbor.agents.installed.base import BaseInstalledAgent
@@ -62,21 +69,26 @@ class ChrysAgent(BaseInstalledAgent):
         await self.ensure_system_dependencies(environment, ("git", "curl"))
 
         # Install uv, fetch + build Chrys (uv-managed Python 3.14). We download the
-        # pinned source tarball via curl from codeload rather than `git clone`: the
-        # sandbox reaches github over HTTPS (curl), but `git clone` trips an auth
-        # prompt through the egress proxy. GIT_TERMINAL_PROMPT=0 keeps any git step
-        # (e.g. a git-sourced dep in `uv sync`) from hanging on a credential prompt.
+        # pinned source tarball via curl rather than `git clone`: the sandbox reaches
+        # github over HTTPS (curl) but `git clone` trips an auth prompt through the
+        # egress proxy. A PUBLIC agent repo needs no credentials; Chrys is PRIVATE, so
+        # pass a token to the agent (`--ae GITHUB_TOKEN=$(gh auth token)`) — the
+        # authenticated API-tarball endpoint resolves any commit for a private repo.
+        # GIT_TERMINAL_PROMPT=0 stops any git-sourced `uv sync` dep hanging on a prompt.
         await self.exec_as_agent(environment, command=(
             "set -euo pipefail; export GIT_TERMINAL_PROMPT=0; "
             "command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; "
             'export PATH="$HOME/.local/bin:$PATH"; '
             f"rm -rf {CHRYS_DIR}; mkdir -p {CHRYS_DIR}; "
-            f"curl -LsSf https://codeload.github.com/0x7c13/chrys/tar.gz/{CHRYS_PIN} "
-            f"| tar xz -C {CHRYS_DIR} --strip-components=1; "
+            'if [ -n "${GITHUB_TOKEN:-}" ]; then '
+            f'  curl -LsSf -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/0x7c13/chrys/tarball/{CHRYS_PIN} | tar xz -C {CHRYS_DIR} --strip-components=1; '
+            "else "
+            f"  curl -LsSf https://github.com/0x7c13/chrys/archive/{CHRYS_PIN}.tar.gz | tar xz -C {CHRYS_DIR} --strip-components=1; "
+            "fi; "
             f"cd {CHRYS_DIR}; "
             "uv python install 3.14; uv sync --extra all; "
             ".venv/bin/chrys run --help >/dev/null"
-        ))
+        ), env=self.extra_env)   # forwards --ae vars (e.g. GITHUB_TOKEN) into the install shell
 
         # Write the model profile. provider/model come from self.model_name
         # (e.g. 'openrouter/deepseek/deepseek-v4-pro' -> provider 'openrouter',
@@ -111,10 +123,11 @@ class ChrysAgent(BaseInstalledAgent):
 
     @override
     async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -> None:
-        # The repo lives at the image's checkout path (see the task's spec.json /
-        # environment Dockerfile). Adjust if your task uses a different root.
-        workdir = "/workspace"
-        env = dict(self.model_connection.env)   # provides OPENROUTER_API_KEY etc.
+        # Chrys reads the model key from OPENROUTER_API_KEY (its profile resolves
+        # {{OPENROUTER_API_KEY}}). model_connection.env carries it, and any --ae var
+        # (e.g. `--ae OPENROUTER_API_KEY=...`, `--ae GITHUB_TOKEN=...`) is also merged
+        # in so the key reliably reaches Chrys regardless of how it was provided.
+        env = {**dict(self.model_connection.env), **self.extra_env}
         env["CHRYS_MODEL_PROFILE"] = PROFILE_ID
         env["CHRYS_SESSION_ROOT_DIR"] = "/logs/agent/chrys"
         env["CHRYS_SESSION_TITLE_AUTO"] = "0"
@@ -125,15 +138,16 @@ class ChrysAgent(BaseInstalledAgent):
             f"cat > /tmp/lolbench_task.md <<'LOLBENCH_TASK_EOF'\n{instruction}\nLOLBENCH_TASK_EOF"
         ))
 
-        # Solve, then submit. Chrys edits files under $workdir; lolbench-submit
-        # captures the working-tree diff to /logs/artifacts/solution.patch — the
-        # artifact the verifier grades. We call it explicitly so the patch is
-        # captured even if the model didn't run it itself.
-        repo = shlex.quote(workdir)
+        # Solve, then submit. The repo is checked out at /workspace/<project> (e.g.
+        # /workspace/ruff), so detect the git worktree rather than assuming /workspace.
+        # Chrys edits files there; lolbench-submit captures the diff to
+        # /logs/artifacts/solution.patch — the artifact the verifier grades. We call
+        # it explicitly so the patch is captured even if the model didn't run it.
         await self.exec_as_agent(environment, env=env, command=(
             'export PATH="$HOME/.local/bin:$PATH"; '
-            f"cd {repo}; "
-            f"{CHRYS_DIR}/.venv/bin/chrys run --task /tmp/lolbench_task.md "
-            f"--agent Code --workdir {repo} --json 2>&1 | tee /logs/agent/chrys.txt; "
-            "lolbench-submit || true"
+            'repo=$(dirname "$(find /workspace -maxdepth 2 -type d -name .git 2>/dev/null | head -1)"); '
+            '[ -n "$repo" ] && [ "$repo" != "." ] || repo=/workspace; cd "$repo"; '
+            f'{CHRYS_DIR}/.venv/bin/chrys run --task /tmp/lolbench_task.md '
+            f'--agent Code --workdir "$repo" --json 2>&1 | tee /logs/agent/chrys.txt; '
+            'lolbench-submit "$repo" || true'
         ))
