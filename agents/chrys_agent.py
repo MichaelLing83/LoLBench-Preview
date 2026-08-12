@@ -37,7 +37,9 @@ from harbor.models.agent.context import AgentContext
 
 CHRYS_REPO = "https://github.com/0x7c13/chrys.git"
 CHRYS_PIN = "562db063"          # pin a commit for reproducibility
-CHRYS_DIR = "/opt/chrys"
+# Install under the agent user's HOME — the agent phase runs as a non-root user
+# ("agent"), which cannot write to /opt. $HOME is expanded by the shell at run time.
+CHRYS_DIR = "$HOME/chrys"
 PROFILE_ID = "lolbench"
 
 
@@ -57,15 +59,21 @@ class ChrysAgent(BaseInstalledAgent):
     async def install(self, environment: BaseEnvironment) -> None:
         # The setup/install phase has the network needed to install tooling. The
         # task-solving run() that follows is restricted to the model allowlist.
-        await self.ensure_system_dependencies(environment, ("git", "curl", "ca-certificates"))
+        await self.ensure_system_dependencies(environment, ("git", "curl"))
 
-        # Install uv, clone + build Chrys (uv-managed Python 3.14).
+        # Install uv, fetch + build Chrys (uv-managed Python 3.14). We download the
+        # pinned source tarball via curl from codeload rather than `git clone`: the
+        # sandbox reaches github over HTTPS (curl), but `git clone` trips an auth
+        # prompt through the egress proxy. GIT_TERMINAL_PROMPT=0 keeps any git step
+        # (e.g. a git-sourced dep in `uv sync`) from hanging on a credential prompt.
         await self.exec_as_agent(environment, command=(
-            "set -euo pipefail; "
+            "set -euo pipefail; export GIT_TERMINAL_PROMPT=0; "
             "command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; "
             'export PATH="$HOME/.local/bin:$PATH"; '
-            f"rm -rf {CHRYS_DIR}; git clone --quiet {CHRYS_REPO} {CHRYS_DIR}; "
-            f"cd {CHRYS_DIR}; git checkout --quiet --force {CHRYS_PIN}; "
+            f"rm -rf {CHRYS_DIR}; mkdir -p {CHRYS_DIR}; "
+            f"curl -LsSf https://codeload.github.com/0x7c13/chrys/tar.gz/{CHRYS_PIN} "
+            f"| tar xz -C {CHRYS_DIR} --strip-components=1; "
+            f"cd {CHRYS_DIR}; "
             "uv python install 3.14; uv sync --extra all; "
             ".venv/bin/chrys run --help >/dev/null"
         ))
