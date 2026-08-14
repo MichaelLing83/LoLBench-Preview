@@ -87,6 +87,37 @@ Validated on `ruff_1`: Chrys applied a patch that built and passed **5/19 F2P,
 51/51 P2P** (a genuine partial; `reward 0`) — confirming the custom-agent path
 works end-to-end.
 
+## Second worked example: DeepSeek Harness (dsh)
+
+[`agents/dsh_agent.py`](agents/dsh_agent.py) adapts
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (npm
+`@deepseek-ai/dsh`), driving its **headless CLI** — `dsh --profile headless "<task>"`
+uses the cwd as its workspace root and edits the repo with its bash/atomic-write
+tools. dsh talks to `https://api.deepseek.com` and reads `DEEPSEEK_API_KEY`.
+
+```bash
+export DEEPSEEK_HARNESS_API_KEY=sk-...
+PYTHONPATH=. harbor run -p harbor_tasks/ruff_1 \
+  -a agents.dsh_agent:DshAgent \
+  --ae DEEPSEEK_API_KEY=$DEEPSEEK_HARNESS_API_KEY \
+  --allow-agent-host api.deepseek.com \
+  --agent-setup-timeout-multiplier 10 \
+  --job-name ruff_1_dsh --jobs-dir harbor_runs/ruff_1 --no-delete -n 1 -y \
+  --ve LOLBENCH_SUITE=union
+```
+
+Two things this example taught (both handled in the adapter):
+
+1. **Native modules with no Linux prebuilt.** dsh needs `node-pty` (its
+   `dsh-subprocess` plugin), which ships prebuilts only for macOS/Windows — on the
+   Linux container it must compile. Building the whole tree at once starves it (and
+   koffi's heavy build), so the adapter installs with `--ignore-scripts` then
+   `npm rebuild node-pty` alone (koffi is unused by the headless plugin tree).
+2. **A non-DeepSeek-default endpoint** — allowlist `api.deepseek.com` for the agent
+   run, and pass the key as `DEEPSEEK_API_KEY` (via `--ae`).
+
+Validated on `ruff_1`: applied, built, **7/19 F2P, 51/51 P2P** (genuine partial).
+
 ### Anti-cheat notes for custom agents
 
 - **Reach only the model.** If your agent needs an endpoint other than the three

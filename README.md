@@ -97,8 +97,8 @@ permits `openrouter.ai`, `api.openai.com`, and `api.anthropic.com`; to reach a
 different endpoint add `--allow-agent-host <host>`. See
 [REPRODUCE.md](REPRODUCE.md#choosing-an-agent--model).
 
-**Bring your own agent** (e.g. [Chrys](https://github.com/0x7c13/chrys)) — write a
-small `BaseInstalledAgent` adapter and run `-a your.module:ClassName`, or use
-`-a acp:<agent>@<version>` for ACP-compatible agents. See
-[CUSTOM_AGENT.md](CUSTOM_AGENT.md) and the reference adapter
-[`agents/chrys_agent.py`](agents/chrys_agent.py).
+**Bring your own agent** — write a small `BaseInstalledAgent` adapter and run
+`-a your.module:ClassName`, or use `-a acp:<agent>@<version>` for ACP-compatible
+agents. See [CUSTOM_AGENT.md](CUSTOM_AGENT.md) and the two validated reference
+adapters: [`agents/chrys_agent.py`](agents/chrys_agent.py) (Chrys) and
+[`agents/dsh_agent.py`](agents/dsh_agent.py) (DeepSeek Harness).
