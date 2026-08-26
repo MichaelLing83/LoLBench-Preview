@@ -118,6 +118,42 @@ Two things this example taught (both handled in the adapter):
 
 Validated on `ruff_1`: applied, built, **7/19 F2P, 51/51 P2P** (genuine partial).
 
+## Third worked example: iCode (DeepSeek official API)
+
+[`agents/icode_agent.py`](agents/icode_agent.py) adapts
+[iCode](https://gitcode.com/michaelling/iCode) (`openjiuwen-icode`), driving its
+**headless CLI** — `icode run -t <task> -C <repo> --json` (Chrys-parity flags).
+iCode installs from gitcode; its `openjiuwen` SDK dep is the
+`michaelling/agent-core` `icode` branch. The adapter rewrites that SSH git source
+to HTTPS for the sandbox and talks to **DeepSeek's official API**
+(`https://api.deepseek.com`), reading `DEEPSEEK_API_KEY`.
+
+```bash
+export DEEPSEEK_API_KEY=sk-...
+export GITCODE_TOKEN=...   # gitcode PAT for private iCode / agent-core fetch
+PYTHONPATH=. harbor run -p harbor_tasks/ruff_1 \
+  -a agents.icode_agent:ICodeAgent \
+  --ae DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY \
+  --ae GITCODE_TOKEN=$GITCODE_TOKEN \
+  --allow-agent-host api.deepseek.com \
+  --agent-setup-timeout-multiplier 10 \
+  --job-name ruff_1_icode --jobs-dir harbor_runs/ruff_1 --no-delete -n 1 -y \
+  --ve LOLBENCH_SUITE=union
+```
+
+Notes specific to this adapter:
+
+1. **gitcode credentials** — pass `--ae GITCODE_TOKEN=...` so install can clone
+   iCode and resolve `openjiuwen` without an interactive SSH agent (the default
+   `[tool.uv.sources]` entry is `ssh://git@gitcode.com/...`).
+2. **Not Harbor `-m` routing** — like dsh, this path uses the agent's native key
+   and endpoint; allowlist `api.deepseek.com` for the agent run. Override model
+   with `--ae ICODE_MODEL=deepseek-reasoner` (default `deepseek-chat`).
+3. **Own uv Python** — same anti-cheat strip of `tomllib` / CPython `test` as
+   Chrys, applied to iCode's uv-managed 3.12 interpreter.
+
+Validate on `ruff_1` before a full sweep.
+
 ### Anti-cheat notes for custom agents
 
 - **Reach only the model.** If your agent needs an endpoint other than the three
