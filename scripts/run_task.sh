@@ -39,8 +39,18 @@ case "${model%%/*}" in
   groq)      host_args=(--allow-agent-host api.groq.com) ;;
   xai)       host_args=(--allow-agent-host api.x.ai) ;;
 esac
-# Override/extend with LOLBENCH_ALLOW_HOSTS="host1 host2" for any other provider.
-for h in ${LOLBENCH_ALLOW_HOSTS:-}; do host_args+=(--allow-agent-host "$h"); done
+# Extend with LOLBENCH_ALLOW_HOSTS="host1 host2" for any other provider.
+# WARNING: allowlist ONLY model endpoints. Adding a source host (github.com,
+# pypi.org, maven, a git mirror, ...) hands the agent the gold patch and
+# invalidates the run — see ANTI_CHEAT.md.
+for h in ${LOLBENCH_ALLOW_HOSTS:-}; do
+  case "$h" in
+    *github*|*gitlab*|*bitbucket*|*gitee*|*googlesource*|*pypi*|*pythonhosted*|*maven*|*apache.org*|*sourceforge*)
+      echo "REFUSING to allowlist source host '$h' — it would leak the gold solution (see ANTI_CHEAT.md)" >&2
+      exit 2 ;;
+  esac
+  host_args+=(--allow-agent-host "$h")
+done
 
 job="${id}_${agent}_${suite}"
 echo ">> $id  agent=$agent  model=${model_args[*]:-none}  suite=$suite  ${host_args[*]:-}"
