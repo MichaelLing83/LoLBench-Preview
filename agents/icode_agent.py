@@ -5,7 +5,8 @@ Subclasses Harbor's ``BaseInstalledAgent`` and drives iCode's **headless CLI**
 (``icode run -t … -C … --json``), which mirrors Chrys's non-TUI surface. iCode
 installs from gitcode; its ``openjiuwen`` SDK dep comes from the
 ``michaelling/agent-core`` ``icode`` branch (SSH in ``pyproject.toml`` — rewritten
-to HTTPS for the sandbox).
+to HTTPS in-tree before ``uv sync``, because Harbor sandboxes often block
+SSH :22 and uv's git+ssh path can bypass git ``insteadOf``).
 
 Talks to DeepSeek's official API (``https://api.deepseek.com``) and reads
 ``DEEPSEEK_API_KEY`` (iCode also accepts ``ICODE_API_KEY`` / ``OPENJIUWEN_API_KEY``):
@@ -63,21 +64,22 @@ class ICodeAgent(BaseInstalledAgent):
         await self.ensure_system_dependencies(environment, ("git", "curl"))
 
         # Fetch pinned iCode over HTTPS (curl/git), then uv sync. openjiuwen is
-        # declared as ssh://git@gitcode.com/... in [tool.uv.sources]; rewrite that
-        # to HTTPS + token so the sandbox never needs an interactive SSH agent.
+        # declared as ssh://git@gitcode.com/... in [tool.uv.sources]. Harbor
+        # sandboxes often block SSH :22, and uv's git+ssh fetch can bypass
+        # insteadOf — so rewrite pyproject.toml to HTTPS before `uv sync`, and
+        # still set insteadOf for any remaining git SSH URLs.
         # GIT_TERMINAL_PROMPT=0 stops any git-sourced dep hanging on a prompt.
-        # A public mirror needs no token; private repos / agent-core need
-        # --ae GITCODE_TOKEN=... (gitcode personal access token).
+        # Private repos / agent-core need --ae GITCODE_TOKEN=... (gitcode PAT).
         await self.exec_as_agent(environment, command=(
             "set -euo pipefail; export GIT_TERMINAL_PROMPT=0; "
             "command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; "
             'export PATH="$HOME/.local/bin:$PATH"; '
-            # Map ssh://git@gitcode.com/ and git@gitcode.com: → HTTPS (with token if set).
             'if [ -n "${GITCODE_TOKEN:-}" ]; then '
             '  _auth="https://oauth2:${GITCODE_TOKEN}@gitcode.com/"; '
             "else "
             '  _auth="https://gitcode.com/"; '
             "fi; "
+            # Belt-and-suspenders for any SSH git URLs uv/git still emit.
             'git config --global url."${_auth}".insteadOf "ssh://git@gitcode.com/"; '
             'git config --global url."${_auth}".insteadOf "git@gitcode.com:"; '
             f"rm -rf {ICODE_DIR}; "
@@ -91,6 +93,26 @@ class ICodeAgent(BaseInstalledAgent):
             f"git fetch --depth 1 origin {ICODE_PIN}; "
             f"git checkout {ICODE_PIN}; "
             "uv python install 3.12; "
+            # Force HTTPS for openjiuwen so uv never invokes SSH (port 22).
+            # Use uv's managed Python (sandbox image may lack system python3).
+            "UV_PY=$(uv python find 3.12); "
+            "cat > /tmp/rewrite_openjiuwen.py <<'EOF'\n"
+            "import os, pathlib\n"
+            "p = pathlib.Path('pyproject.toml')\n"
+            "text = p.read_text()\n"
+            "token = os.environ.get('GITCODE_TOKEN', '').strip()\n"
+            "core = (\n"
+            "    f'https://oauth2:{token}@gitcode.com/michaelling/agent-core.git'\n"
+            "    if token else\n"
+            "    'https://gitcode.com/michaelling/agent-core.git'\n"
+            ")\n"
+            "old = 'ssh://git@gitcode.com/michaelling/agent-core.git'\n"
+            "if old not in text:\n"
+            "    raise SystemExit('expected SSH openjiuwen source missing')\n"
+            "p.write_text(text.replace(old, core))\n"
+            "print('rewrote openjiuwen source to HTTPS')\n"
+            "EOF\n"
+            '"$UV_PY" /tmp/rewrite_openjiuwen.py; '
             # Skip default dev group (pytest, etc.). --frozen omitted for now:
             # pinned iCode commit may lack uv.lock (NonZeroAgentExitCodeError).
             "uv sync --no-default-groups; "
