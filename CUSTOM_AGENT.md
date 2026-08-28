@@ -152,8 +152,12 @@ Notes specific to this adapter:
 2. **Not Harbor `-m` routing** — like dsh, this path uses the agent's native key
    and endpoint; allowlist `api.deepseek.com` for the agent run. Override model
    with `--ae ICODE_MODEL=deepseek-reasoner` (default `deepseek-chat`).
-3. **Own uv Python** — same anti-cheat strip of `tomllib` / CPython `test` as
-   Chrys, applied to iCode's uv-managed 3.12 interpreter.
+3. **Own uv Python** — the adapter strips the CPython ``test`` package from
+   iCode's uv-managed 3.12 interpreter, but **keeps ``tomllib``** (required by
+   alembic / openjiuwen). Do **not** run this agent on ``cpython_5`` (PEP 680):
+   ``tomllib`` would be available to copy into the workspace. Same caution for
+   ``cpython_2`` / ``zoneinfo`` if you later strip or leave that module.
+
 
 Validate on `ruff_1` before a full sweep.
 
@@ -164,10 +168,12 @@ Validate on `ruff_1` before a full sweep.
   never a source host (`github.com`, `pypi.org`, package mirrors, Maven Central).
 - **Mind your agent's own runtime.** The eval image strips whole-module
   deliverables (`tomllib` = PEP 680, `zoneinfo` = PEP 615) from the *system*
-  Python, but an agent that ships its **own** interpreter (Chrys uses uv Python)
-  reintroduces them. The reference adapter removes `tomllib` (a deliverable) and the
-  CPython `test` package from Chrys's Python in `install()` for this reason; add
-  `zoneinfo` too if you run the PEP-615 task (`cpython_2`) with such an agent.
+  Python, but an agent that ships its **own** interpreter (Chrys / iCode use uv
+  Python) reintroduces them. Chrys removes `tomllib` and the CPython `test`
+  package in `install()` for this reason. **iCode keeps `tomllib`** (alembic
+  imports it) and only strips `test` — so do not use iCode on `cpython_5`.
+  Add `zoneinfo` stripping too if you run the PEP-615 task (`cpython_2`) with
+  an agent that leaves that module intact.
 - **Give it time.** These are long-horizon tasks; the default agent-run budget is
   6 h (`task.toml` `[agent] timeout_sec`). Keep timeout multipliers ≥ 1 (a value
   < 1 also shrinks the setup budget and causes `AgentSetupTimeoutError`).

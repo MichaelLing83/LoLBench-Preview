@@ -120,11 +120,15 @@ class ICodeAgent(BaseInstalledAgent):
         ), env=self.extra_env)
 
         # Anti-cheat: iCode runs on its OWN uv Python, which the eval image's
-        # stdlib strip does not reach. Remove whole-module deliverables so a
-        # PEP-680 agent can't copy tomllib out of its own interpreter.
+        # stdlib strip does not reach. Remove CPython's bundled ``test`` package
+        # so it cannot be copied into the workspace.
+        #
+        # Do NOT strip ``tomllib``: iCode/openjiuwen (alembic) needs it to start.
+        # Consequence: do not run this agent on ``cpython_5`` (PEP 680) — the
+        # model could copy tomllib from the agent interpreter into the task tree.
         await self.exec_as_agent(environment, command=(
             'find "$HOME/.local/share/uv/python" -type d '
-            r'\( -name tomllib -o -name test \) -path "*python3.12*" '
+            r'-name test -path "*python3.12*" '
             "-prune -exec rm -rf {} + 2>/dev/null || true"
         ))
 
