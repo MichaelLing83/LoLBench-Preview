@@ -91,8 +91,9 @@ class ICodeAgent(BaseInstalledAgent):
             f"git fetch --depth 1 origin {ICODE_PIN}; "
             f"git checkout {ICODE_PIN}; "
             "uv python install 3.12; "
-            # Lock pins openjiuwen; skip default dev group (pytest, etc.).
-            "uv sync --frozen --no-default-groups; "
+            # Skip default dev group (pytest, etc.). --frozen omitted for now:
+            # pinned iCode commit may lack uv.lock (NonZeroAgentExitCodeError).
+            "uv sync --no-default-groups; "
             ".venv/bin/icode --help >/dev/null"
         ), env=self.extra_env)
 
