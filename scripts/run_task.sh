@@ -27,12 +27,38 @@ if [ "$agent" != "oracle" ] && [ "$agent" != "nop" ] && [ "$model" != "-" ]; the
   model_args=(-m "$model")
 fi
 
+# Auto-allowlist the provider's API host. Tasks bake an agent-phase allowlist of
+# openrouter.ai / api.openai.com / api.anthropic.com; any OTHER provider host is
+# intercepted by the egress sidecar and the agent fails with an opaque
+# "unknown certificate verification error". Add the host for known providers.
+host_args=()
+case "${model%%/*}" in
+  deepseek)  host_args=(--allow-agent-host api.deepseek.com) ;;
+  moonshot)  host_args=(--allow-agent-host api.moonshot.cn) ;;
+  mistral)   host_args=(--allow-agent-host api.mistral.ai) ;;
+  groq)      host_args=(--allow-agent-host api.groq.com) ;;
+  xai)       host_args=(--allow-agent-host api.x.ai) ;;
+esac
+# Extend with LOLBENCH_ALLOW_HOSTS="host1 host2" for any other provider.
+# WARNING: allowlist ONLY model endpoints. Adding a source host (github.com,
+# pypi.org, maven, a git mirror, ...) hands the agent the gold patch and
+# invalidates the run — see ANTI_CHEAT.md.
+for h in ${LOLBENCH_ALLOW_HOSTS:-}; do
+  case "$h" in
+    *github*|*gitlab*|*bitbucket*|*gitee*|*googlesource*|*pypi*|*pythonhosted*|*maven*|*apache.org*|*sourceforge*)
+      echo "REFUSING to allowlist source host '$h' — it would leak the gold solution (see ANTI_CHEAT.md)" >&2
+      exit 2 ;;
+  esac
+  host_args+=(--allow-agent-host "$h")
+done
+
 job="${id}_${agent}_${suite}"
-echo ">> $id  agent=$agent  model=${model_args[*]:-none}  suite=$suite"
+echo ">> $id  agent=$agent  model=${model_args[*]:-none}  suite=$suite  ${host_args[*]:-}"
 
 harbor run \
   -p "harbor_tasks/$id" \
   -a "$agent" ${model_args[@]+"${model_args[@]}"} \
+  ${host_args[@]+"${host_args[@]}"} \
   --job-name "$job" --jobs-dir "harbor_runs/$id" \
   --no-delete -n 1 -y \
   --ve "LOLBENCH_SUITE=$suite" \

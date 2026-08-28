@@ -32,7 +32,17 @@ contain the gold + held-out tests) without any proxy — there is simply no path
 Maven at agent time.
 
 > Running a different model? Add **only** the model host with
-> `--allow-agent-host <host>`. Never allowlist a source host.
+> `--allow-agent-host <host>`. Never allowlist a source host. The wrapper scripts
+> add the endpoint automatically for common providers and **refuse** a source host
+> passed via `LOLBENCH_ALLOW_HOSTS`.
+
+Adding a model endpoint does not widen the boundary — it swaps one model host for
+another. Verified from inside a live agent container running as the `agent` user
+with `--allow-agent-host api.deepseek.com`: `api.deepseek.com` reachable (HTTP 401,
+i.e. the API answered), while `github.com`, `api.github.com`,
+`raw.githubusercontent.com`, `codeload.github.com`, `pypi.org`,
+`files.pythonhosted.org`, `repo.maven.apache.org`, `gitee.com`, and
+`apache.googlesource.com` all failed to connect (TLS intercepted).
 
 The agent's own tooling (e.g. OpenCode's Node runtime) is installed in a
 preceding **setup** step whose commands are fixed by the harness, not chosen by

@@ -182,11 +182,20 @@ harbor run -p harbor_tasks/ruff_1 -a oracle \
 - **Agent can't reach the model** — confirm the key env var is exported in the
   shell that runs `harbor`, and that the host is allowlisted (the three defaults,
   or add `--allow-agent-host`).
+- **`unknown certificate verification error` on EVERY call (agent dies immediately,
+  ~1 line of output, `applied 0`)** — the model host is not on the agent-phase
+  allowlist. Tasks allow only `openrouter.ai`, `api.openai.com`, `api.anthropic.com`;
+  traffic to any other host is intercepted by the egress sidecar, which the agent
+  reports as a TLS failure. Fix: add the provider's host, e.g. for native DeepSeek
+  `--allow-agent-host api.deepseek.com`. The wrapper scripts do this automatically
+  for common providers; for others set `LOLBENCH_ALLOW_HOSTS="api.example.com"`.
+  (Routing the same model via OpenRouter needs no extra host.)
 - **Transient model/network error mid-run** — occasional TLS/network hiccups on a
-  model call (e.g. an intermittent certificate-verification error) can fail an
-  otherwise-good trial. Add `--max-retries N` (`-r`) for robustness; retries are
-  off by default. A litellm warning about fetching a cost map from `github.com` is
-  harmless — github is intentionally blocked and litellm falls back to a bundled map.
+  model call (an intermittent certificate-verification error on *some* calls, while
+  others succeed) can fail an otherwise-good trial. Add `--max-retries N` (`-r`) for
+  robustness; retries are off by default. A litellm warning about fetching a cost map
+  from `github.com` is harmless — github is intentionally blocked and litellm falls
+  back to a bundled map.
 - **Agent run timeout** — each task allows a long-horizon budget by default
   (`task.toml` `[agent] timeout_sec`, **21600 s = 6 h** for most tasks); the setup
   (tooling install) budget is 3600 s. Scale either with
